@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="CustomServices\" />
-    <Folder Include="ICustomServices\" />
+    <ProjectReference Include="..\Capstone.UniFarm.Repositories\Capstone.UniFarm.Repositories.csproj" />
   </ItemGroup>
 
 </Project>
