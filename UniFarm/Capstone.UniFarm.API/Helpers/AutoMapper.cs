@@ -9,8 +9,9 @@ namespace Capstone.UniFarm.API.Helpers
     {
         public AutoMapper()
         {
-            CreateMap<Category, CategoryRequest>();
-            CreateMap<Category, CategoryResponse>();
+            CreateMap<Category, CategoryRequest>().ReverseMap();
+            CreateMap<Category, CategoryResponse>().ReverseMap();
+            CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
         }
     }
 }
