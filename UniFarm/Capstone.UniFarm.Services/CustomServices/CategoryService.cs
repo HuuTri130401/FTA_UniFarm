@@ -36,7 +36,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
                 if (category != null)
                 {
-                    _unitOfWork.CategoryRepository.Delete(category);
+                    category.Status = 0;
+                    _unitOfWork.CategoryRepository.Update(category);
                     var result = _unitOfWork.Save();
                     if (result > 0)
                     {

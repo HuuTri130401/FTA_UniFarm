@@ -22,6 +22,7 @@ try
     builder.Services.AddDbContext<UniFarmContext>(options =>
     {
         options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
     //============Add auto mapper============//
