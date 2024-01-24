@@ -10,13 +10,14 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.gitignore'
+
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
     env:
-        SOLUTIONPATH: UniFarm/CapstoneUniFarm.sln
+        SOLUTIONPATH: FTA_UniFarm/UniFarm/CapstoneUniFarm.sln
     steps:
       - uses: actions/checkout@v4
 
