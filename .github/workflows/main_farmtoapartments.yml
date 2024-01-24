@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-        SOLUTIONPATH: ./UniFarm/CapstoneUniFarm.sln"
+        SOLUTIONPATH: UniFarm/CapstoneUniFarm.sln"
     steps:
       - uses: actions/checkout@v4
 
