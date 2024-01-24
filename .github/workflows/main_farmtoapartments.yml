@@ -7,12 +7,16 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-
+    env:
+        SOLUTIONPATH: ./UniFarm/CapstoneUniFarm.sln"
     steps:
       - uses: actions/checkout@v4
 
