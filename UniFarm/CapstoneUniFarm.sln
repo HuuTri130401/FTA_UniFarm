@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Capstone.UniFarm.API", "Capstone.UniFarm.API\Capstone.UniFarm.API.csproj", "{C0C065A2-0ED5-4D13-B335-E3B5EC45492F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Capstone.UniFarm.API", "Capstone.UniFarm.API\Capstone.UniFarm.API.csproj", "{C0C065A2-0ED5-4D13-B335-E3B5EC45492F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Capstone.UniFarm.Domain", "Capstone.UniFarm.Domain\Capstone.UniFarm.Domain.csproj", "{2D8A43CA-7FFE-43D9-B1AA-C29E5C99BA09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Capstone.UniFarm.Domain", "Capstone.UniFarm.Domain\Capstone.UniFarm.Domain.csproj", "{2D8A43CA-7FFE-43D9-B1AA-C29E5C99BA09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Capstone.UniFarm.Services", "Capstone.UniFarm.Services\Capstone.UniFarm.Services.csproj", "{F0901EF9-E08B-4A12-84F2-A69762953E1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Capstone.UniFarm.Services", "Capstone.UniFarm.Services\Capstone.UniFarm.Services.csproj", "{F0901EF9-E08B-4A12-84F2-A69762953E1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Capstone.UniFarm.Repositories", "Capstone.UniFarm.Repositories\Capstone.UniFarm.Repositories.csproj", "{CE58B401-AF53-4B50-B495-EC4CAA56851A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Capstone.UniFarm.Repositories", "Capstone.UniFarm.Repositories\Capstone.UniFarm.Repositories.csproj", "{CE58B401-AF53-4B50-B495-EC4CAA56851A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
