@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Data;
+using Capstone.UniFarm.Domain.Specifications;
 using Capstone.UniFarm.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -35,12 +36,33 @@ namespace Capstone.UniFarm.Repositories.Repository
 
         public void Delete(T entity)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException("entity");
+            }
             _dbContext.Set<T>().Remove(entity);
         }
 
         public void Update(T entity)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException("entity");
+            }
             _dbContext.Set<T>().Update(entity);
+        }
+
+        public async Task<IReadOnlyList<T>> ListAsync(ISpecifications<T> specification)
+        {
+            return await ApplySpecification(specification).ToListAsync();
+        }
+        public async Task<int> CountAsync(ISpecifications<T> specifications)
+        {
+            return await ApplySpecification(specifications).CountAsync();
+        }
+        private IQueryable<T> ApplySpecification(ISpecifications<T> specifications)
+        {
+            return SpecificationEvaluatOr<T>.GetQuery(_dbContext.Set<T>().AsQueryable(), specifications);
         }
     }
 }

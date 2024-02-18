@@ -1,6 +1,8 @@
 ﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Domain.Specifications;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.ICustomServices;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,68 +14,113 @@ namespace Capstone.UniFarm.Services.CustomServices
     public class CategoryService : ICategoryService
     {
         public IUnitOfWork _unitOfWork;
+        private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(IUnitOfWork unitOfWork)
+        public CategoryService(IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<bool> CreateCategory(Category category)
         {
-            await _unitOfWork.CategoryRepository.Add(category);
-            var result = _unitOfWork.Save();
-            if (result > 0)
+            try
             {
-                return true;
+                await _unitOfWork.CategoryRepository.Add(category);
+                var result = _unitOfWork.Save();
+                if (result > 0)
+                {
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<bool> DeleteCategory(int categoryId)
         {
-            if (categoryId > 0)
+            try
             {
-                var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
-                if (category != null)
+                if (categoryId > 0)
                 {
-                    category.Status = 0;
-                    _unitOfWork.CategoryRepository.Update(category);
-                    var result = _unitOfWork.Save();
-                    if (result > 0)
+                    var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
+                    if (category != null)
                     {
-                        return true;
+                        category.Status = 0;
+                        _unitOfWork.CategoryRepository.Update(category);
+                        var result = _unitOfWork.Save();
+                        if (result > 0)
+                        {
+                            return true;
+                        }
+                        return false;
                     }
-                    return false;
                 }
+                return false;
             }
-            return false;
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Category>> GetAllCategories()
         {
-            var listCategories = await _unitOfWork.CategoryRepository.GetAll();
-            return listCategories;
+            try
+            {
+                var listCategories = await _unitOfWork.CategoryRepository.GetAll();
+                if (listCategories != null)
+                {
+                    return listCategories;
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<Category> GetCategoryById(int categoryId)
         {
-            var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
-            if (category != null)
+            try
             {
-                return category;
+                return await _unitOfWork.CategoryRepository.GetById(categoryId);
             }
-            return null;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetCategoryById service method for category ID: {categoryId}");
+                throw;
+            }
         }
-
         public async Task<bool> UpdateCategory(Category category)
         {
-            _unitOfWork.CategoryRepository.Update(category);
-            var result = _unitOfWork.Save();
-            if (result > 0)
+            try
             {
-                return true;
+                _unitOfWork.CategoryRepository.Update(category);
+                var result = _unitOfWork.Save();
+                if (result > 0)
+                {
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public async Task<IReadOnlyList<Category>> GetCategoriesAsync(ISpecifications<Category> specifications)
+        {
+            return await _unitOfWork.CategoryRepository.ListAsync(specifications);
+        }
+
+        public async Task<int> GetCategoriesCountAsync(ISpecifications<Category> specifications)
+        {
+            return await _unitOfWork.CategoryRepository.CountAsync(specifications);
         }
     }
 }

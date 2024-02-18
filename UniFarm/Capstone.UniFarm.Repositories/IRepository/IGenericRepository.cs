@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Capstone.UniFarm.Domain.Specifications;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task Add(T entity);
         void Delete(T entity);
         void Update(T entity);
+        Task<IReadOnlyList<T>> ListAsync(ISpecifications<T> specification);
+        Task<int> CountAsync(ISpecifications<T> specifications);
     }
 }

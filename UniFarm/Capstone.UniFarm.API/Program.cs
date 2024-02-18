@@ -1,5 +1,6 @@
 
 // Early init of NLog to allow startup and exception logging, before host is built
+using Capstone.UniFarm.API.MiddleWares;
 using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Repositories.IRepository;
 using Capstone.UniFarm.Repositories.Repository;
@@ -34,12 +35,16 @@ try
 
     builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-    ////============Configure logging============//
+    //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
     builder.Services.AddControllers();
+
+    //============register this middleware to ServiceCollection============//
+    builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -71,6 +76,8 @@ try
 
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
     app.UseHttpsRedirection();
 

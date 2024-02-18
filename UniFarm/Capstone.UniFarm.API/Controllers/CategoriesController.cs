@@ -3,6 +3,7 @@ using Capstone.UniFarm.API.Helpers;
 using Capstone.UniFarm.API.ViewModels.ModelRequests;
 using Capstone.UniFarm.API.ViewModels.ModelResponses;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Domain.Specifications;
 using Capstone.UniFarm.Services.ICustomServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -48,17 +49,18 @@ namespace Capstone.UniFarm.API.Controllers
         [HttpGet("{categoryId}")]
         public async Task<IActionResult> GetCategoryById(int categoryId)
         {
-            if(categoryId == 0)
+            if (categoryId == 0)
             {
                 _apiResponse.StatusCode = HttpStatusCode.BadRequest;
                 _apiResponse.IsSuccess = false;
                 return BadRequest(_apiResponse);
             }
             var category = await _categoryService.GetCategoryById(categoryId);
-            if(category == null)
+            if (category == null)
             {
                 _apiResponse.StatusCode = HttpStatusCode.NotFound;
                 _apiResponse.IsSuccess = false;
+                _apiResponse.ErrorMessages.Add("Can not found Category!");
                 return NotFound(_apiResponse);
             }
             var categoryResponse = _mapper.Map<CategoryResponse>(category);
