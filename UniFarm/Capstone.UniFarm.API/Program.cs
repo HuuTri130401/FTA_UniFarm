@@ -1,45 +1,116 @@
-
-// Early init of NLog to allow startup and exception logging, before host is built
+using Capstone.UniFarm.API.Configurations;
+using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Repositories.IRepository;
 using Capstone.UniFarm.Repositories.Repository;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NLog;
 using NLog.Web;
+using System.Text;
+using Capstone.UniFarm.Services.Commons;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-logger.Debug("init main");
+logger.Debug("Init main");
 
 try
 {
-
     var builder = WebApplication.CreateBuilder(args);
 
-    //============Connect DB============//
-    builder.Services.AddDbContext<UniFarmContext>(options =>
+    //============ Connect DB ============//
+    builder.Services.AddDbContext<FTAScript_V1Context>(options =>
     {
         options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
-    //============Add auto mapper============//
-    builder.Services.AddAutoMapper(typeof(Program));
 
-    // Add services to the container.
+    //============ Config CORS =============//
+    // Them CORS cho tat ca moi nguoi deu xai duoc apis
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(builder =>
+        {
+            builder.WithOrigins("http://localhost:3000")
+                   .AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+    });
+
+    //============ Identity =============//
+    builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
+    {
+
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
+
+        // User settings
+        options.User.RequireUniqueEmail = true;
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+        options.User.AllowedUserNameCharacters += " ";
+
+        // SignIn settings
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+    })
+    .AddEntityFrameworkStores<FTAScript_V1Context>()
+    .AddDefaultTokenProviders();
+
+    /*============== Google authentication ============ */
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            };
+        })
+        .AddCookie()
+        .AddGoogle(options =>
+        {
+            options.ClientId = builder.Configuration["Google:ClientId"];
+            options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+            options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
+            options.CallbackPath = "/signin-google";
+        });
+
+    //============ Add auto mapper ============//
+    // builder.Services.AddAutoMapper(typeof(Program));
+    builder.Services.AddAutoMapper(typeof(AutoMapperService));
+
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
+    builder.Services.AddScoped<IAccountRepository, AccountRepository>();
     builder.Services.AddScoped<ICategoryService, CategoryService>();
+    builder.Services.AddScoped<IAccountService, AccountService>();
 
-    ////============Configure logging============//
-    // NLog: Setup NLog for Dependency injection
+    //============ Configure logging ============//
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
     builder.Services.AddControllers();
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -54,17 +125,14 @@ try
     }
 
     app.UseHttpsRedirection();
-
+    app.UseAuthentication();
     app.UseAuthorization();
-
     app.MapControllers();
-
     app.Run();
-
 }
 catch (Exception exception)
 {
-    // NLog: catch setup errors
+    // NLog: Catch setup errors
     logger.Error(exception, "Stopped program because of exception");
     throw;
 }

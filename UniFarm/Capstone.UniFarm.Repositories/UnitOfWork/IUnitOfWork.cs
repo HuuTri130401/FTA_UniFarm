@@ -10,6 +10,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         ICategoryRepository CategoryRepository { get; }
+        IAccountRepository AccountRepository { get; }
         int Save();
+
+        Task<int> SaveChangesAsync();
     }
 }

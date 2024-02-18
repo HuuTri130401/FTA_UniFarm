@@ -1,6 +1,9 @@
 ﻿using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
+using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ViewModels.Category.Request;
+using Capstone.UniFarm.Services.ViewModels.Category.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,62 +21,40 @@ namespace Capstone.UniFarm.Services.CustomServices
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<bool> CreateCategory(Category category)
+        public Task<OperationResult<CategoryResponse>> CreateCategory(CategoryRequest companyRequest)
         {
-            await _unitOfWork.CategoryRepository.Add(category);
-            var result = _unitOfWork.Save();
-            if (result > 0)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public async Task<bool> DeleteCategory(int categoryId)
-        {
-            if (categoryId > 0)
-            {
-                var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
-                if (category != null)
-                {
-                    category.Status = 0;
-                    _unitOfWork.CategoryRepository.Update(category);
-                    var result = _unitOfWork.Save();
-                    if (result > 0)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-            }
-            return false;
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<Category>> GetAllCategories()
         {
-            var listCategories = await _unitOfWork.CategoryRepository.GetAll();
+            var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
             return listCategories;
         }
 
-        public async Task<Category> GetCategoryById(int categoryId)
+        public Task<OperationResult<CategoryResponse>> GetCategory(Guid companyId)
         {
-            var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
-            if (category != null)
-            {
-                return category;
-            }
-            return null;
+            throw new NotImplementedException();
         }
 
-        public async Task<bool> UpdateCategory(Category category)
+        public Task<OperationResult<Pagination<CategoryResponse>>> GetCategoryPaginationAsync(int pageIndex = 0, int pageSize = 10)
         {
-            _unitOfWork.CategoryRepository.Update(category);
-            var result = _unitOfWork.Save();
-            if (result > 0)
-            {
-                return true;
-            }
-            return false;
+            throw new NotImplementedException();
+        }
+
+        public Task<OperationResult<CategoryResponse>> UpdateCategory(Guid Id, CategoryRequest companyRequest)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OperationResult<bool>> ICategoryService.DeleteCategory(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OperationResult<IEnumerable<Category>>> ICategoryService.GetAllCategories()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Capstone.UniFarm.API.ViewModels.ModelRequests;
-using Capstone.UniFarm.API.ViewModels.ModelResponses;
+using Capstone.UniFarm.API.ViewModels.Category.Request;
+using Capstone.UniFarm.API.ViewModels.Category.Response;
 using Capstone.UniFarm.Domain.Models;
 
 namespace Capstone.UniFarm.API.Helpers

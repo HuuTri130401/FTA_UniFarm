@@ -10,13 +10,19 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly UniFarmContext _dbContext;
+        private readonly FTAScript_V1Context _dbContext;
         public ICategoryRepository CategoryRepository { get; }
 
-        public UnitOfWork(UniFarmContext dbContext, ICategoryRepository categoryRepo)
+        public IAccountRepository AccountRepository { get; }
+
+        public UnitOfWork(FTAScript_V1Context dbContext,
+            ICategoryRepository categoryRepo,
+            IAccountRepository accountRepo
+        )
         {
             _dbContext = dbContext;
             CategoryRepository = categoryRepo;
+            AccountRepository = accountRepo;
         }
 
         public void Dispose()
@@ -34,6 +40,11 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public int Save()
         {
             return _dbContext.SaveChanges();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _dbContext.SaveChangesAsync();
         }
     }
 }

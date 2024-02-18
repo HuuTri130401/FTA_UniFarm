@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,6 +8,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Capstone.UniFarm.Repositories\Capstone.UniFarm.Repositories.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BackgroundJobServices\" />
+    <Folder Include="ThirdPartyService\" />
+    <Folder Include="ViewModels\Authen\Response\" />
+    <Folder Include="ViewModels\ModelRequests\" />
+    <Folder Include="ViewModels\ModelResponses\" />
   </ItemGroup>
 
 </Project>

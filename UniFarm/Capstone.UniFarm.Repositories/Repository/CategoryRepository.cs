@@ -1,5 +1,5 @@
-﻿using Capstone.UniFarm.Domain.Data;
-using Capstone.UniFarm.Domain.Models;
+﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Repositories.IRepository;
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,9 @@ namespace Capstone.UniFarm.Repositories.Repository
 {
     public class CategoryRepository : GenericRepository<Category>, ICategoryRepository
     {
-        public CategoryRepository(UniFarmContext dbContext) : base(dbContext)
+        public CategoryRepository(FTAScript_V1Context dbContext) : base(dbContext)
         {
         }
+
     }
 }

@@ -1,122 +1,59 @@
-﻿using AutoMapper;
-using Capstone.UniFarm.API.Helpers;
-using Capstone.UniFarm.API.ViewModels.ModelRequests;
-using Capstone.UniFarm.API.ViewModels.ModelResponses;
-using Capstone.UniFarm.Domain.Models;
-using Capstone.UniFarm.Services.ICustomServices;
-using Microsoft.AspNetCore.Http;
+﻿using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ViewModels.Category.Request;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace Capstone.UniFarm.API.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : BaseController
     {
         private readonly ICategoryService _categoryService;
-        private readonly IMapper _mapper;
-        private readonly ILogger<CategoriesController> _logger;
-        private ApiResponse _apiResponse;
 
-        public CategoriesController(ICategoryService categoryService, IMapper mapper, ILogger<CategoriesController> logger)
+        public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
-            _mapper = mapper;
-            _logger = logger;
-            _apiResponse = new ApiResponse();
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCategoryList()
+        public async Task<IActionResult> GetAllCategory()
         {
-            _logger.LogInformation("CategoriesController: Get method called");
-            var categoryList = await _categoryService.GetAllCategories();
-            var resonsecategoryList = _mapper.Map<List<CategoryResponse>>(categoryList);
-
-            if (resonsecategoryList == null)
-            {
-                _apiResponse.StatusCode = HttpStatusCode.NotFound;
-                _apiResponse.IsSuccess = false;
-                return NotFound(_apiResponse);
-            }
-            _apiResponse.Result = resonsecategoryList;
-            _apiResponse.StatusCode = HttpStatusCode.OK;
-            return Ok(_apiResponse);
+            var response = await _categoryService.GetAllCategories();
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
-
-        [HttpGet("{categoryId}")]
-        public async Task<IActionResult> GetCategoryById(int categoryId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryById(Guid id)
         {
-            if(categoryId == 0)
-            {
-                _apiResponse.StatusCode = HttpStatusCode.BadRequest;
-                _apiResponse.IsSuccess = false;
-                return BadRequest(_apiResponse);
-            }
-            var category = await _categoryService.GetCategoryById(categoryId);
-            if(category == null)
-            {
-                _apiResponse.StatusCode = HttpStatusCode.NotFound;
-                _apiResponse.IsSuccess = false;
-                return NotFound(_apiResponse);
-            }
-            var categoryResponse = _mapper.Map<CategoryResponse>(category);
-            _apiResponse.Result = categoryResponse;
-            _apiResponse.StatusCode = HttpStatusCode.OK;
-            return Ok(_apiResponse);
+            var response = await _categoryService.GetCategory(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromForm] CategoryRequest categoryRequest)
+        public async Task<IActionResult> CreateCategory(CategoryRequest requestModel)
         {
-            var category = _mapper.Map<Category>(categoryRequest);
-            var isCategoryCreated = await _categoryService.CreateCategory(category);
-            _apiResponse.Result = isCategoryCreated;
-            _apiResponse.StatusCode = HttpStatusCode.Created;
-            return Ok(_apiResponse);
+            if (ModelState.IsValid)
+            {
+                var response = await _categoryService.CreateCategory(requestModel);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+            }
+            return BadRequest("Model is invalid");
         }
 
-        [HttpPut("{categoryId}")]
-        public async Task<IActionResult> UpdateCategory(int categoryId, [FromForm] CategoryRequestUpdate categoryRequestUpdate)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(Guid id, CategoryRequest requestModel)
         {
-            var existingCategory = await _categoryService.GetCategoryById(categoryId);
-            if (existingCategory == null)
+            if (ModelState.IsValid)
             {
-                _apiResponse.StatusCode = HttpStatusCode.BadRequest;
-                _apiResponse.IsSuccess = false;
-                return NotFound(_apiResponse);
+                var response = await _categoryService.UpdateCategory(id, requestModel);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
             }
-            existingCategory = _mapper.Map<Category>(categoryRequestUpdate);
-            existingCategory.Id = categoryId;
-
-            var isCategoryUpdated = await _categoryService.UpdateCategory(existingCategory);
-            _apiResponse.Result = isCategoryUpdated;
-            _apiResponse.StatusCode= HttpStatusCode.NoContent;
-            return Ok(_apiResponse);
+            return BadRequest("Model is invalid");
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteCategory(int categoryId)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoveCategory(Guid id)
         {
-            if(categoryId == 0)
-            {
-                _apiResponse.StatusCode = HttpStatusCode.BadRequest;
-                _apiResponse.IsSuccess = false;
-                return BadRequest();
-            }
-
-            var isCategoryDeleted = await _categoryService.DeleteCategory(categoryId);
-            if (isCategoryDeleted == false)
-            {
-                _apiResponse.StatusCode = HttpStatusCode.BadRequest;
-                _apiResponse.IsSuccess = false;
-                return BadRequest();
-            }
-            _apiResponse.Result = isCategoryDeleted;
-            _apiResponse.IsSuccess = true;
-            _apiResponse.StatusCode = HttpStatusCode.NoContent;
-            return Ok(_apiResponse);
+            var response = await _categoryService.DeleteCategory(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }
 }

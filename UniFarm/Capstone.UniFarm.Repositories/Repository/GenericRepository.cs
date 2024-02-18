@@ -4,43 +4,94 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Repositories.Repository
 {
-    public abstract class GenericRepository<T> : IGenericRepository<T> where T : class
+    public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
-        protected readonly UniFarmContext _dbContext;
+        protected DbSet<TEntity> _dbSet;
 
-        protected GenericRepository(UniFarmContext dbContext)
+        public GenericRepository(FTAScript_V1Context context)
         {
-            _dbContext = dbContext;
+            _dbSet = context.Set<TEntity>();
+        }
+        public virtual Task<List<TEntity>> GetAllAsync() => _dbSet.ToListAsync();
+
+        public virtual async Task<TEntity> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includeProperties)
+        {
+            var result = await _dbSet.FindAsync(id);
+            // todo should throw exception when not found
+            if (result == null)
+                throw new Exception($"Not Found by ID: [{id}] of [{typeof(TEntity).Name}]");
+            return result;
         }
 
-        public async Task<T> GetById(int id)
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
-            return await _dbContext.Set<T>().FindAsync(id);
+            await _dbSet.AddAsync(entity);
+            return entity;
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+        public virtual void SoftRemove(TEntity entity)
         {
-            return await _dbContext.Set<T>().ToListAsync();
+            _dbSet.Update(entity);
         }
 
-        public async Task Add(T entity)
+        public virtual void Update(TEntity entity)
         {
-            await _dbContext.Set<T>().AddAsync(entity);
+            _dbSet.Update(entity);
         }
 
-        public void Delete(T entity)
+        public virtual async Task AddRangeAsync(List<TEntity> entities)
         {
-            _dbContext.Set<T>().Remove(entity);
+            await _dbSet.AddRangeAsync(entities);
         }
 
-        public void Update(T entity)
+        public virtual void SoftRemoveRange(List<TEntity> entities)
         {
-            _dbContext.Set<T>().Update(entity);
+            _dbSet.UpdateRange(entities);
+        }
+
+        public TEntity Remove(TEntity entity)
+        {
+            _dbSet.Remove(entity);
+            return entity;
+        }
+
+        public virtual void UpdateRange(List<TEntity> entities)
+        {
+            _dbSet.UpdateRange(entities);
+        }
+
+        public IQueryable<TEntity> FindAll(params Expression<Func<TEntity, object>>[]? includeProperties)
+        {
+            IQueryable<TEntity> items = _dbSet.AsNoTracking();
+            if (includeProperties != null)
+                foreach (var includeProperty in includeProperties)
+                {
+                    items = items.Include(includeProperty);
+                }
+            return items;
+        }
+
+        public IQueryable<TEntity> FindAll(Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[]? includeProperties)
+        {
+            IQueryable<TEntity> items = _dbSet.AsNoTracking();
+            if (includeProperties != null)
+                foreach (var includeProperty in includeProperties)
+                {
+                    items = items.Include(includeProperty);
+                }
+            return items.Where(predicate);
+        }
+
+        public async Task<TEntity?> FindSingleAsync(Expression<Func<TEntity, bool>>? predicate, params Expression<Func<TEntity, object>>[]? includeProperties)
+        {
+            return await FindAll(includeProperties).SingleOrDefaultAsync(predicate);
         }
     }
 }
+
