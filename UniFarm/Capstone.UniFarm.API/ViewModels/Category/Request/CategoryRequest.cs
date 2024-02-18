@@ -12,8 +12,6 @@ namespace Capstone.UniFarm.API.ViewModels.Category.Request
         public string Description { get; set; }
         [Required]
         public string Image { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         [Required]
         public int Status { get; set; }
         public int Index { get; set; }

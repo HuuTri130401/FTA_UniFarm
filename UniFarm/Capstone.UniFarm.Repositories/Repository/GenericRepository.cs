@@ -92,6 +92,19 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await FindAll(includeProperties).SingleOrDefaultAsync(predicate);
         }
+
+        /*public async Task<IReadOnlyList<T>> ListAsync(ISpecifications<T> specification)
+        {
+            return await ApplySpecification(specification).ToListAsync();
+        }
+        public async Task<int> CountAsync(ISpecifications<T> specifications)
+        {
+            return await ApplySpecification(specifications).CountAsync();
+        }
+        private IQueryable<T> ApplySpecification(ISpecifications<T> specifications)
+        {
+            return SpecificationEvaluatOr<T>.GetQuery(_dbContext.Set<T>().AsQueryable(), specifications);
+        }*/
     }
 }
 

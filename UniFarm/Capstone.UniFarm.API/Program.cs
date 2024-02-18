@@ -1,5 +1,7 @@
+
 using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.API.MiddleWares;
 using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Repositories.IRepository;
 using Capstone.UniFarm.Repositories.Repository;
@@ -105,29 +107,55 @@ try
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
 
-    //============ Configure logging ============//
+
+    //============Configure logging============//
+    // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
     builder.Services.AddControllers();
+    
+    //============register this middleware to ServiceCollection============//
+    builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    //============Configure CORS============//
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(builder =>
+        {
+            builder.WithOrigins("http://localhost:3000")
+                   .AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+    });
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    app.UseSwagger();
+    //    app.UseSwaggerUI(c =>
+    //    {
+    //        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API Name v1");
+    //        c.RoutePrefix = string.Empty;
+    //    });
+    //}
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
+    app.UseCors();
     app.Run();
 }
 catch (Exception exception)
