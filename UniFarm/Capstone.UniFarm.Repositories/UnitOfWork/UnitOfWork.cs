@@ -12,17 +12,19 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
     {
         private readonly FTAScript_V1Context _dbContext;
         public ICategoryRepository CategoryRepository { get; }
-
         public IAccountRepository AccountRepository { get; }
-
+        public IProductRepository ProductRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
-            IAccountRepository accountRepo
+            IAccountRepository accountRepo,
+            IProductRepository productRepository
+            
         )
         {
             _dbContext = dbContext;
             CategoryRepository = categoryRepo;
             AccountRepository = accountRepo;
+            ProductRepository = productRepository;
         }
 
         public void Dispose()

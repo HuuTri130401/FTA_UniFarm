@@ -34,18 +34,17 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
-                var resonsecategoryList = _mapper.Map<List<CategoryResponse>>(listCategories);
+                var listCategoriesResponse = _mapper.Map<List<CategoryResponse>>(listCategories);
 
-                if (resonsecategoryList == null || !resonsecategoryList.Any())
+                if (listCategoriesResponse == null || !listCategoriesResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List Category is Empty!");
+                    result.AddError(StatusCode.NotFound, "List Categories is Empty!");
                     return result;
                 }
-                //result.Payload = resonsecategoryList;
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Categories Done.", resonsecategoryList);
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Categories Done.", listCategoriesResponse);
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 throw;
             }
@@ -63,7 +62,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
                 var categoryResponse = _mapper.Map<CategoryResponse>(category);
-                result.Payload = categoryResponse;
+                result.AddResponseStatusCode(StatusCode.Ok, $"Get Category by Id: {categoryId} Success!", categoryResponse);
                 return result;
             }
             catch (Exception ex)
