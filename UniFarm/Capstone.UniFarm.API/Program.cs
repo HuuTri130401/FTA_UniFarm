@@ -1,5 +1,3 @@
-
-using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.API.MiddleWares;
 using Capstone.UniFarm.Domain.Data;
