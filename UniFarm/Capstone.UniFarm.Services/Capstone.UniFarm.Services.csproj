@@ -18,8 +18,6 @@
     <Folder Include="BackgroundJobServices\" />
     <Folder Include="ThirdPartyService\" />
     <Folder Include="ViewModels\Authen\Response\" />
-    <Folder Include="ViewModels\ModelRequests\" />
-    <Folder Include="ViewModels\ModelResponses\" />
   </ItemGroup>
 
 	<ItemGroup>

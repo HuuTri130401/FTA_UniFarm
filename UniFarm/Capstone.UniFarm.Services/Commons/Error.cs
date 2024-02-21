@@ -8,6 +8,6 @@ namespace Capstone.UniFarm.Services.Commons;
 
 public class Error
 {
-    public ErrorCode Code { get; set; }
+    public StatusCode Code { get; set; }
     public string Message { get; set; }
 }

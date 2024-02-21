@@ -1,8 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Capstone.UniFarm.Services.ViewModels.Category.Request
+namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public class CategoryRequestUpdate
+    public record CategoryRequestUpdate
     {
         public string Name { get; set; }
         public string Code { get; set; }

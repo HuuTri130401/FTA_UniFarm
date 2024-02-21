@@ -56,7 +56,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 else
                 {
                     result.Payload = null;
-                    result.AddError(ErrorCode.BadRequest, response.Errors.AsEnumerable().ToList().ToString());
+                    result.AddError(StatusCode.BadRequest, response.Errors.AsEnumerable().ToList().ToString());
                 }
             }
             catch (Exception ex)
@@ -94,7 +94,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var emailClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
                 if (emailClaim is null)
                 {
-                    result.AddError(ErrorCode.UnAuthorize, "Email claim is missing");
+                    result.AddError(StatusCode.UnAuthorize, "Email claim is missing");
                     return result;
                 }
                 var user = await _unitOfWork.AccountRepository.FindSingleAsync(x => x.Email == emailClaim!.Value);
@@ -128,7 +128,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     else
                     {
                         result.IsError = true;
-                        result.AddError(ErrorCode.UnAuthorize, creationResult.Errors.FirstOrDefault().Description);
+                        result.AddError(StatusCode.UnAuthorize, creationResult.Errors.FirstOrDefault().Description);
                     }
                 }
                 else
@@ -181,7 +181,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var user = await _unitOfWork.AccountRepository.FindSingleAsync(predicate);
                 if (user == null)
                 {
-                    result.AddError(ErrorCode.NotFound, "User not found");
+                    result.AddError(StatusCode.NotFound, "User not found");
                     return result;
                 }
                 var accountReponse = _mapper.Map<AccountResponse>(user);

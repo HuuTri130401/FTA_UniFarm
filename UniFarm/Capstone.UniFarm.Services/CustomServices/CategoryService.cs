@@ -1,10 +1,11 @@
-﻿using Capstone.UniFarm.Domain.Models;
+﻿using AutoMapper;
+using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Domain.Specifications;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
-using Capstone.UniFarm.Services.ViewModels.Category.Request;
-using Capstone.UniFarm.Services.ViewModels.Category.Response;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,21 +19,58 @@ namespace Capstone.UniFarm.Services.CustomServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CategoryService> _logger;
+        private readonly IMapper _mapper;
 
-        public CategoryService(IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
+        public CategoryService(IUnitOfWork unitOfWork, ILogger<CategoryService> logger, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _mapper = mapper;
         }
 
-        public Task<OperationResult<IEnumerable<Category>>> GetAllCategories()
+        public async Task<OperationResult<List<CategoryResponse>>> GetAllCategories()
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<List<CategoryResponse>>();
+            try
+            {
+                var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
+                var resonsecategoryList = _mapper.Map<List<CategoryResponse>>(listCategories);
+
+                if (resonsecategoryList == null || !resonsecategoryList.Any())
+                {
+                    result.AddError(StatusCode.NotFound, "List Category is Empty!");
+                    return result;
+                }
+                //result.Payload = resonsecategoryList;
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Categories Done.", resonsecategoryList);
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
-        public Task<OperationResult<CategoryResponse>> GetCategory(Guid companyId)
+        public async Task<OperationResult<CategoryResponse>> GetCategoryById(Guid categoryId)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<CategoryResponse>();
+            try
+            {
+                var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+                if(category == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found Category with Id: {categoryId}");
+                    return result;
+                }
+                var categoryResponse = _mapper.Map<CategoryResponse>(category);
+                result.Payload = categoryResponse;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetCategoryById service method for category ID: {categoryId}");
+                throw;
+            }
         }
 
         public Task<OperationResult<CategoryResponse>> CreateCategory(CategoryRequest companyRequest)

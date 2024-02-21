@@ -9,17 +9,26 @@ namespace Capstone.UniFarm.Services.Commons
 {
     public class OperationResult<T>
     {
-        public T? Payload { get; set; }
+        public StatusCode StatusCode { get; set; }
+        public string Message { get; set; }
         public bool IsError { get; set; }
+
+        public T? Payload { get; set; }
         public string? AccessToken { get; set; }
         public List<Error> Errors { get; set; } = new List<Error>();
-        public void AddError(ErrorCode code, string message)
+        public void AddError(StatusCode code, string message)
         {
             HandleError(code, message);
         }
+
+        public void AddResponseStatusCode(StatusCode code, string message, T? payload)
+        {
+            HandleResponse(code, message, payload);
+        }
+
         public void AddUnknownError(string message)
         {
-            HandleError(ErrorCode.UnknownError, message);
+            HandleError(StatusCode.UnknownError, message);
         }
 
         public void ResetIsErrorFlag()
@@ -27,7 +36,15 @@ namespace Capstone.UniFarm.Services.Commons
             IsError = false;
         }
 
-        private void HandleError(ErrorCode code, string message)
+        private void HandleResponse(StatusCode code, string message, T? payload)
+        {
+            StatusCode = code;
+            IsError = false;
+            Message = message;
+            Payload = payload;
+        }
+
+        private void HandleError(StatusCode code, string message)
         {
             Errors.Add(new Error { Code = code, Message = message });
             IsError = true;
@@ -35,7 +52,7 @@ namespace Capstone.UniFarm.Services.Commons
 
         public void AddValidationError(string foodIdAndSupplierIdCannotBeTheSame)
         {
-            HandleError(ErrorCode.UnknownError, foodIdAndSupplierIdCannotBeTheSame);
+            HandleError(StatusCode.UnknownError, foodIdAndSupplierIdCannotBeTheSame);
         }
     }
 }

@@ -2,6 +2,8 @@
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.ViewModels.Account.Response;
 using Capstone.UniFarm.Services.ViewModels.Authen.Request;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 namespace Capstone.UniFarm.Services.Commons
 {
@@ -12,8 +14,15 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Account, AccountResponse>().ReverseMap();
             CreateMap<RegisterVM, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
-                
-                
+
+            CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
+            CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
+
+            CreateMap<Category, CategoryRequest>().ReverseMap();
+            CreateMap<Category, CategoryResponse>().ReverseMap();
+
+            CreateMap<Product, ProductRequest>().ReverseMap();
+            CreateMap<Product, ProductResponse>().ReverseMap();
         }
     }
 }
