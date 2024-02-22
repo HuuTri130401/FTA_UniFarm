@@ -27,14 +27,57 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public Task<OperationResult<ProductResponse>> CreateProduct(ProductRequest productRequest)
+        public async Task<OperationResult<bool>> CreateProduct(ProductRequest productRequest)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var product = _mapper.Map<Product>(productRequest);
+                await _unitOfWork.ProductRepository.AddAsync(product);
+                var checkResult = _unitOfWork.Save();
+                if (checkResult > 0)
+                {
+                    result.AddResponseStatusCode(StatusCode.Created, "Add Product Success!", true);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, "Add Product Failed!"); ;
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
-        public Task<OperationResult<bool>> DeleteProduct(Guid id)
+        public async Task<OperationResult<bool>> DeleteProduct(Guid productId)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
+                if (existingProduct != null)
+                {
+                    existingProduct.Status = "InActive";
+                    _unitOfWork.ProductRepository.Update(existingProduct);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product have Id: {productId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Delete Product Failed!"); ;
+                    }
+                }
+                result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product have Id: {productId}. Delete Faild!.", false);
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<OperationResult<List<ProductResponse>>> GetAllProducts()
@@ -82,9 +125,34 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public Task<OperationResult<ProductResponse>> UpdateProduct(Guid Id, ProductRequest productRequest)
+        public async Task<OperationResult<bool>> UpdateProduct(Guid productId, ProductRequest productRequest)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
+                if (existingProduct != null)
+                {
+                    existingProduct = _mapper.Map<Product>(productRequest);
+                    existingProduct.Id = productId;
+                    _unitOfWork.ProductRepository.Update(existingProduct);
+
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.NoContent, $"Update Product have Id: {productId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Update Product Failed!"); ;
+                    }
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

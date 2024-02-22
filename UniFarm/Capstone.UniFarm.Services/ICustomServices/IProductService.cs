@@ -13,8 +13,8 @@ namespace Capstone.UniFarm.Services.ICustomServices
     {
         Task<OperationResult<List<ProductResponse>>> GetAllProducts();
         Task<OperationResult<ProductResponse>> GetProductById(Guid productId);
-        Task<OperationResult<ProductResponse>> CreateProduct(ProductRequest productRequest);
-        Task<OperationResult<bool>> DeleteProduct(Guid id);
-        Task<OperationResult<ProductResponse>> UpdateProduct(Guid Id, ProductRequest productRequest);
+        Task<OperationResult<bool>> CreateProduct(ProductRequest productRequest);
+        Task<OperationResult<bool>> DeleteProduct(Guid productId);
+        Task<OperationResult<bool>> UpdateProduct(Guid productId, ProductRequest productRequest);
     }
 }
