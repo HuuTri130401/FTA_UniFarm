@@ -93,6 +93,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         result.AddError(StatusCode.BadRequest, "Delete Category Failed!"); ;
                     }
                 }
+                else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Category have Id: {categoryId}. Delete Faild!.", false);
+                }
                 return result;
             }
             catch (Exception)

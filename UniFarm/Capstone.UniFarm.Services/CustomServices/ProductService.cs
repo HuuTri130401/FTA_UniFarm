@@ -71,7 +71,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         result.AddError(StatusCode.BadRequest, "Delete Product Failed!"); ;
                     }
                 }
-                result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product have Id: {productId}. Delete Faild!.", false);
+                else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product have Id: {productId}. Delete Faild!.", false);
+                }
                 return result;
             }
             catch (Exception)
