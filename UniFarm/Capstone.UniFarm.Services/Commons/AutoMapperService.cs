@@ -16,6 +16,7 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
 
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
+            CreateMap<FarmHub, FarmHubRequestUpdate>().ReverseMap();
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
 
             CreateMap<Category, CategoryRequest>().ReverseMap();

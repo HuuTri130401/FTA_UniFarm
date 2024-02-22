@@ -103,10 +103,12 @@ try
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<IFarmHubRepository, FarmHubRepository>();
 
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IFarmHubService, FarmHubService>();
 
 
     //============Configure logging============//

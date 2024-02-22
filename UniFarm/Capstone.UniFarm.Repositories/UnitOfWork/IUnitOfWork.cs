@@ -12,6 +12,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         ICategoryRepository CategoryRepository { get; }
         IAccountRepository AccountRepository { get; }
         IProductRepository ProductRepository { get; }
+        IFarmHubRepository FarmHubRepository { get; }
         int Save();
 
         Task<int> SaveChangesAsync();
