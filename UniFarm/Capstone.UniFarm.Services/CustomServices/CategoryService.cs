@@ -46,6 +46,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred in GetAllCategories Service Method");
                 throw;
             }
         }
@@ -56,7 +57,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
-                if(category == null)
+                if (category == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Category with Id: {categoryId}");
                     return result;
@@ -67,24 +68,37 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetCategoryById service method for category ID: {categoryId}");
+                _logger.LogError(ex, $"Error occurred in GetCategoryById Service Method for category ID: {categoryId}");
                 throw;
             }
         }
 
-        public Task<OperationResult<CategoryResponse>> CreateCategory(CategoryRequest companyRequest)
+        public async Task<OperationResult<bool>> DeleteCategory(Guid categoryId)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<OperationResult<bool>> DeleteCategory(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<OperationResult<CategoryResponse>> UpdateCategory(Guid Id, CategoryRequest companyRequest)
-        {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+                if (category != null)
+                {
+                    category.Status = "InActive";
+                    _unitOfWork.CategoryRepository.Update(category);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Category have Id: {categoryId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Delete Category Failed!"); ;
+                    }
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public Task<OperationResult<Pagination<CategoryResponse>>> GetCategoryPaginationAsync(int pageIndex = 0, int pageSize = 10)
@@ -96,6 +110,60 @@ namespace Capstone.UniFarm.Services.CustomServices
         {
             throw new NotImplementedException();
         }
-    }
 
+        public async Task<OperationResult<bool>> CreateCategory(CategoryRequest categoryRequest)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var category = _mapper.Map<Category>(categoryRequest);
+                await _unitOfWork.CategoryRepository.AddAsync(category);
+                var checkResult = _unitOfWork.Save();
+                if (checkResult > 0)
+                {
+                    result.AddResponseStatusCode(StatusCode.Created, "Add Category Success!", true);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, "Add Category Failed!"); ;
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<bool>> UpdateCategory(Guid categoryId, CategoryRequestUpdate categoryRequestUpdate)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+                if (existingCategory != null)
+                {
+                    var temporaryCategory = _mapper.Map<Category>(categoryRequestUpdate);
+                    temporaryCategory.Id = categoryId;
+                    temporaryCategory.CreatedAt = existingCategory.CreatedAt; 
+                    _unitOfWork.CategoryRepository.Update(temporaryCategory);
+
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.NoContent, $"Update Category have Id: {categoryId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Update Category Failed!"); ;
+                    }
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+    }
 }

@@ -22,7 +22,5 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response!.Errors) : Created("/api/account",response.Payload);
         }
         #endregion
-        
-        
     }
 }

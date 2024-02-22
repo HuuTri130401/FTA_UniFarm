@@ -21,40 +21,40 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("id")]
+        [HttpGet("categoryId")]
         public async Task<IActionResult> GetCategoryById(Guid categoryId)
         {
             var response = await _categoryService.GetCategoryById(categoryId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> CreateCategory(CategoryRequest requestModel)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var response = await _categoryService.CreateCategory(requestModel);
-        //        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        //    }
-        //    return BadRequest("Model is invalid");
-        //}
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory(CategoryRequest categoryRequest)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _categoryService.CreateCategory(categoryRequest);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateCategory(Guid id, CategoryRequest requestModel)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var response = await _categoryService.UpdateCategory(id, requestModel);
-        //        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        //    }
-        //    return BadRequest("Model is invalid");
-        //}
+        [HttpPut("{categoryId}")]
+        public async Task<IActionResult> UpdateCategory(Guid categoryId, CategoryRequestUpdate categoryRequestUpdate)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _categoryService.UpdateCategory(categoryId, categoryRequestUpdate);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
 
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> RemoveCategory(Guid id)
-        //{
-        //    var response = await _categoryService.DeleteCategory(id);
-        //    return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        //}
+        [HttpDelete("categoryId")]
+        public async Task<IActionResult> DeleteCategory(Guid categoryId)
+        {
+            var response = await _categoryService.DeleteCategory(categoryId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
     }
 }

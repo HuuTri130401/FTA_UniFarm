@@ -19,6 +19,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
 
             CreateMap<Category, CategoryRequest>().ReverseMap();
+            CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
             CreateMap<Category, CategoryResponse>().ReverseMap();
 
             CreateMap<Product, ProductRequest>().ReverseMap();
