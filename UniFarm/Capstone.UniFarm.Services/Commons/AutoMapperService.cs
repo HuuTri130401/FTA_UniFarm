@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Models;
-using Capstone.UniFarm.Services.ViewModels.Account.Response;
-using Capstone.UniFarm.Services.ViewModels.Authen.Request;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
-using Capstone.UniFarm.Services.ViewModels.ModelRequests;
-using Capstone.UniFarm.Services.ViewModels.ModelResponses;
+
 
 namespace Capstone.UniFarm.Services.Commons
 {
@@ -30,10 +27,6 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
             CreateMap<FarmHub, FarmHubRequestUpdate>().ReverseMap();
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
-
-            CreateMap<Category, CategoryRequest>().ReverseMap();
-            CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
-            CreateMap<Category, CategoryResponse>().ReverseMap();
 
             CreateMap<Product, ProductRequest>().ReverseMap();
             CreateMap<Product, ProductResponse>().ReverseMap();
