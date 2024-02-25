@@ -12,8 +12,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string Code { get; set; }
         public string? Description { get; set; }
         public string? Image { get; set; }
-        public string Address { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public string Status { get; set; }
+        public string? Address { get; set; }
+
     }
 }
