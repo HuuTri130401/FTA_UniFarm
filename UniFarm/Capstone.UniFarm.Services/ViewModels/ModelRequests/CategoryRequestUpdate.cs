@@ -1,16 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public class CategoryRequestUpdate
+    public record CategoryRequestUpdate
     {
-        public Guid Id { get; set; }
+        [Required]
         public string Name { get; set; }
-        public string Code { get; set; }
         public string Description { get; set; }
+        [Required]
         public string Image { get; set; }
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
-        public int Status { get; set; }
-        public int Index { get; set; }
+        [Required]
+        public string Code { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public string Status { get; set; }
+        public int? DisplayIndex { get; set; }
+        public double? SystemPrice { get; set; }
+        public double? MinSystemPrice { get; set; }
+        public double? MaxSystemPrice { get; set; }
+        public double? Margin { get; set; }
     }
 }

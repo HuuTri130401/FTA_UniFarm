@@ -1,3 +1,4 @@
+
 using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.API.MiddleWares;
@@ -36,40 +37,40 @@ try
         options.AddDefaultPolicy(builder =>
         {
             builder.WithOrigins("http://localhost:3000")
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
+                   .AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
         });
     });
 
     //============ Identity =============//
     builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
-        {
-            // Lockout settings
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.AllowedForNewUsers = true;
+    {
 
-            // User settings
-            options.User.RequireUniqueEmail = true;
-            options.User.AllowedUserNameCharacters =
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            options.User.AllowedUserNameCharacters += " ";
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
 
-            // SignIn settings
-            options.SignIn.RequireConfirmedEmail = false;
-            options.SignIn.RequireConfirmedPhoneNumber = false;
-        })
-        .AddEntityFrameworkStores<FTAScript_V1Context>()
-        .AddDefaultTokenProviders();
+        // User settings
+        options.User.RequireUniqueEmail = true;
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+        options.User.AllowedUserNameCharacters += " ";
+
+        // SignIn settings
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+    })
+    .AddEntityFrameworkStores<FTAScript_V1Context>()
+    .AddDefaultTokenProviders();
 
     /*============== Google authentication ============ */
     builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        })
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
         .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -109,10 +110,16 @@ try
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+    builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<IFarmHubRepository, FarmHubRepository>();
+
     builder.Services.AddScoped<IAreaRepository, AreaRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
+    builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IFarmHubService, FarmHubService>();
+
     builder.Services.AddScoped<IAreaService, AreaService>();
 
     //============Configure logging============//

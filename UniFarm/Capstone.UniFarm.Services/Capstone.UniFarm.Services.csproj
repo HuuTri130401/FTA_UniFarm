@@ -17,6 +17,7 @@
   <ItemGroup>
     <Folder Include="BackgroundJobServices\" />
     <Folder Include="ThirdPartyService\" />
+    <Folder Include="ViewModels\Authen\Response\" />
   </ItemGroup>
 
 	<ItemGroup>

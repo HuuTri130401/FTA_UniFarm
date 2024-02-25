@@ -7,39 +7,30 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="appsettings.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        </Content>
+        <Compile Remove="Exceptions\**" />
+        <EmbeddedResource Remove="Exceptions\**" />
+        <None Remove="Exceptions\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Exceptions\"/>
-        <Compile Remove="Exceptions\**"/>
-        <EmbeddedResource Remove="Exceptions\**"/>
-        <None Remove="Exceptions\**"/>
+        <Folder Include="Enum\" />
+        <Folder Include="Migrations\" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Enum\"/>
-        <Folder Include="Migrations\"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
     </ItemGroup>
 </Project>

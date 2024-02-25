@@ -22,11 +22,12 @@ namespace Capstone.UniFarm.Repositories.Repository
 
         public virtual async Task<TEntity> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includeProperties)
         {
-            var result = await _dbSet.FindAsync(id);
-            // todo should throw exception when not found
-            if (result == null)
-                throw new Exception($"Not Found by ID: [{id}] of [{typeof(TEntity).Name}]");
-            return result;
+            //var result = await _dbSet.FindAsync(id);
+            //// todo should throw exception when not found
+            //if (result == null)
+            //    throw new Exception($"Not Found by ID: [{id}] of [{typeof(TEntity).Name}]");
+            //return result;
+            return await _dbSet.FindAsync(id);
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity entity)
