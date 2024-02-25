@@ -14,7 +14,6 @@ namespace Capstone.UniFarm.Domain.Models
             Apartments = new HashSet<Apartment>();
             Stations = new HashSet<Station>();
         }
-
         [Key]
         public Guid Id { get; set; }
         [StringLength(255)]

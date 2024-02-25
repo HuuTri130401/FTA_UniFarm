@@ -1,6 +1,6 @@
 ﻿using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.ICustomServices;
-using Capstone.UniFarm.Services.ViewModels.Authen.Request;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -38,7 +38,7 @@ namespace Capstone.UniFarm.API.Controllers
         [HttpPost("register")]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<IActionResult> Register([FromBody] RegisterVM model)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest model)
         {
             model.Role = RoleEnum.Customer;
             var response = await _accountService.CreateAccount(model);
@@ -48,7 +48,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         #region API Login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginVM model)
+        public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email); 
 

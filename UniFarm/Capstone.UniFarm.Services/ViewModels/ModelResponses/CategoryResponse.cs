@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Capstone.UniFarm.API.ViewModels.Category.Response
+namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
     public class CategoryResponse
     {

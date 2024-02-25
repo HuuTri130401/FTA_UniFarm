@@ -1,11 +1,12 @@
 ﻿using Capstone.UniFarm.API.Helpers;
 using Capstone.UniFarm.Services.Commons;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace Capstone.UniFarm.API.Controllers
 {
     [ApiController]
-    public class BaseController : ControllerBase
+    public class BaseController : ODataController
     {
         protected IActionResult HandleErrorResponse(List<Error> errors)
         {

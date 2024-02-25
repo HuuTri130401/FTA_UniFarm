@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Capstone.UniFarm.API.ViewModels.Authen.Request
+namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public class GoogleLoginVM
+    public class GoogleLoginRequest
     {
         [Required]
         public string GoogleAccessToken { get; set; }

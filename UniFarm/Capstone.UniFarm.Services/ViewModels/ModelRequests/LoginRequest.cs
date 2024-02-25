@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Capstone.UniFarm.Services.ViewModels.Authen.Request
+namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public record LoginVM
+    public record LoginRequest
     {
         [Required]
         [EmailAddress]

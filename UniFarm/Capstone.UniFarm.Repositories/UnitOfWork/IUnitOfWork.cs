@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Capstone.UniFarm.Domain.Data;
 
 namespace Capstone.UniFarm.Repositories.UnitOfWork
 {
@@ -11,6 +12,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
     {
         ICategoryRepository CategoryRepository { get; }
         IAccountRepository AccountRepository { get; }
+        IAreaRepository AreaRepository { get; }
         int Save();
 
         Task<int> SaveChangesAsync();

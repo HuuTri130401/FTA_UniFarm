@@ -1,5 +1,5 @@
 using Capstone.UniFarm.Services.ICustomServices;
-using Capstone.UniFarm.Services.ViewModels.Category.Request;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers

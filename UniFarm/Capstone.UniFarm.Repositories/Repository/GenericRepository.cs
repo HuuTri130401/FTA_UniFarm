@@ -77,15 +77,49 @@ namespace Capstone.UniFarm.Repositories.Repository
             return items;
         }
 
-        public IQueryable<TEntity> FindAll(Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[]? includeProperties)
+       
+        public IQueryable<TEntity> FilterAll(
+            bool? isAscending, 
+            string? orderBy = null, 
+            Expression<Func<TEntity, bool>>? predicate = null, 
+            string[]? includeProperties = null, 
+            int pageIndex = 0, 
+            int pageSize = 10)
         {
             IQueryable<TEntity> items = _dbSet.AsNoTracking();
             if (includeProperties != null)
+            {
                 foreach (var includeProperty in includeProperties)
                 {
                     items = items.Include(includeProperty);
                 }
-            return items.Where(predicate);
+            }
+            if (predicate != null)
+            {
+                items = items.Where(predicate);
+            }
+            if (!string.IsNullOrEmpty(orderBy)) // Check if orderBy is provided
+            {
+                items = ApplyOrder(items, orderBy, isAscending ?? true); 
+            }
+            return items.Skip(pageIndex * pageSize).Take(pageSize);
+        }
+        
+        private IQueryable<TEntity> ApplyOrder(IQueryable<TEntity> source, string orderBy, bool isAscending)
+        {
+            var parameter = Expression.Parameter(typeof(TEntity), "x");
+            var property = Expression.Property(parameter, orderBy);
+            var lambda = Expression.Lambda(property, parameter);
+
+            var methodName = isAscending ? "OrderBy" : "OrderByDescending";
+            var orderByExpression = Expression.Call(
+                typeof(Queryable),
+                methodName,
+                new[] { typeof(TEntity), property.Type },
+                source.Expression,
+                lambda
+            );
+            return source.Provider.CreateQuery<TEntity>(orderByExpression);
         }
 
         public async Task<TEntity?> FindSingleAsync(Expression<Func<TEntity, bool>>? predicate, params Expression<Func<TEntity, object>>[]? includeProperties)

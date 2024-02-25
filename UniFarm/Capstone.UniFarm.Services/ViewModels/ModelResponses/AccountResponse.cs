@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Capstone.UniFarm.Services.ViewModels.Account.Response
+namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
     public record AccountResponse
     {

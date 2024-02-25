@@ -3,22 +3,13 @@ using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
-using Capstone.UniFarm.Services.ViewModels.Account.Request;
-using Capstone.UniFarm.Services.ViewModels.Account.Response;
-using Capstone.UniFarm.Services.ViewModels.Authen.Request;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -39,19 +30,19 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<RegisterVM>> CreateAccount(RegisterVM registerVM)
+        public async Task<OperationResult<RegisterRequest>> CreateAccount(RegisterRequest registerRequest)
         {
-            var result = new OperationResult<RegisterVM>();
+            var result = new OperationResult<RegisterRequest>();
             try
             {
-                var newAccount = _mapper.Map<Account>(registerVM);
+                var newAccount = _mapper.Map<Account>(registerRequest);
                 newAccount.CreatedAt = DateTime.UtcNow;
-                newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, registerVM.Password);
+                newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, registerRequest.Password);
                 var response = await _userManager.CreateAsync(newAccount);
                 if (response.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(newAccount, registerVM.Role.ToString());
-                    result.Payload = registerVM;
+                    await _userManager.AddToRoleAsync(newAccount, registerRequest.Role.ToString());
+                    result.Payload = registerRequest;
                 }
                 else
                 {
@@ -62,6 +53,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             catch (Exception ex)
             {
                 result.AddUnknownError(ex.Message);
+                throw;
             }
             return result;
         }

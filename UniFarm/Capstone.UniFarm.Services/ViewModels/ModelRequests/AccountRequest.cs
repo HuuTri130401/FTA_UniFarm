@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Capstone.UniFarm.Services.ViewModels.Account.Request
+namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public record AccountRequest
     {

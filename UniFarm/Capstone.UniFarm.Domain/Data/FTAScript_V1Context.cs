@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Capstone.UniFarm.Domain.Data
 {
-    public partial class FTAScript_V1Context :  IdentityDbContext<Account, IdentityRole<Guid>, Guid>
+    public partial class FTAScript_V1Context : IdentityDbContext<Account, IdentityRole<Guid>, Guid>
     {
         public FTAScript_V1Context()
         {
@@ -47,7 +47,6 @@ namespace Capstone.UniFarm.Domain.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
                 optionsBuilder.UseSqlServer(GetConnectionString());
             }
         }
@@ -55,9 +54,9 @@ namespace Capstone.UniFarm.Domain.Data
         private string GetConnectionString()
         {
             IConfiguration config = new ConfigurationBuilder()
-                 .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", true, true)
-                        .Build();
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
             var strConn = config["ConnectionStrings:DefaultConnection"];
 
             return strConn;
@@ -82,11 +81,8 @@ namespace Capstone.UniFarm.Domain.Data
             modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
-        
-            modelBuilder.Entity<Account>(entity =>
-            {
-                entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            });
+
+            modelBuilder.Entity<Account>(entity => { entity.Property(e => e.Id).HasDefaultValueSql("(newid())"); });
 
             modelBuilder.Entity<AccountRole>(entity =>
             {
@@ -130,10 +126,7 @@ namespace Capstone.UniFarm.Domain.Data
                     .HasConstraintName("FK__Apartment__Stati__48CFD27E");
             });
 
-            modelBuilder.Entity<Area>(entity =>
-            {
-                entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            });
+            modelBuilder.Entity<Area>(entity => { entity.Property(e => e.Id).HasDefaultValueSql("(newid())"); });
 
             modelBuilder.Entity<Batch>(entity =>
             {
@@ -171,20 +164,14 @@ namespace Capstone.UniFarm.Domain.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             });
 
-            modelBuilder.Entity<Category>(entity =>
-            {
-                entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            });
+            modelBuilder.Entity<Category>(entity => { entity.Property(e => e.Id).HasDefaultValueSql("(newid())"); });
 
             modelBuilder.Entity<CollectedHub>(entity =>
             {
                 entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             });
 
-            modelBuilder.Entity<FarmHub>(entity =>
-            {
-                entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            });
+            modelBuilder.Entity<FarmHub>(entity => { entity.Property(e => e.Id).HasDefaultValueSql("(newid())"); });
 
             modelBuilder.Entity<Menu>(entity =>
             {

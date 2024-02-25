@@ -14,15 +14,18 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public ICategoryRepository CategoryRepository { get; }
 
         public IAccountRepository AccountRepository { get; }
+        public IAreaRepository AreaRepository { get; }
 
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
-            IAccountRepository accountRepo
+            IAccountRepository accountRepo,
+            IAreaRepository areaRepo
         )
         {
             _dbContext = dbContext;
             CategoryRepository = categoryRepo;
             AccountRepository = accountRepo;
+            AreaRepository = areaRepo;
         }
 
         public void Dispose()

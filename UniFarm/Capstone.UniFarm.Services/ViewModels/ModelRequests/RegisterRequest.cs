@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Capstone.UniFarm.Domain.Enum;
 
-namespace Capstone.UniFarm.Services.ViewModels.Authen.Request
+namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public record RegisterVM
+    public record RegisterRequest
     {
         [Required]
         [EmailAddress]

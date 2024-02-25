@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Models;
-using Capstone.UniFarm.Services.ViewModels.Account.Response;
-using Capstone.UniFarm.Services.ViewModels.Authen.Request;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 namespace Capstone.UniFarm.Services.Commons
 {
@@ -10,10 +10,18 @@ namespace Capstone.UniFarm.Services.Commons
         public AutoMapperService()
         {
             CreateMap<Account, AccountResponse>().ReverseMap();
-            CreateMap<RegisterVM, Account>()
+            CreateMap<RegisterRequest, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
-                
-                
+            
+            // Category Mapping
+            CreateMap<Category, CategoryRequest>().ReverseMap();
+            CreateMap<Category, CategoryResponse>().ReverseMap();
+            CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
+            
+            // Area Mapping
+            CreateMap<AreaRequestCreate, Area>().ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()));
+            CreateMap<AreaRequestUpdate, Area>().ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
+            CreateMap<Area, AreaResponse>();
         }
     }
 }
