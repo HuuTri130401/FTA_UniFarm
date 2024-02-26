@@ -121,6 +121,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var category = _mapper.Map<Category>(categoryRequest);
+                category.Status = "Active";
+                category.CreatedAt = DateTime.UtcNow;
                 await _unitOfWork.CategoryRepository.AddAsync(category);
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
@@ -147,10 +149,63 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
                 if (existingCategory != null)
                 {
-                    var temporaryCategory = _mapper.Map<Category>(categoryRequestUpdate);
-                    temporaryCategory.Id = categoryId;
-                    temporaryCategory.CreatedAt = existingCategory.CreatedAt; 
-                    _unitOfWork.CategoryRepository.Update(temporaryCategory);
+                    bool isAnyFieldUpdated = false;
+                    if (categoryRequestUpdate.Name != null)
+                    {
+                        existingCategory.Name = categoryRequestUpdate.Name;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.Description != null)
+                    {
+                        existingCategory.Description = categoryRequestUpdate.Description;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.Image != null)
+                    {
+                        existingCategory.Image = categoryRequestUpdate.Image;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.Code != null)
+                    {
+                        existingCategory.Code = categoryRequestUpdate.Code;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.DisplayIndex != null)
+                    {
+                        existingCategory.DisplayIndex = categoryRequestUpdate.DisplayIndex;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.SystemPrice != null)
+                    {
+                        existingCategory.SystemPrice = categoryRequestUpdate.SystemPrice;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.MinSystemPrice != null)
+                    {
+                        existingCategory.MinSystemPrice = categoryRequestUpdate.MinSystemPrice;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.MaxSystemPrice != null)
+                    {
+                        existingCategory.MaxSystemPrice = categoryRequestUpdate.MaxSystemPrice;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.Margin != null)
+                    {
+                        existingCategory.Margin = categoryRequestUpdate.Margin;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (categoryRequestUpdate.Status != null && (categoryRequestUpdate.Status == "Active" || categoryRequestUpdate.Status == "InActive"))
+                    {
+                        existingCategory.Status = categoryRequestUpdate.Status;
+                        isAnyFieldUpdated = true;
+                    }
+
+                    if (isAnyFieldUpdated)
+                    {
+                        existingCategory.UpdatedAt = DateTime.Now;
+                    }
+                    _unitOfWork.CategoryRepository.Update(existingCategory);
 
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
