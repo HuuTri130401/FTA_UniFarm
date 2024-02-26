@@ -106,6 +106,7 @@ try
 
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
+
     builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -176,7 +177,7 @@ try
     {
         var builder = new ODataConventionModelBuilder();
         builder.EntitySet<AreaRequestCreate>("Areas");
-        builder.EntitySet<CategoryRequest>("Categories");
+        //builder.EntitySet<CategoryRequest>("Categories");
         return builder.GetEdmModel();
     }
 }

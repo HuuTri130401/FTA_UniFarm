@@ -23,7 +23,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("farmHubId")]
+        [HttpGet("{farmHubId}")]
         public async Task<IActionResult> GetFarmHubById(Guid farmHubId)
         {
             var response = await _farmHubService.GetFarmHubById(farmHubId);
