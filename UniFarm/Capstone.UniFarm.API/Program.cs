@@ -29,7 +29,14 @@ logger.Debug("Init main");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    
+
+    //============ Connect DB ============//
+    builder.Services.AddDbContext<FTAScript_V1Context>(options =>
+    {
+        options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    });
+
     //============ Config CORS =============//
     // Them CORS cho tat ca moi nguoi deu xai duoc apis
     builder.Services.AddCors(options =>
@@ -107,7 +114,7 @@ try
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
 
-    builder.Services.AddScoped<FTAScript_V1Context>();
+    //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
