@@ -38,6 +38,13 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var newAccount = _mapper.Map<Account>(registerRequest);
                 newAccount.CreatedAt = DateTime.UtcNow;
                 newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, registerRequest.Password);
+                newAccount.AccountRoles = new AccountRole
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = newAccount.Id,
+                    Account = newAccount,
+                    Status = "Active"
+                };
                 var response = await _userManager.CreateAsync(newAccount);
                 if (response.Succeeded)
                 {

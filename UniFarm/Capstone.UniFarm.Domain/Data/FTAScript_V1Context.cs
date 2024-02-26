@@ -89,8 +89,7 @@ namespace Capstone.UniFarm.Domain.Data
                 entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
 
                 entity.HasOne(d => d.Account)
-                    .WithMany(p => p.AccountRoles)
-                    .HasForeignKey(d => d.AccountId)
+                    .WithOne(p => p.AccountRoles)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__AccountRo__Accou__5165187F");
             });

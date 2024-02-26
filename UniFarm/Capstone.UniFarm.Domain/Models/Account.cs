@@ -8,29 +8,28 @@ using Microsoft.EntityFrameworkCore;
 namespace Capstone.UniFarm.Domain.Models
 {
     [Table("Account")]
-    public partial class Account : IdentityUser<Guid>
+    public sealed partial class Account : IdentityUser<Guid>
     {
         public Account()
         {
-            AccountRoles = new HashSet<AccountRole>();
+            AccountRoles = new AccountRole();
             ApartmentStations = new HashSet<ApartmentStation>();
             Orders = new HashSet<Order>();
             Wallets = new HashSet<Wallet>();
         }
 
-        [Key]
-        public Guid Id { get; set; }
+        public override Guid Id { get; set; }
         [StringLength(100)]
         public string? RoleName { get; set; }
         [StringLength(50)]
         public string? FirstName { get; set; }
         [StringLength(50)]
         public string? LastName { get; set; }
-        [StringLength(10)]
+        [StringLength(12)]
         public string? Phone { get; set; }
         [StringLength(50)]
-        public string? Email { get; set; }
-        public string? Avatar { get; set; }
+        public override string Email { get; set; }
+        public string? Avatar { get; set; }  = null;
         [StringLength(100)]
         public string? Code { get; set; }
         public string? Address { get; set; }
@@ -42,12 +41,13 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? UpdatedAt { get; set; }
 
         [InverseProperty(nameof(AccountRole.Account))]
-        public virtual ICollection<AccountRole> AccountRoles { get; set; }
+        public AccountRole AccountRoles { get; set; }
+
         [InverseProperty(nameof(ApartmentStation.Account))]
-        public virtual ICollection<ApartmentStation> ApartmentStations { get; set; }
+        public ICollection<ApartmentStation>? ApartmentStations { get; set; } = null;
         [InverseProperty(nameof(Order.Customer))]
-        public virtual ICollection<Order> Orders { get; set; }
+        public ICollection<Order>? Orders { get; set; }  = null;
         [InverseProperty(nameof(Wallet.Account))]
-        public virtual ICollection<Wallet> Wallets { get; set; }
+        public ICollection<Wallet>? Wallets { get; set; }  = null;
     }
 }
