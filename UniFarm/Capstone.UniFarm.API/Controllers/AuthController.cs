@@ -14,14 +14,14 @@ namespace Capstone.UniFarm.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LoginController : BaseController
+    public class AuthController : BaseController
     {
         private readonly UserManager<Account> _userManager;
         private readonly SignInManager<Account> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly IAccountService _accountService;
 
-        public LoginController(
+        public AuthController(
             UserManager<Account> userManager,
             SignInManager<Account> signInManager,
             IConfiguration configuration,
