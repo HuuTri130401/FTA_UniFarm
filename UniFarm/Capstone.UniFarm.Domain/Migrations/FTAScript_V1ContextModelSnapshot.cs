@@ -988,36 +988,36 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c6a4f4a3-ec0c-4a44-95f4-fb52abb0de7f"),
-                            ConcurrencyStamp = "6dd34e5d-886f-4063-8335-d60a90d260fa",
+                            Id = new Guid("2cbccfd9-84d4-4826-8e79-f9e310fb28c5"),
+                            ConcurrencyStamp = "80192500-677e-4c5d-883f-e89bcbba49e2",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("2a4a2199-45c6-4cef-b81b-7749b7e3a805"),
-                            ConcurrencyStamp = "48f163a5-1acd-4344-b45a-a0894d9b5060",
+                            Id = new Guid("c321e808-0bae-4312-85ad-7104ce0ef837"),
+                            ConcurrencyStamp = "e6a11b40-e52f-480c-b1d9-b88bd69d5bc4",
                             Name = "FarmHub",
                             NormalizedName = "FARMHUB"
                         },
                         new
                         {
-                            Id = new Guid("6e444c8b-7f6c-4956-880a-863e7b61135e"),
-                            ConcurrencyStamp = "3058f854-0f0b-4d4b-8a30-d55fa23c71b4",
+                            Id = new Guid("11dd27b4-f56c-4b44-8163-2f1da2ea0181"),
+                            ConcurrencyStamp = "cd833445-f5b2-447b-b1d6-59c718e2e2a6",
                             Name = "CollectedStaff",
                             NormalizedName = "COLLECTEDSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("f1d4b102-d7f8-4b71-8e3a-06d5829847aa"),
-                            ConcurrencyStamp = "090cd6b0-0604-4cae-be47-142e20159b3c",
+                            Id = new Guid("db82caac-692d-4c3b-b3c3-06fc101a4071"),
+                            ConcurrencyStamp = "821b918e-c804-4a5e-89cb-e66ab2bcc30b",
                             Name = "StationStaff",
                             NormalizedName = "STATIONSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("dbc7cfbc-9caf-46cd-a0ad-fe1c5df67304"),
-                            ConcurrencyStamp = "f24b3ac9-4f59-4550-8929-d77953e5517c",
+                            Id = new Guid("e271d563-8aea-4354-acad-461bc2b15d66"),
+                            ConcurrencyStamp = "57940425-6d6e-4413-8040-2a4ddc520724",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });

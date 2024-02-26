@@ -2,9 +2,9 @@
 
 public enum RoleEnum
 {
-    FarmHub,
-    Customer,
-    CollectedStaff,
-    StationStaff,
+    FarmHub = 0,
+    Customer = 1,
+    CollectedStaff = 2,
+    StationStaff = 3,
 }
 

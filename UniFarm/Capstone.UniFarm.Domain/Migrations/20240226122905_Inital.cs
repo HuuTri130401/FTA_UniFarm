@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Capstone.UniFarm.Domain.Migrations
 {
-    public partial class Initial : Migration
+    public partial class Inital : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,8 +17,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     RoleName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Phone = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Phone = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Code = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -707,11 +707,11 @@ namespace Capstone.UniFarm.Domain.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("15b9ad57-605e-4086-a05c-0dc50bffb360"), "28769cb2-eb75-4a04-ba26-bf9f7be368be", "Admin", "ADMIN" },
-                    { new Guid("17604629-b4bb-44dc-ae3f-cfcbe0fd9b66"), "ecd44b16-4381-4073-a5a3-48a5153063f3", "FarmHub", "FARMHUB" },
-                    { new Guid("44a92e92-e7e1-4112-82e3-973338c77c1a"), "3e0a59e5-e87e-4636-ba68-ed5bb5edc41c", "CollectedStaff", "COLLECTEDSTAFF" },
-                    { new Guid("80dee048-635d-4714-80fe-6230e8ac44de"), "a10227f2-a80f-4efd-928e-ec9817bf7d56", "Customer", "CUSTOMER" },
-                    { new Guid("c100d3d3-066d-4e6b-9b3e-bd8c44e5d773"), "77998ef0-5c87-43d6-8404-973e5bc529e0", "StationStaff", "STATIONSTAFF" }
+                    { new Guid("11dd27b4-f56c-4b44-8163-2f1da2ea0181"), "cd833445-f5b2-447b-b1d6-59c718e2e2a6", "CollectedStaff", "COLLECTEDSTAFF" },
+                    { new Guid("2cbccfd9-84d4-4826-8e79-f9e310fb28c5"), "80192500-677e-4c5d-883f-e89bcbba49e2", "Admin", "ADMIN" },
+                    { new Guid("c321e808-0bae-4312-85ad-7104ce0ef837"), "e6a11b40-e52f-480c-b1d9-b88bd69d5bc4", "FarmHub", "FARMHUB" },
+                    { new Guid("db82caac-692d-4c3b-b3c3-06fc101a4071"), "821b918e-c804-4a5e-89cb-e66ab2bcc30b", "StationStaff", "STATIONSTAFF" },
+                    { new Guid("e271d563-8aea-4354-acad-461bc2b15d66"), "57940425-6d6e-4413-8040-2a4ddc520724", "Customer", "CUSTOMER" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -729,7 +729,9 @@ namespace Capstone.UniFarm.Domain.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AccountRole_AccountId",
                 table: "AccountRole",
-                column: "AccountId");
+                column: "AccountId",
+                unique: true,
+                filter: "[AccountId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Apartment_AreaId",
