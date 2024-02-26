@@ -10,7 +10,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public record CategoryRequest
     {
-        public Guid? Id { get; set; }
         [Required]
         public string Name { get; set; }
         public string Description { get; set; }

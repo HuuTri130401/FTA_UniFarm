@@ -177,7 +177,6 @@ try
     {
         var builder = new ODataConventionModelBuilder();
         builder.EntitySet<AreaRequestCreate>("Areas");
-        //builder.EntitySet<CategoryRequest>("Categories");
         return builder.GetEdmModel();
     }
 }
