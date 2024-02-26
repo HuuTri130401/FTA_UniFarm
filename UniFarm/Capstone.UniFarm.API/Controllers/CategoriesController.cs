@@ -21,7 +21,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("categoryId")]
+        [HttpGet("{categoryId}")]
         public async Task<IActionResult> GetCategoryById(Guid categoryId)
         {
             var response = await _categoryService.GetCategoryById(categoryId);
@@ -50,7 +50,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("categoryId")]
+        [HttpDelete("{categoryId}")]
         public async Task<IActionResult> DeleteCategory(Guid categoryId)
         {
             var response = await _categoryService.DeleteCategory(categoryId);
