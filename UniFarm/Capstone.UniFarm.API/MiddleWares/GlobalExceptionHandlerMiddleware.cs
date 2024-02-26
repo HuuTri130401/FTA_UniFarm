@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Capstone.UniFarm.API.MiddleWares
 {
@@ -20,9 +21,7 @@ namespace Capstone.UniFarm.API.MiddleWares
             catch (Exception ex)
             {
                 var traceId = Guid.NewGuid();
-                _logger.LogError($"Error occure while processing the request, TraceId : ${traceId}" +
-                    $", Message : ${ex.Message}" +
-                    $", StackTrace: ${ex.StackTrace}");
+                _logger.LogError($"Error occurred while processing the request, TraceId: {traceId}, Message: {ex.Message}, StackTrace: {ex.StackTrace}");
 
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
@@ -32,10 +31,19 @@ namespace Capstone.UniFarm.API.MiddleWares
                     Title = "Internal Server Error",
                     Status = (int)StatusCodes.Status500InternalServerError,
                     Instance = context.Request.Path,
-                    Detail = $"Internal server error occured, traceId : {traceId}",
+                    Detail = $"An internal server error occurred, TraceId: {traceId}",
                 };
-                await context.Response.WriteAsJsonAsync(problemDetails);
+
+                // Add additional information to problemDetails if necessary
+                // For example, you can add the exception message and stack trace
+                problemDetails.Extensions.Add("exceptionMessage", ex.Message);
+                problemDetails.Extensions.Add("stackTrace", ex.StackTrace);
+
+                // Serialize problemDetails to JSON and write it to the response
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails));
             }
         }
+
     }
 }

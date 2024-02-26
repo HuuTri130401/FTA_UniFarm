@@ -34,7 +34,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
                 farmHub.Status = "Active";
-                farmHub.CreatedAt = DateTime.UtcNow;
+                farmHub.CreatedAt = DateTime.Now;
                 await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
@@ -138,11 +138,44 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(farmhubId);
                 if (existingFarmHub != null)
                 {
-                    var temporaryFarmHub = _mapper.Map<FarmHub>(farmHubRequestUpdate);
-                    temporaryFarmHub.Id = farmhubId;
-                    temporaryFarmHub.CreatedAt = existingFarmHub.CreatedAt;
-                    temporaryFarmHub.UpdatedAt = DateTime.UtcNow;
-                    _unitOfWork.FarmHubRepository.Update(temporaryFarmHub);
+                    bool isAnyFieldUpdated = false;
+                    if (farmHubRequestUpdate.Name != null)
+                    {
+                        existingFarmHub.Name = farmHubRequestUpdate.Name;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (farmHubRequestUpdate.Code != null)
+                    {
+                        existingFarmHub.Code = farmHubRequestUpdate.Code;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (farmHubRequestUpdate.Description != null)
+                    {
+                        existingFarmHub.Description = farmHubRequestUpdate.Description;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (farmHubRequestUpdate.Image != null)
+                    {
+                        existingFarmHub.Image = farmHubRequestUpdate.Image;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (farmHubRequestUpdate.Address != null)
+                    {
+                        existingFarmHub.Address = farmHubRequestUpdate.Address;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (farmHubRequestUpdate.Status != null && (farmHubRequestUpdate.Status == "Active" || farmHubRequestUpdate.Status == "InActive"))
+                    {
+                        existingFarmHub.Status = farmHubRequestUpdate.Status;
+                        isAnyFieldUpdated = true;
+                    }
+
+                    if (isAnyFieldUpdated)
+                    {
+                        existingFarmHub.UpdatedAt = DateTime.Now;
+                    }
+
+                    _unitOfWork.FarmHubRepository.Update(existingFarmHub);
 
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
