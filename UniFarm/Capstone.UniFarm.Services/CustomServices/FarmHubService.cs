@@ -34,7 +34,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
                 farmHub.Status = "Active";
-                farmHub.CreatedAt = DateTime.UtcNow;
+                farmHub.CreatedAt = DateTime.Now;
                 await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
