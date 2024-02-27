@@ -120,15 +120,16 @@ try
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
     builder.Services.AddScoped<IFarmHubRepository, FarmHubRepository>();
-
     builder.Services.AddScoped<IAreaRepository, AreaRepository>();
+    builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+    
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
-
     builder.Services.AddScoped<IAreaService, AreaService>();
+    builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
