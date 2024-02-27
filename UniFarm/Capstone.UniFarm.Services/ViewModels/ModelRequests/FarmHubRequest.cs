@@ -22,7 +22,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
         public string? Description { get; set; }
         [Required(ErrorMessage = "Image is required")]
-        [StringLength(100, ErrorMessage = "Image URL length cannot exceed 100 characters")]
+        [StringLength(255, ErrorMessage = "Image URL length cannot exceed 255 characters")]
         public string Image { get; set; }
 
         [Required(ErrorMessage = "Address is required")]
