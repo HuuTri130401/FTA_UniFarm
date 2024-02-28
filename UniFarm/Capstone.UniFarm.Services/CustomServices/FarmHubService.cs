@@ -95,7 +95,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listFarmHubsResponse == null || !listFarmHubsResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List FarmHub is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List FarmHub is Empty!", listFarmHubsResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List FarmHubs Done.", listFarmHubsResponse);

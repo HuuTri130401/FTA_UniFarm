@@ -105,7 +105,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listMenusResponse == null || !listMenusResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List Menus is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List Menus is Empty!", listMenusResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Menus Done.", listMenusResponse);

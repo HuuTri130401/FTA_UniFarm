@@ -128,6 +128,7 @@ try
     builder.Services.AddScoped<IWalletRepository, WalletRepository>();
     builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
     builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+    builder.Services.AddScoped<IProductItemRepository, ProductItemRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
@@ -140,6 +141,7 @@ try
     builder.Services.AddScoped<IWalletService, WalletService>();
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IMenuService, MenuService>();
+    builder.Services.AddScoped<IProductItemService, ProductItemService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection

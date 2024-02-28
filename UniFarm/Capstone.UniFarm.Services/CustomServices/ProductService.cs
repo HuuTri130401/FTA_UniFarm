@@ -93,7 +93,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listProductsResponse == null || !listProductsResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List Products is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List Products is Empty!", listProductsResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Products Done.", listProductsResponse);
