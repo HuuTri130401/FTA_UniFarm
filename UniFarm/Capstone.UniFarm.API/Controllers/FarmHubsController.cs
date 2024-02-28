@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class FarmHubsController : BaseController
     {
@@ -16,21 +15,21 @@ namespace Capstone.UniFarm.API.Controllers
             _farmHubService = farmHubService;
         }
 
-        [HttpGet]
+        [HttpGet("farm-hubs")]
         public async Task<IActionResult> GetAllFarmHubs()
         {
             var response = await _farmHubService.GetAllFarmHubs();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("{farmHubId}")]
-        public async Task<IActionResult> GetFarmHubById(Guid farmHubId)
+        [HttpGet("farm-hub/{id}")]
+        public async Task<IActionResult> GetFarmHubById(Guid id)
         {
-            var response = await _farmHubService.GetFarmHubById(farmHubId);
+            var response = await _farmHubService.GetFarmHubById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("farm-hub")]
         public async Task<IActionResult> CreateFarmHub(FarmHubRequest farmHubRequest)
         {
             if (ModelState.IsValid)
@@ -41,21 +40,21 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("{farmHubId}")]
-        public async Task<IActionResult> UpdateFarmHub(Guid farmHubId, FarmHubRequestUpdate FarmHubRequestUpdate)
+        [HttpPut("farm-hub/{id}")]
+        public async Task<IActionResult> UpdateFarmHub(Guid id, FarmHubRequestUpdate FarmHubRequestUpdate)
         {
             if (ModelState.IsValid)
             {
-                var response = await _farmHubService.UpdateFarmHub(farmHubId, FarmHubRequestUpdate);
+                var response = await _farmHubService.UpdateFarmHub(id, FarmHubRequestUpdate);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("{farmHubId}")]
-        public async Task<IActionResult> DeleteFarmHub(Guid farmHubId)
+        [HttpDelete("farm-hub/{id}")]
+        public async Task<IActionResult> DeleteFarmHub(Guid id)
         {
-            var response = await _farmHubService.DeleteFarmHub(farmHubId);
+            var response = await _farmHubService.DeleteFarmHub(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
     }

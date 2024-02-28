@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240227133038_AddNewColumnToMenuAndImage")]
+    partial class AddNewColumnToMenuAndImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,8 +124,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("UserName");
 
                     b.ToTable("Account", (string)null);
                 });
@@ -1007,7 +1007,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         },
                         new
                         {
-
                             Id = new Guid("64ffe38a-e193-4f25-9170-ea292588f8e2"),
                             ConcurrencyStamp = "2ae7ca0d-b5db-46e0-a802-43b25d303695",
                             Name = "FarmHub",
@@ -1015,7 +1014,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         },
                         new
                         {
-
                             Id = new Guid("4f573410-9019-4308-bf2b-5ac991d69697"),
                             ConcurrencyStamp = "b3cd8f3b-05f2-4b39-a0ce-fb6f27b52d30",
                             Name = "CollectedStaff",
@@ -1023,7 +1021,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         },
                         new
                         {
-
                             Id = new Guid("c7244650-5abd-4e24-99a3-393069d00145"),
                             ConcurrencyStamp = "dd0604e0-56b7-46ce-a39a-7a79d89379df",
                             Name = "StationStaff",
@@ -1031,7 +1028,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         },
                         new
                         {
-
                             Id = new Guid("7b28501d-25bd-4095-bed0-1a5bd55f7ab8"),
                             ConcurrencyStamp = "b734938e-84d8-4078-b310-3e5b5f020885",
                             Name = "Customer",

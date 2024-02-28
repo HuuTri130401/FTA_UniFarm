@@ -20,10 +20,6 @@ using NLog.Web;
 using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
-using FirebaseAdmin;
-using FirebaseAuthentication.Extensions.DependencyInjection;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
@@ -60,7 +56,6 @@ try
     //============ Identity =============//
     builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
     {
-
         // Lockout settings
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
         options.Lockout.MaxFailedAccessAttempts = 5;
@@ -131,16 +126,20 @@ try
     builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
     builder.Services.AddScoped<IAccountRoleRepository, AccountRoleRepository>();
     builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+    builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+    builder.Services.AddScoped<IMenuRepository, MenuRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
     builder.Services.AddScoped<IAreaService, AreaService>();
+
     builder.Services.AddScoped<IApartmentService, ApartmentService>();
     builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
     builder.Services.AddScoped<IWalletService, WalletService>();
-
+    builder.Services.AddScoped<IProductImageService, ProductImageService>();
+    builder.Services.AddScoped<IMenuService, MenuService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
@@ -151,7 +150,6 @@ try
 
     //============register this middleware to ServiceCollection============//
     builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
-
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>

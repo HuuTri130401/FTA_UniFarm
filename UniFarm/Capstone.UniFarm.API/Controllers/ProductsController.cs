@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : BaseController
     {
@@ -16,21 +15,21 @@ namespace Capstone.UniFarm.API.Controllers
             _productService = productService;
         }
 
-        [HttpGet]
+        [HttpGet("products")]
         public async Task<IActionResult> GetAllProducts()
         {
             var response = await _productService.GetAllProducts();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("{productId}")]
-        public async Task<IActionResult> GetProductById(Guid productId)
+        [HttpGet("product/{id}")]
+        public async Task<IActionResult> GetProductById(Guid id)
         {
-            var response = await _productService.GetProductById(productId);
+            var response = await _productService.GetProductById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("product")]
         public async Task<IActionResult> CreateProduct(ProductRequest productRequest)
         {
             if (ModelState.IsValid)
@@ -41,21 +40,21 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("{productId}")]
-        public async Task<IActionResult> UpdateProduct(Guid productId, ProductRequest productRequest)
+        [HttpPut("product/{id}")]
+        public async Task<IActionResult> UpdateProduct(Guid id, ProductRequest productRequest)
         {
             if (ModelState.IsValid)
             {
-                var response = await _productService.UpdateProduct(productId, productRequest);
+                var response = await _productService.UpdateProduct(id, productRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("{productId}")]
-        public async Task<IActionResult> DeleteProduct(Guid productId)
+        [HttpDelete("product/{id}")]
+        public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            var response = await _productService.DeleteProduct(productId);
+            var response = await _productService.DeleteProduct(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
     }

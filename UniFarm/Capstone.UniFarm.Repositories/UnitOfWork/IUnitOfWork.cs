@@ -18,9 +18,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         IApartmentRepository ApartmentRepository { get; }
         IAccountRoleRepository AccountRoleRepository { get; }
         IWalletRepository WalletRepository { get; }
-
+        IProductImageRepository ProductImageRepository { get; }
+        IMenuRepository MenuRepository { get; }
         int Save();
-
         Task<int> SaveChangesAsync();
     }
 }
