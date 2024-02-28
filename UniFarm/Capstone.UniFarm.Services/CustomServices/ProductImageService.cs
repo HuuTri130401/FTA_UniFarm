@@ -38,6 +38,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     var productImage = _mapper.Map<ProductImage>(productImageRequest);
                     productImage.ProductId = productId; 
+                    productImage.Status = "Active";
                     await _unitOfWork.ProductImageRepository.AddAsync(productImage);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -61,9 +62,36 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public Task<OperationResult<bool>> DeleteProductImage(Guid productImageId)
+        public async Task<OperationResult<bool>> DeleteProductImage(Guid productImageId)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingProductImage = await _unitOfWork.ProductImageRepository.GetByIdAsync(productImageId);
+                if (existingProductImage != null)
+                {
+                    existingProductImage.Status = "InActive";
+                    _unitOfWork.ProductImageRepository.Update(existingProductImage);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product Image have Id: {productImageId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Delete Product Image Failed!"); ;
+                    }
+                }
+                else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product Image have Id: {productImageId}. Delete Faild!.", false);
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductId(Guid productId)
@@ -90,9 +118,26 @@ namespace Capstone.UniFarm.Services.CustomServices
             throw new NotImplementedException();
         }
 
-        public Task<OperationResult<ProductImageResponse>> GetProductImageById(Guid productImageId)
+        public async Task<OperationResult<ProductImageResponse>> GetProductImageById(Guid productImageId)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<ProductImageResponse>();
+            try
+            {
+                var productImage = await _unitOfWork.ProductImageRepository.GetByIdAsync(productImageId);
+                if (productImage == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found Product Image with Id: {productImageId}");
+                    return result;
+                }
+                var productImageResponse = _mapper.Map<ProductImageResponse>(productImage);
+                result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Image by Id: {productImageId} Success!", productImageResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetFarmHubById service method for FarmHub ID: {productImageId}");
+                throw;
+            }
         }
 
         public async Task<OperationResult<bool>> UpdateProductImage(Guid productImageId, ProductImageRequestUpdate productImageRequestUpdate)
@@ -104,9 +149,13 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (existingProductImage != null)
                 {
-                    if (productImageRequestUpdate.Image != null)
+                    if (productImageRequestUpdate.Caption != null)
                     {
-                        existingProductImage.Image = productImageRequestUpdate.Image;
+                        existingProductImage.Caption = productImageRequestUpdate.Caption;
+                    }
+                    if (productImageRequestUpdate.ImageUrl != null)
+                    {
+                        existingProductImage.ImageUrl = productImageRequestUpdate.ImageUrl;
                     }
                     if (productImageRequestUpdate.ProductId != null)
                     {
@@ -120,6 +169,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                     if (productImageRequestUpdate.DisplayIndex != null)
                     {
                         existingProductImage.DisplayIndex = productImageRequestUpdate.DisplayIndex;
+                    }
+                    if (productImageRequestUpdate.Status != null && (productImageRequestUpdate.Status == "Active" || productImageRequestUpdate.Status == "InActive"))
+                    {
+                        existingProductImage.Status = productImageRequestUpdate.Status;
                     }
 
                     _unitOfWork.ProductImageRepository.Update(existingProductImage);

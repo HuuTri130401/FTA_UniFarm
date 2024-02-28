@@ -10,7 +10,9 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
     {
         public Guid Id { get; set; }
         public Guid ProductId { get; set; }
-        public string Image { get; set; }
+        public string Caption { get; set; }
+        public string ImageUrl { get; set; }
         public int DisplayIndex { get; set; }
+        public string Status { get; set; }
     }
 }

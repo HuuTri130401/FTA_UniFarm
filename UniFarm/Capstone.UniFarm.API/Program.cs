@@ -122,6 +122,7 @@ try
     builder.Services.AddScoped<IFarmHubRepository, FarmHubRepository>();
     builder.Services.AddScoped<IAreaRepository, AreaRepository>();
     builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+    builder.Services.AddScoped<IMenuRepository, MenuRepository>();
     
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -130,6 +131,7 @@ try
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
     builder.Services.AddScoped<IAreaService, AreaService>();
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
+    builder.Services.AddScoped<IMenuService, MenuService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection

@@ -17,13 +17,15 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IProductRepository ProductRepository { get; }
         public IFarmHubRepository FarmHubRepository { get; }
         public IProductImageRepository ProductImageRepository { get; }
+        public IMenuRepository MenuRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
             IAreaRepository areaRepo,
             IAccountRepository accountRepo,
             IProductRepository productRepository,
             IFarmHubRepository farmHubRepository,
-            IProductImageRepository productImageRepository
+            IProductImageRepository productImageRepository,
+            IMenuRepository menuRepository
         )
         {
             _dbContext = dbContext;
@@ -33,6 +35,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             FarmHubRepository = farmHubRepository;
             AreaRepository = areaRepo;
             ProductImageRepository = productImageRepository;
+            MenuRepository = menuRepository;
         }
 
         public void Dispose()
