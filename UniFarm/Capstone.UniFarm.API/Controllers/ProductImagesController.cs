@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    //[Route("api/[controller]")]
     [ApiController]
     public class ProductImagesController : BaseController
     {
@@ -19,45 +18,45 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [HttpGet("/api/v1/product/{id}/product-images")]
-        public async Task<IActionResult> GetAllProductImagesByProductId(Guid productId)
+        public async Task<IActionResult> GetAllProductImagesByProductId(Guid id)
         {
-            var response = await _productImageService.GetAllProductImagesByProductId(productId);
+            var response = await _productImageService.GetAllProductImagesByProductId(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
         [HttpGet("/api/v1/product-image/{id}")]
-        public async Task<IActionResult> GetProductImageById(Guid productImageId)
+        public async Task<IActionResult> GetProductImageById(Guid id)
         {
-            var response = await _productImageService.GetProductImageById(productImageId);
+            var response = await _productImageService.GetProductImageById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
         [HttpPost("/api/v1/product/{id}/product-image")]
-        public async Task<IActionResult> CreateProductImageForProduct(Guid productId, ProductImageRequest productImageRequest)
+        public async Task<IActionResult> CreateProductImageForProduct(Guid id, ProductImageRequest productImageRequest)
         {
             if (ModelState.IsValid)
             {
-                var response = await _productImageService.CreateProductImage(productId, productImageRequest);
+                var response = await _productImageService.CreateProductImage(id, productImageRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
         [HttpPut("/api/v1/product-image/{id}")]
-        public async Task<IActionResult> UpdateProductImage(Guid productImageId, ProductImageRequestUpdate productImageRequestUpdate)
+        public async Task<IActionResult> UpdateProductImage(Guid id, ProductImageRequestUpdate productImageRequestUpdate)
         {
             if (ModelState.IsValid)
             {
-                var response = await _productImageService.UpdateProductImage(productImageId, productImageRequestUpdate);
+                var response = await _productImageService.UpdateProductImage(id, productImageRequestUpdate);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
         [HttpDelete("/api/v1/product-image/{id}")]
-        public async Task<IActionResult> DeleteProductImage(Guid productImageId)
+        public async Task<IActionResult> DeleteProductImage(Guid id)
         {
-            var response = await _productImageService.DeleteProductImage(productImageId);
+            var response = await _productImageService.DeleteProductImage(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
     }

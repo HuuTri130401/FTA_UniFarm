@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    //[Route("api/[controller]")]
     [ApiController]
     public class ProductsController : BaseController
     {
@@ -24,13 +23,13 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [HttpGet("api/v1/product/{id}")]
-        public async Task<IActionResult> GetProductById(Guid productId)
+        public async Task<IActionResult> GetProductById(Guid id)
         {
-            var response = await _productService.GetProductById(productId);
+            var response = await _productService.GetProductById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost("api/v1/product/{id}")]
+        [HttpPost("api/v1/product")]
         public async Task<IActionResult> CreateProduct(ProductRequest productRequest)
         {
             if (ModelState.IsValid)
@@ -42,20 +41,20 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [HttpPut("api/v1/product/{id}")]
-        public async Task<IActionResult> UpdateProduct(Guid productId, ProductRequest productRequest)
+        public async Task<IActionResult> UpdateProduct(Guid id, ProductRequest productRequest)
         {
             if (ModelState.IsValid)
             {
-                var response = await _productService.UpdateProduct(productId, productRequest);
+                var response = await _productService.UpdateProduct(id, productRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
         [HttpDelete("api/v1/product/{id}")]
-        public async Task<IActionResult> DeleteProduct(Guid productId)
+        public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            var response = await _productService.DeleteProduct(productId);
+            var response = await _productService.DeleteProduct(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
     }

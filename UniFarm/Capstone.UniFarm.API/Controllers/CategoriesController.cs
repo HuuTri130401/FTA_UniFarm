@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    //[Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : BaseController
     {
@@ -23,9 +22,9 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [HttpGet("api/v1/category/{id}")]
-        public async Task<IActionResult> GetCategoryById(Guid categoryId)
+        public async Task<IActionResult> GetCategoryById(Guid id)
         {
-            var response = await _categoryService.GetCategoryById(categoryId);
+            var response = await _categoryService.GetCategoryById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -41,20 +40,20 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [HttpPut("api/v1/category/{id}")]
-        public async Task<IActionResult> UpdateCategory(Guid categoryId, CategoryRequestUpdate categoryRequestUpdate)
+        public async Task<IActionResult> UpdateCategory(Guid id, CategoryRequestUpdate categoryRequestUpdate)
         {
             if (ModelState.IsValid)
             {
-                var response = await _categoryService.UpdateCategory(categoryId, categoryRequestUpdate);
+                var response = await _categoryService.UpdateCategory(id, categoryRequestUpdate);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
         [HttpDelete("api/v1/category/{id}")]
-        public async Task<IActionResult> DeleteCategory(Guid categoryId)
+        public async Task<IActionResult> DeleteCategory(Guid id)
         {
-            var response = await _categoryService.DeleteCategory(categoryId);
+            var response = await _categoryService.DeleteCategory(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
     }
