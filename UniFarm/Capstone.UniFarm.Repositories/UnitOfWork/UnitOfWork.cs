@@ -8,22 +8,28 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Repositories.UnitOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    public sealed class UnitOfWork : IUnitOfWork
     {
         private readonly FTAScript_V1Context _dbContext;
         public ICategoryRepository CategoryRepository { get; }
         public IAccountRepository AccountRepository { get; }
         public IAreaRepository AreaRepository { get; }
-
         public IProductRepository ProductRepository { get; }
         public IFarmHubRepository FarmHubRepository { get; }
+        public IApartmentRepository ApartmentRepository { get; }
+        public IAccountRoleRepository AccountRoleRepository { get; }
+        
+        public IWalletRepository WalletRepository { get; }
+
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
             IAreaRepository areaRepo,
             IAccountRepository accountRepo,
             IProductRepository productRepository,
-            IFarmHubRepository farmHubRepository
-            
+            IFarmHubRepository farmHubRepository,
+            IApartmentRepository apartmentRepo,
+            IAccountRoleRepository accountRoleRepository,
+            IWalletRepository walletRepository
         )
         {
             _dbContext = dbContext;
@@ -32,6 +38,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             ProductRepository = productRepository;
             FarmHubRepository = farmHubRepository;
             AreaRepository = areaRepo;
+            ApartmentRepository = apartmentRepo;
+            AccountRoleRepository = accountRoleRepository;
+            WalletRepository = walletRepository;
         }
 
         public void Dispose()
@@ -39,7 +48,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        protected virtual void Dispose(bool disposing)
+
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {

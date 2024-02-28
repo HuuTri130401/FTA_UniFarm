@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.API.MiddleWares;
@@ -19,9 +20,14 @@ using NLog.Web;
 using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using FirebaseAdmin;
+using FirebaseAuthentication.Extensions.DependencyInjection;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using Microsoft.OpenApi.Models;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("Init main");
@@ -49,7 +55,8 @@ try
                    .AllowAnyMethod();
         });
     });
-
+    
+    
     //============ Identity =============//
     builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
     {
@@ -77,6 +84,8 @@ try
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        /*options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;*/
     })
         .AddJwtBearer(options =>
         {
@@ -93,11 +102,9 @@ try
         })
         .AddCookie()
         .AddGoogle(options =>
-        {
-            options.ClientId = builder.Configuration["Google:ClientId"];
-            options.ClientSecret = builder.Configuration["Google:ClientSecret"];
-            options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
-            options.CallbackPath = "/signin-google";
+        { 
+            options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+            options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         });
 
     //============ Config Odata =============//
@@ -120,15 +127,20 @@ try
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
     builder.Services.AddScoped<IFarmHubRepository, FarmHubRepository>();
-
     builder.Services.AddScoped<IAreaRepository, AreaRepository>();
+    builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
+    builder.Services.AddScoped<IAccountRoleRepository, AccountRoleRepository>();
+    builder.Services.AddScoped<IWalletRepository, WalletRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
-
     builder.Services.AddScoped<IAreaService, AreaService>();
+    builder.Services.AddScoped<IApartmentService, ApartmentService>();
+    builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
+    builder.Services.AddScoped<IWalletService, WalletService>();
+
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
@@ -142,7 +154,39 @@ try
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.EnableAnnotations();
+        c.SwaggerDoc("v1", new OpenApiInfo()
+        {
+            Title = "Farm To Apartment",
+            Description = "Build application for selling agriculture products",
+            Version = "v1"
+        });
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Description = "Bearer Authentication with JWT Token",
+            Type = SecuritySchemeType.Http
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Id = "Bearer",
+                        Type = ReferenceType.SecurityScheme
+                    }
+                },
+                new List<string>()
+            }
+        });
+    }).AddSwaggerGen();
 
     //============Configure CORS============//
     builder.Services.AddCors(options =>
@@ -157,17 +201,7 @@ try
     });
 
     var app = builder.Build();
-
-    // Configure the HTTP request pipeline.
-    //if (app.Environment.IsDevelopment())
-    //{
-    //    app.UseSwagger();
-    //    app.UseSwaggerUI(c =>
-    //    {
-    //        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API Name v1");
-    //        c.RoutePrefix = string.Empty;
-    //    });
-    //}
+    
     app.UseSwagger();
     app.UseSwaggerUI();
 

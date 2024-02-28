@@ -10,11 +10,10 @@ namespace Capstone.UniFarm.Services.Commons
     public class OperationResult<T>
     {
         public StatusCode StatusCode { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
         public bool IsError { get; set; }
 
         public T? Payload { get; set; }
-        public string? AccessToken { get; set; }
         public List<Error> Errors { get; set; } = new List<Error>();
         public void AddError(StatusCode code, string message)
         {

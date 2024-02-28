@@ -9,12 +9,12 @@ using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
-public class AreaService : IAreaService
+public class ApartmentService : IApartmentService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public AreaService(
+    public ApartmentService(
         IUnitOfWork unitOfWork,
         IMapper mapper
     )
@@ -23,18 +23,18 @@ public class AreaService : IAreaService
         _mapper = mapper;
     }
 
-    public Task<OperationResult<IEnumerable<AreaResponse>>> GetAll(bool? isAscending,
+    public Task<OperationResult<IEnumerable<ApartmentResponse>>> GetAll(bool? isAscending,
         string? orderBy = null,
-        Expression<Func<Area, bool>>? filter = null,
+        Expression<Func<Apartment, bool>>? filter = null,
         string[]? includeProperties = null,
         int pageIndex = 0,
         int pageSize = 10)
     {
-        var result = new OperationResult<IEnumerable<AreaResponse>>();
+        var result = new OperationResult<IEnumerable<ApartmentResponse>>();
         try
         {
-            var areas = _unitOfWork.AreaRepository.FilterAll(isAscending, orderBy, filter, includeProperties, pageIndex, pageSize);
-            result.Payload = _mapper.Map<IEnumerable<AreaResponse>>(areas);
+            var listApartments = _unitOfWork.ApartmentRepository.FilterAll(isAscending, orderBy, filter, includeProperties, pageIndex, pageSize);
+            result.Payload = _mapper.Map<IEnumerable<ApartmentResponse>>(listApartments);
             result.StatusCode = StatusCode.Ok;
         }
         catch (Exception ex)
@@ -42,21 +42,19 @@ public class AreaService : IAreaService
             result.AddUnknownError(ex.Message);
             throw;
         }
-
         return Task.FromResult(result);
     }
     
     
 
-    public async Task<OperationResult<AreaResponse>> GetById(Guid objectId)
+    public async Task<OperationResult<ApartmentResponse>> GetById(Guid objectId)
     {
-        var result = new OperationResult<AreaResponse>();
+        var result = new OperationResult<ApartmentResponse>();
         try
         {
-            var area = await _unitOfWork.AreaRepository.GetByIdAsync(objectId);
-            result.Payload = _mapper.Map<AreaResponse>(area);
+            var objectApartment = await _unitOfWork.ApartmentRepository.GetByIdAsync(objectId);
+            result.Payload = _mapper.Map<ApartmentResponse>(objectApartment);
             result.StatusCode = StatusCode.Ok;
-
         }
         catch (Exception ex)
         {
@@ -67,22 +65,22 @@ public class AreaService : IAreaService
         return result;
     }
 
-    public async Task<OperationResult<AreaResponse>> Create(AreaRequestCreate objectRequestCreate)
+    public async Task<OperationResult<ApartmentResponse>> Create(ApartmentRequestCreate objectRequestCreate)
     {
-        var result = new OperationResult<AreaResponse>();
+        var result = new OperationResult<ApartmentResponse>();
         try
         {
-            var area = _mapper.Map<Area>(objectRequestCreate);
-            await _unitOfWork.AreaRepository.AddAsync(area);
+            var objectApartment = _mapper.Map<Apartment>(objectRequestCreate);
+            await _unitOfWork.ApartmentRepository.AddAsync(objectApartment);
             var count = await _unitOfWork.SaveChangesAsync();
             if (count > 0)
             {
-                result.Payload = _mapper.Map<AreaResponse>(area);
-                result.StatusCode = StatusCode.Ok;
+                result.Payload = _mapper.Map<ApartmentResponse>(objectApartment);
+                result.StatusCode = StatusCode.Created;
             }
             else
             {
-                result.AddError(StatusCode.BadRequest, "Create Area Failed");
+                result.AddError(StatusCode.BadRequest, "Create Apartment Failed");
             }
         }
         catch (Exception ex)
@@ -99,14 +97,14 @@ public class AreaService : IAreaService
         var result = new OperationResult<bool>();
         try
         {
-            var area = await _unitOfWork.AreaRepository.GetByIdAsync(id);
-            if (area == null)
+            var objectApartment = await _unitOfWork.ApartmentRepository.GetByIdAsync(id);
+            if (objectApartment == null)
             {
-                result.AddError(StatusCode.NotFound, "Area not found");
+                result.AddError(StatusCode.NotFound, "Apartment not found");
                 return result;
             }
 
-            _unitOfWork.AreaRepository.SoftRemove(area);
+            _unitOfWork.ApartmentRepository.SoftRemove(objectApartment);
             var count = await _unitOfWork.SaveChangesAsync();
             if (count > 0)
             {
@@ -115,7 +113,7 @@ public class AreaService : IAreaService
             }
             else
             {
-                result.AddError(StatusCode.BadRequest, "Delete Area Failed");
+                result.AddError(StatusCode.BadRequest, "Delete Apartment Failed");
             }
         }
         catch (Exception ex)
@@ -127,29 +125,29 @@ public class AreaService : IAreaService
         return result;
     }
 
-    public async Task<OperationResult<AreaResponse>> Update(Guid id, AreaRequestUpdate objectRequestUpdate)
+    public async Task<OperationResult<ApartmentResponse>> Update(Guid id, ApartmentRequestUpdate objectRequestUpdate)
     {
-        var result = new OperationResult<AreaResponse>();
+        var result = new OperationResult<ApartmentResponse>();
         try
         {
-            var area = await _unitOfWork.AreaRepository.GetByIdAsync(id);
-            if (area == null)
+            var objectApartment = await _unitOfWork.ApartmentRepository.GetByIdAsync(id);
+            if (objectApartment == null)
             {
-                result.AddError(StatusCode.NotFound, "Area not found");
+                result.AddError(StatusCode.NotFound, "Apartment not found");
                 return result;
             }
 
-            _mapper.Map(objectRequestUpdate, area);
-            _unitOfWork.AreaRepository.Update(area);
+            _mapper.Map(objectRequestUpdate, objectApartment);
+            _unitOfWork.ApartmentRepository.Update(objectApartment);
             var count = _unitOfWork.SaveChangesAsync();
             if (count.Result > 0)
             {
-                result.Payload = _mapper.Map<AreaResponse>(area);
+                result.Payload = _mapper.Map<ApartmentResponse>(objectApartment);
                 result.StatusCode = StatusCode.Ok;
             }
             else
             {
-                result.AddError(StatusCode.BadRequest, "Update Area Failed");
+                result.AddError(StatusCode.BadRequest, "Update Apartment Failed");
             }
         }
         catch (Exception ex)

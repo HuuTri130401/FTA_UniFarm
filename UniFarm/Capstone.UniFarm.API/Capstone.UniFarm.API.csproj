@@ -4,11 +4,14 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>ac421101-bb65-4f41-8049-0d8b27744998</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="12.0.1" />
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+		<PackageReference Include="FirebaseAdmin" Version="2.4.0" />
+		<PackageReference Include="FirebaseAuthentication" Version="1.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.1.34" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />

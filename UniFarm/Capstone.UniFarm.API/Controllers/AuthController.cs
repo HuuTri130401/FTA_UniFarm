@@ -12,8 +12,7 @@ using Capstone.UniFarm.Domain.Enum;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    [Route("api/v1/auth")]
     public class AuthController : BaseController
     {
         private readonly UserManager<Account> _userManager;
@@ -38,9 +37,12 @@ namespace Capstone.UniFarm.API.Controllers
         [HttpPost("register")]
         [Consumes("application/json")]
         [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [SwaggerOperation(Summary = "Register account for customer - Done {Tien}")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest model)
         {
-            model.Role = RoleEnum.Customer;
+            model.Role = EnumConstants.RoleEnum.Customer;
             var response = await _accountService.CreateAccount(model);
             return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/login",response.Payload);
         }
@@ -48,6 +50,9 @@ namespace Capstone.UniFarm.API.Controllers
 
         #region API Login
         [HttpPost("login")]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        [SwaggerOperation(Summary = "Login with email and password - Done {Tien}")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email); 
@@ -65,14 +70,15 @@ namespace Capstone.UniFarm.API.Controllers
             }
 
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-            var token = _accountService.GenerateJwtToken(user, key);
+            var userRole = await _userManager.GetRolesAsync(user);
+            var token = _accountService.GenerateJwtToken(user, key, userRole[0]);
             return Ok(new { Token = token });
         }
         #endregion
 
         #region API Login/Register google
         [HttpGet("google/login")]
-        [SwaggerOperation(Summary = "Initiate Google login")]
+        [SwaggerOperation(Summary = "Initiate Google login - Done {Tien}")]
         public async Task Login()
         {
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties()
@@ -84,26 +90,24 @@ namespace Capstone.UniFarm.API.Controllers
 
         #region API Google Reponse
         [HttpGet("google/response")]
-        [SwaggerOperation(Summary = "Handle Google authentication response")]
+        [SwaggerOperation(Summary = "Handle Google authentication response - Done {Tien}")]
         public async Task<IActionResult> GoogleResponse()
         {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
             if (!result.Succeeded)
             {
                 return BadRequest();
             }
             var claims = result.Principal.Claims;
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            var result2 = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
-            var refreshToken = info.AuthenticationProperties.GetTokenValue("refresh_token");
             var response = await _accountService.HandleLoginGoogle(claims);
-            if(response == null || response.IsError)
+            if(response.IsError || response.Payload == null)
             {
                 return HandleErrorResponse(response!.Errors);
             }
-            response.AccessToken = _accountService.GenerateJwtToken(response.Payload, key);
-            return Ok(response);
+            var userRole = await _userManager.GetRolesAsync(response.Payload);
+            var token = _accountService.GenerateJwtToken(response.Payload, key, userRole[0]);
+            return Ok(new { Token = token });
         }
         #endregion
 

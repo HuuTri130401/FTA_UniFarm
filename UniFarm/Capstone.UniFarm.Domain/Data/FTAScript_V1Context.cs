@@ -67,6 +67,10 @@ namespace Capstone.UniFarm.Domain.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Account>().ToTable("Account");
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.HasIndex(e => e.UserName).IsUnique(false);
+            });
             modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles")
                 .HasData(
                     new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },

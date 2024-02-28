@@ -14,7 +14,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IAccountService
     {
-        string GenerateJwtToken(Account user, byte[] key);
+        string GenerateJwtToken(Account user, byte[] key, string userRole);
         Task<OperationResult<IEnumerable<AccountResponse>>> GetAllAccounts(Expression<Func<Account, bool>>? predicate);
         Task<OperationResult<AccountResponse>> GetAccountById(Guid accountId);
         Task<OperationResult<AccountResponse>> GetAccountByPredicate(Expression<Func<Account, bool>>? predicate);

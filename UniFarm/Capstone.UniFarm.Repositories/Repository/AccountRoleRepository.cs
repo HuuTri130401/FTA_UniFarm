@@ -5,19 +5,19 @@ using Capstone.UniFarm.Repositories.IRepository;
 
 namespace Capstone.UniFarm.Repositories.Repository;
 
-public class AreaRepository : GenericRepository<Area>, IAreaRepository
+public class AccountRoleRepository : GenericRepository<AccountRole>, IAccountRoleRepository
 {
-    public AreaRepository(FTAScript_V1Context context) : base(context)
+    public AccountRoleRepository(FTAScript_V1Context context) : base(context)
     {
     }
 
-    public override void SoftRemove(Area entity)
+    public override void SoftRemove(AccountRole entity)
     {
         entity.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
         _dbSet.Update(entity);
     }
 
-    public new Area Remove(Area entity)
+    public new AccountRole Remove(AccountRole entity)
     {
         entity.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
         _dbSet.Update(entity);
