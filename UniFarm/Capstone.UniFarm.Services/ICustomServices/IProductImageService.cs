@@ -14,7 +14,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
     {
         Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductId(Guid productId);
         Task<OperationResult<ProductImageResponse>> GetProductImageById(Guid productImageId);
-        //Task<OperationResult<ProductImageResponse>> GetProductImageByProductId(Guid productId);
         Task<OperationResult<bool>> CreateProductImage(Guid productId, ProductImageRequest productImageRequest);
         Task<OperationResult<bool>> DeleteProductImage(Guid productImageId);
         Task<OperationResult<bool>> UpdateProductImage(Guid productImageId, ProductImageRequestUpdate productImageRequestUpdate);

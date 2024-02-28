@@ -9,8 +9,14 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public class ProductImageRequest
     {
+        [Required(ErrorMessage = "Caption is required")]
+        [StringLength(50, ErrorMessage = "Caption length cannot exceed 50 characters")]
+        [MinLength(3, ErrorMessage = "Caption length must be at least 3 characters")]
+        public string Caption { get; set; }
+        [Required(ErrorMessage = "Image URL is required")]
         [StringLength(255, ErrorMessage = "Image URL length cannot exceed 255 characters")]
-        public string Image { get; set; }
+        public string ImageUrl { get; set; }
+        [Required(ErrorMessage = "DisplayIndex is required")]
         [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
         public int DisplayIndex { get; set; }
     }
