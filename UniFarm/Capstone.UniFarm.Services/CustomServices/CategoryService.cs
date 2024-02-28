@@ -38,7 +38,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listCategoriesResponse == null || !listCategoriesResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List Categories is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List Categories is Empty!", listCategoriesResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Categories Done.", listCategoriesResponse);

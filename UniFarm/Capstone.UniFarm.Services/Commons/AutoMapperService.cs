@@ -38,6 +38,10 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Menu, MenuRequest>().ReverseMap();
             CreateMap<Menu, MenuRequestUpdate>().ReverseMap();
             CreateMap<Menu, MenuResponse>().ReverseMap();
+
+            CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
+            CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
+            CreateMap<ProductItem, ProductItemResponse>().ReverseMap();
         }
     }
 }
