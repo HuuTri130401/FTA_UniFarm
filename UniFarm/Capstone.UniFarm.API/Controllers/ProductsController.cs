@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
     public class ProductsController : BaseController
     {
@@ -16,21 +16,21 @@ namespace Capstone.UniFarm.API.Controllers
             _productService = productService;
         }
 
-        [HttpGet]
+        [HttpGet("api/v1/products")]
         public async Task<IActionResult> GetAllProducts()
         {
             var response = await _productService.GetAllProducts();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("{productId}")]
+        [HttpGet("api/v1/product/{id}")]
         public async Task<IActionResult> GetProductById(Guid productId)
         {
             var response = await _productService.GetProductById(productId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("api/v1/product/{id}")]
         public async Task<IActionResult> CreateProduct(ProductRequest productRequest)
         {
             if (ModelState.IsValid)
@@ -41,7 +41,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("{productId}")]
+        [HttpPut("api/v1/product/{id}")]
         public async Task<IActionResult> UpdateProduct(Guid productId, ProductRequest productRequest)
         {
             if (ModelState.IsValid)
@@ -52,7 +52,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("{productId}")]
+        [HttpDelete("api/v1/product/{id}")]
         public async Task<IActionResult> DeleteProduct(Guid productId)
         {
             var response = await _productService.DeleteProduct(productId);

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
     public class MenusController : BaseController
     {
@@ -16,21 +16,21 @@ namespace Capstone.UniFarm.API.Controllers
             _menuService = menuService;
         }
 
-        [HttpGet("/api/v1/farmHub/{farmHubId}/menus")]
+        [HttpGet("/api/v1/farm-hub/{id}/menus")]
         public async Task<IActionResult> GetAllMenusByFarmHubId(Guid farmHubId)
         {
             var response = await _menuService.GetAllMenusByFarmHubId(farmHubId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("/api/v1/menu/{menuId}")]
+        [HttpGet("/api/v1/menu/{id}")]
         public async Task<IActionResult> GetMenuById(Guid menuId)
         {
             var response = await _menuService.GetMenuById(menuId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost("/api/v1/farmHub/{farmHubId}/menu")]
+        [HttpPost("/api/v1/farm-hub/{id}/menu")]
         public async Task<IActionResult> CreateMenuForFarmHub(Guid farmHubId, MenuRequest menuRequest)
         {
             if (ModelState.IsValid)
@@ -41,7 +41,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("/api/v1/menu/{menuId}")]
+        [HttpPut("/api/v1/menu/{id}")]
         public async Task<IActionResult> UpdateMenu(Guid menuId, MenuRequestUpdate menuRequestUpdate)
         {
             if (ModelState.IsValid)
@@ -52,7 +52,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("/api/v1/menu/{menuId}")]
+        [HttpDelete("/api/v1/menu/{id}")]
         public async Task<IActionResult> DeleteMenu(Guid menuId)
         {
             var response = await _menuService.DeleteMenu(menuId);

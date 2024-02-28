@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
     public class ProductImagesController : BaseController
     {
@@ -18,21 +18,21 @@ namespace Capstone.UniFarm.API.Controllers
             _productImageService = productImageService;
         }
 
-        [HttpGet("/api/v1/products/{productId}/productImages")]
+        [HttpGet("/api/v1/product/{id}/product-images")]
         public async Task<IActionResult> GetAllProductImagesByProductId(Guid productId)
         {
             var response = await _productImageService.GetAllProductImagesByProductId(productId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("/api/v1/productImage/{productImageId}")]
+        [HttpGet("/api/v1/product-image/{id}")]
         public async Task<IActionResult> GetProductImageById(Guid productImageId)
         {
             var response = await _productImageService.GetProductImageById(productImageId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost("/api/v1/products/{productId}/productImage")]
+        [HttpPost("/api/v1/product/{id}/product-image")]
         public async Task<IActionResult> CreateProductImageForProduct(Guid productId, ProductImageRequest productImageRequest)
         {
             if (ModelState.IsValid)
@@ -43,7 +43,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("/api/v1/productImage/{productImageId}")]
+        [HttpPut("/api/v1/product-image/{id}")]
         public async Task<IActionResult> UpdateProductImage(Guid productImageId, ProductImageRequestUpdate productImageRequestUpdate)
         {
             if (ModelState.IsValid)
@@ -54,7 +54,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("/api/v1/productImage/{productImageId}")]
+        [HttpDelete("/api/v1/product-image/{id}")]
         public async Task<IActionResult> DeleteProductImage(Guid productImageId)
         {
             var response = await _productImageService.DeleteProductImage(productImageId);
