@@ -12,7 +12,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public Guid? ProductId { get; set; }
         [StringLength(50, ErrorMessage = "Caption length cannot exceed 50 characters")]
         public string? Caption { get; set; }
-        [StringLength(255, ErrorMessage = "Image URL length cannot exceed 255 characters")]
         public string? ImageUrl { get; set; }
 
         [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
