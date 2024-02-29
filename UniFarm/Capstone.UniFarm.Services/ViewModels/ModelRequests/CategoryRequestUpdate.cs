@@ -14,12 +14,11 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string? Name { get; set; }
         [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
         public string? Description { get; set; }
-        [StringLength(100, ErrorMessage = "Image URL length cannot exceed 100 characters")]
         public string? Image { get; set; }
         [StringLength(10, ErrorMessage = "Code length cannot exceed 10 characters")]
-        [MinLength(6, ErrorMessage = "Code length must be at least 6 characters")]
+        [MinLength(2, ErrorMessage = "Code length must be at least 2 characters")]
         public string? Code { get; set; }
-        [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
+        [Range(0, int.MaxValue, ErrorMessage = "DisplayIndex must be greater than or equal to 0")]
         public int? DisplayIndex { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "SystemPrice must be a non-negative number.")]
         public double? SystemPrice { get; set; }
