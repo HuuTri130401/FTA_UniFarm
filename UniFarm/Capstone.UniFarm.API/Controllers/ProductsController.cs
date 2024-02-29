@@ -1,7 +1,9 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using Capstone.UniFarm.Services.CustomServices;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -19,6 +21,14 @@ namespace Capstone.UniFarm.API.Controllers
         public async Task<IActionResult> GetAllProducts()
         {
             var response = await _productService.GetAllProducts();
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "Get Products By CategoryId - Customer Role - {Huu Tri}")]
+        [HttpGet("category/{id}/products")]
+        public async Task<IActionResult> GetAllProductsByCategoryId(Guid id)
+        {
+            var response = await _productService.GetAllProductsByCategoryId(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

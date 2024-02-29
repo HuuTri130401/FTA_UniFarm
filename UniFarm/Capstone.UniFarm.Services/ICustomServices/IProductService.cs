@@ -12,6 +12,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
     public interface IProductService
     {
         Task<OperationResult<List<ProductResponse>>> GetAllProducts();
+        Task<OperationResult<List<ProductResponse>>> GetAllProductsByCategoryId(Guid categoryId);
         Task<OperationResult<ProductResponse>> GetProductById(Guid productId);
         Task<OperationResult<bool>> CreateProduct(ProductRequest productRequest);
         Task<OperationResult<bool>> DeleteProduct(Guid productId);

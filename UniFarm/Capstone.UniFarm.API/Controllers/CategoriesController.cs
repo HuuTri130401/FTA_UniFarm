@@ -1,6 +1,7 @@
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -18,6 +19,14 @@ namespace Capstone.UniFarm.API.Controllers
         public async Task<IActionResult> GetAllCategories()
         {
             var response = await _categoryService.GetAllCategories();
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "Get Categories Recommends - Customer Role - {Huu Tri}")]
+        [HttpGet("categories-recommends")]
+        public async Task<IActionResult> GetAllCategorieForCustomers()
+        {
+            var response = await _categoryService.GetAllCategoriesForCustomer();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
