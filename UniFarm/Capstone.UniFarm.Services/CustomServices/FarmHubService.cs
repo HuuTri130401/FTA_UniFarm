@@ -34,7 +34,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
                 farmHub.Status = "Active";
-                farmHub.CreatedAt = DateTime.UtcNow;
+                farmHub.CreatedAt = DateTime.Now;
                 await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
@@ -95,7 +95,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listFarmHubsResponse == null || !listFarmHubsResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List FarmHub is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List FarmHub is Empty!", listFarmHubsResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List FarmHubs Done.", listFarmHubsResponse);

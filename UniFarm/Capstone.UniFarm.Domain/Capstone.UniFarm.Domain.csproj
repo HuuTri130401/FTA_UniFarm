@@ -14,10 +14,10 @@
 
     <ItemGroup>
         <Folder Include="Enum\" />
-        <Folder Include="Migrations\" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="FirebaseAuthentication" Version="1.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
@@ -31,6 +31,5 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
     </ItemGroup>
 </Project>

@@ -14,6 +14,5 @@ namespace Capstone.UniFarm.Repositories.Repository
         public CategoryRepository(FTAScript_V1Context dbContext) : base(dbContext)
         {
         }
-
     }
 }

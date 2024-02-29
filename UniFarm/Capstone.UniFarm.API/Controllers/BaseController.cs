@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace Capstone.UniFarm.API.Controllers
 {
+    [Route("api/v1/")]
     [ApiController]
     public class BaseController : ODataController
     {

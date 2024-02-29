@@ -3,11 +3,10 @@ using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
 public class AreasController : BaseController
 {
     private readonly IAreaService _areaService;
@@ -17,7 +16,11 @@ public class AreasController : BaseController
         _areaService = areaService;
     }
     
-    [HttpGet]
+    [HttpGet("areas")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(Summary = "Get all areas - Done {Tien}")]
     public async Task<IActionResult> GetAllAreas(
         [FromQuery] string? keyword,
         [FromQuery] Guid? id,
@@ -36,6 +39,7 @@ public class AreasController : BaseController
         var response = await _areaService.GetAll(
             isAscending: isAscending,
             filter: x => (!id.HasValue || x.Id == id) &&
+                         (string.IsNullOrEmpty(keyword) || x.Province.Contains(keyword) || x.District.Contains(keyword) || x.Commune.Contains(keyword) || x.Address.Contains(keyword)) &&
                          (string.IsNullOrEmpty(province) || x.Province.Contains(province)) &&
                          (string.IsNullOrEmpty(district) || x.District.Contains(district)) &&
                          (string.IsNullOrEmpty(commune) || x.Commune.Contains(commune)) &&
@@ -51,36 +55,53 @@ public class AreasController : BaseController
     }
 
     
-    [HttpGet("{id}")]
+    [HttpGet("area/{id}")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(Summary = "Get area by id - Done {Tien}")]
     public async Task<IActionResult> GetArea([FromQuery] Guid id)
     {
         var response = await _areaService.GetById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
-    [HttpPost]
+    [HttpPost("area/create")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Create area - Done {Tien}", Description = "Create new area")]
     public async Task<IActionResult> CreateArea([FromBody] AreaRequestCreate requestCreateModel)
     {
         var response = await _areaService.Create(requestCreateModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
-    [HttpPut("{id}")]
+    [HttpPut("area/update/{id}")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Update area - Done {Tien}", Description = "Update area by id")]
     public async Task<IActionResult> UpdateArea(Guid id, [FromBody] AreaRequestUpdate requestModel)
     {
         var response = await _areaService.Update(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
-    [HttpDelete("{id}")]
+    [HttpDelete("area/delete/{id}")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Soft remove area - Done {Tien}", Description = "Delete area by id")]
     public async Task<IActionResult> RemoveArea(Guid id)
     {
         var response = await _areaService.Delete(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
-    
-    [HttpGet("odata")]
+    [HttpGet("odata/areas")]
     [EnableQuery]
     public async Task<IEnumerable<AreaResponse>> GetAll()
     {

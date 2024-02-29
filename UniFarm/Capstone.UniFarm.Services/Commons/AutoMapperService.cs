@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
@@ -10,19 +11,47 @@ namespace Capstone.UniFarm.Services.Commons
     {
         public AutoMapperService()
         {
+            #region Account Mapping
             CreateMap<Account, AccountResponse>().ReverseMap();
             CreateMap<RegisterRequest, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
-            
-            // Category Mapping
+            #endregion
+
+            #region Category Mapping
+
             CreateMap<Category, CategoryRequest>().ReverseMap();
             CreateMap<Category, CategoryResponse>().ReverseMap();
             CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
-            
-            // Area Mapping
+
+            #endregion
+
+            #region Area Mapping
+
             CreateMap<AreaRequestCreate, Area>().ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()));
             CreateMap<AreaRequestUpdate, Area>().ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
             CreateMap<Area, AreaResponse>();
+
+            #endregion
+
+            #region Apartment Mapping
+
+            CreateMap<ApartmentRequestCreate, Apartment>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now));
+            CreateMap<ApartmentRequestUpdate, Apartment>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now));
+            CreateMap<Apartment, ApartmentResponse>();
+
+            #endregion
+            
+            #region Wallet Mapping
+            CreateMap<WalletRequest, Wallet>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+                .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => 0))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
+            #endregion
 
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
             CreateMap<FarmHub, FarmHubRequestUpdate>().ReverseMap();
@@ -30,6 +59,18 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<Product, ProductRequest>().ReverseMap();
             CreateMap<Product, ProductResponse>().ReverseMap();
+
+            CreateMap<ProductImage, ProductImageRequest>().ReverseMap();
+            CreateMap<ProductImage, ProductImageRequestUpdate>().ReverseMap();
+            CreateMap<ProductImage, ProductImageResponse>().ReverseMap();
+
+            CreateMap<Menu, MenuRequest>().ReverseMap();
+            CreateMap<Menu, MenuRequestUpdate>().ReverseMap();
+            CreateMap<Menu, MenuResponse>().ReverseMap();
+
+            CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
+            CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
+            CreateMap<ProductItem, ProductItemResponse>().ReverseMap();
         }
     }
 }

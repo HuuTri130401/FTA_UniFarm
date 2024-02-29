@@ -15,16 +15,17 @@ namespace Capstone.UniFarm.Domain.Models
         }
 
         [Key]
-        public Guid Id { get; set; }
-        public Guid FarmHubId { get; set; }
-        public Guid? BusinessDayId { get; set; }
+        public Guid Id { get; set; }//
+        public Guid FarmHubId { get; set; }//
+        public Guid? BusinessDayId { get; set; }//
         [StringLength(255)]
         public string? Name { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }//
+        public DateTime? UpdatedAt { get; set; }//
         [StringLength(100)]
         public string? Tag { get; set; }
         [StringLength(100)]
-        public string? Status { get; set; }
+        public string? Status { get; set; }//
 
         [ForeignKey(nameof(BusinessDayId))]
         [InverseProperty("Menus")]

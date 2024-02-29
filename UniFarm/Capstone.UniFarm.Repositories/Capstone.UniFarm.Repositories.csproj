@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Capstone.UniFarm.Domain\Capstone.UniFarm.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FirebaseAuthentication" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>

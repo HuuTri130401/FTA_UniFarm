@@ -67,6 +67,10 @@ namespace Capstone.UniFarm.Domain.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Account>().ToTable("Account");
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.HasIndex(e => e.UserName).IsUnique(false);
+            });
             modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles")
                 .HasData(
                     new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
@@ -89,8 +93,7 @@ namespace Capstone.UniFarm.Domain.Data
                 entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
 
                 entity.HasOne(d => d.Account)
-                    .WithMany(p => p.AccountRoles)
-                    .HasForeignKey(d => d.AccountId)
+                    .WithOne(p => p.AccountRoles)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__AccountRo__Accou__5165187F");
             });

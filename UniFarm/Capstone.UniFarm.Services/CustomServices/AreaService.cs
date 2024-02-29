@@ -35,6 +35,7 @@ public class AreaService : IAreaService
         {
             var areas = _unitOfWork.AreaRepository.FilterAll(isAscending, orderBy, filter, includeProperties, pageIndex, pageSize);
             result.Payload = _mapper.Map<IEnumerable<AreaResponse>>(areas);
+            result.StatusCode = StatusCode.Ok;
         }
         catch (Exception ex)
         {
@@ -54,6 +55,8 @@ public class AreaService : IAreaService
         {
             var area = await _unitOfWork.AreaRepository.GetByIdAsync(objectId);
             result.Payload = _mapper.Map<AreaResponse>(area);
+            result.StatusCode = StatusCode.Ok;
+
         }
         catch (Exception ex)
         {
@@ -75,6 +78,7 @@ public class AreaService : IAreaService
             if (count > 0)
             {
                 result.Payload = _mapper.Map<AreaResponse>(area);
+                result.StatusCode = StatusCode.Ok;
             }
             else
             {
@@ -107,6 +111,7 @@ public class AreaService : IAreaService
             if (count > 0)
             {
                 result.Payload = true;
+                result.StatusCode = StatusCode.Ok;
             }
             else
             {
@@ -140,6 +145,7 @@ public class AreaService : IAreaService
             if (count.Result > 0)
             {
                 result.Payload = _mapper.Map<AreaResponse>(area);
+                result.StatusCode = StatusCode.Ok;
             }
             else
             {

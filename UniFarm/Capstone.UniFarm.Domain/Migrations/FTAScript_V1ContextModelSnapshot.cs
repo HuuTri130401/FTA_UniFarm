@@ -50,6 +50,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -82,8 +83,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
@@ -122,6 +123,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("UserName");
+
                     b.ToTable("Account", (string)null);
                 });
 
@@ -150,7 +153,9 @@ namespace Capstone.UniFarm.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
 
                     b.ToTable("AccountRole");
                 });
@@ -521,6 +526,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessDayId");
@@ -726,14 +734,21 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
 
+                    b.Property<string>("Caption")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("DisplayIndex")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -985,36 +1000,40 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("ec241458-7296-4c99-ac42-1088943b2fd1"),
-                            ConcurrencyStamp = "f42a38f7-a296-43ae-86ec-9f9c2a2fb169",
+                            Id = new Guid("f562d514-2d12-4527-9f22-26133c651d41"),
+                            ConcurrencyStamp = "6d73e1f1-8625-4eb6-962f-ea2b4c4056ae",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("06bbaab4-f8a4-4c81-892c-3a0a9f61fd47"),
-                            ConcurrencyStamp = "fdfbbe8d-b09b-4771-b0a4-869b057b44b1",
+
+                            Id = new Guid("64ffe38a-e193-4f25-9170-ea292588f8e2"),
+                            ConcurrencyStamp = "2ae7ca0d-b5db-46e0-a802-43b25d303695",
                             Name = "FarmHub",
                             NormalizedName = "FARMHUB"
                         },
                         new
                         {
-                            Id = new Guid("31d0ef4a-12c1-4a20-b6c9-d5666cc350b0"),
-                            ConcurrencyStamp = "434672cb-dd1c-4df8-993d-7c7f7cacbcc7",
+
+                            Id = new Guid("4f573410-9019-4308-bf2b-5ac991d69697"),
+                            ConcurrencyStamp = "b3cd8f3b-05f2-4b39-a0ce-fb6f27b52d30",
                             Name = "CollectedStaff",
                             NormalizedName = "COLLECTEDSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("efcdba91-199b-46ac-991a-af30f06c0d39"),
-                            ConcurrencyStamp = "1d89fded-b7cc-4c45-8232-c351ad25971d",
+
+                            Id = new Guid("c7244650-5abd-4e24-99a3-393069d00145"),
+                            ConcurrencyStamp = "dd0604e0-56b7-46ce-a39a-7a79d89379df",
                             Name = "StationStaff",
                             NormalizedName = "STATIONSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("73e6acd0-6493-4e64-9e19-732e2e87cc18"),
-                            ConcurrencyStamp = "37ff2b97-9803-4262-9d60-d6740586e920",
+
+                            Id = new Guid("7b28501d-25bd-4095-bed0-1a5bd55f7ab8"),
+                            ConcurrencyStamp = "b734938e-84d8-4078-b310-3e5b5f020885",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -1126,8 +1145,8 @@ namespace Capstone.UniFarm.Domain.Migrations
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.AccountRole", b =>
                 {
                     b.HasOne("Capstone.UniFarm.Domain.Models.Account", "Account")
-                        .WithMany("AccountRoles")
-                        .HasForeignKey("AccountId")
+                        .WithOne("AccountRoles")
+                        .HasForeignKey("Capstone.UniFarm.Domain.Models.AccountRole", "AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK__AccountRo__Accou__5165187F");
 
@@ -1465,7 +1484,8 @@ namespace Capstone.UniFarm.Domain.Migrations
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Account", b =>
                 {
-                    b.Navigation("AccountRoles");
+                    b.Navigation("AccountRoles")
+                        .IsRequired();
 
                     b.Navigation("ApartmentStations");
 

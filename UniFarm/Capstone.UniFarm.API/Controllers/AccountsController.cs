@@ -4,22 +4,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capstone.UniFarm.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : BaseController
+    public class AccountsController : BaseController
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService)
+        public AccountsController(IAccountService accountService)
         {
             _accountService = accountService;
         }
         
-        #region API Create account for farmhub
-        [HttpPost("create-account")]
+        #region API Create account for farmhub, CollectedHubStaff, StationHubStaff
+        [HttpPost("account/create")]
         public async Task<IActionResult> CreateAccount([FromBody] RegisterRequest model)
         {
             var response = await _accountService.CreateAccount(model);
-            return response.IsError ? HandleErrorResponse(response!.Errors) : Created("/api/account",response.Payload);
+            return response.IsError ? HandleErrorResponse(response!.Errors) : Created("/api/v1/account/create",response.Payload);
         }
         #endregion
     }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    [Migration("20240220003004_Initial Database")]
-    partial class InitialDatabase
+    [Migration("20240228143906_UpdateUsernameNotUnique")]
+    partial class UpdateUsernameNotUnique
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,6 +52,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -84,8 +85,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
@@ -124,6 +125,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("UserName");
+
                     b.ToTable("Account", (string)null);
                 });
 
@@ -152,7 +155,9 @@ namespace Capstone.UniFarm.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
 
                     b.ToTable("AccountRole");
                 });
@@ -987,36 +992,36 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("ec241458-7296-4c99-ac42-1088943b2fd1"),
-                            ConcurrencyStamp = "f42a38f7-a296-43ae-86ec-9f9c2a2fb169",
+                            Id = new Guid("3bde4839-dfd6-4818-a8fb-23302034879b"),
+                            ConcurrencyStamp = "f0e9a0a3-63d6-4d0a-b3ee-06ffc1418a37",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("06bbaab4-f8a4-4c81-892c-3a0a9f61fd47"),
-                            ConcurrencyStamp = "fdfbbe8d-b09b-4771-b0a4-869b057b44b1",
+                            Id = new Guid("c7b9c720-2234-412f-89dc-d58092c46209"),
+                            ConcurrencyStamp = "7bf1b37e-914d-403e-b932-e774698ce405",
                             Name = "FarmHub",
                             NormalizedName = "FARMHUB"
                         },
                         new
                         {
-                            Id = new Guid("31d0ef4a-12c1-4a20-b6c9-d5666cc350b0"),
-                            ConcurrencyStamp = "434672cb-dd1c-4df8-993d-7c7f7cacbcc7",
+                            Id = new Guid("03c85ee3-7db3-40fd-b667-3c190057defd"),
+                            ConcurrencyStamp = "3da85a08-b0ed-496d-9bb3-417d71c7b2e4",
                             Name = "CollectedStaff",
                             NormalizedName = "COLLECTEDSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("efcdba91-199b-46ac-991a-af30f06c0d39"),
-                            ConcurrencyStamp = "1d89fded-b7cc-4c45-8232-c351ad25971d",
+                            Id = new Guid("3c1691b5-c8f6-4c02-aeed-e9b7b8e2fb95"),
+                            ConcurrencyStamp = "c5344179-49e2-4274-b3da-e09a06d45419",
                             Name = "StationStaff",
                             NormalizedName = "STATIONSTAFF"
                         },
                         new
                         {
-                            Id = new Guid("73e6acd0-6493-4e64-9e19-732e2e87cc18"),
-                            ConcurrencyStamp = "37ff2b97-9803-4262-9d60-d6740586e920",
+                            Id = new Guid("d4504d73-a04f-4a68-b0a5-12c15bde679b"),
+                            ConcurrencyStamp = "4f58f024-9b31-41e8-a092-433f8b170e56",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -1128,8 +1133,8 @@ namespace Capstone.UniFarm.Domain.Migrations
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.AccountRole", b =>
                 {
                     b.HasOne("Capstone.UniFarm.Domain.Models.Account", "Account")
-                        .WithMany("AccountRoles")
-                        .HasForeignKey("AccountId")
+                        .WithOne("AccountRoles")
+                        .HasForeignKey("Capstone.UniFarm.Domain.Models.AccountRole", "AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK__AccountRo__Accou__5165187F");
 
@@ -1467,7 +1472,8 @@ namespace Capstone.UniFarm.Domain.Migrations
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Account", b =>
                 {
-                    b.Navigation("AccountRoles");
+                    b.Navigation("AccountRoles")
+                        .IsRequired();
 
                     b.Navigation("ApartmentStations");
 
