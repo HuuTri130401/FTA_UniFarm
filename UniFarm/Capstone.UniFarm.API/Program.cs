@@ -135,7 +135,6 @@ try
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
     builder.Services.AddScoped<IAreaService, AreaService>();
-
     builder.Services.AddScoped<IApartmentService, ApartmentService>();
     builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
     builder.Services.AddScoped<IWalletService, WalletService>();
@@ -159,9 +158,9 @@ try
         c.EnableAnnotations();
         c.SwaggerDoc("v1", new OpenApiInfo()
         {
-            Title = "Farm To Apartment",
-            Description = "Build application for selling agriculture products",
-            Version = "v1"
+            Title = "Farm To Apartments",
+            Description = "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
+            Version = "Version - 01"
         });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {

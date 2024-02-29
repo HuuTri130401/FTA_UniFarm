@@ -20,11 +20,11 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string Status { get; set; }
-        public int? DisplayIndex { get; set; }
-        public double? SystemPrice { get; set; }
-        public double? MinSystemPrice { get; set; }
-        public double? MaxSystemPrice { get; set; }
-        public double? Margin { get; set; }
+        public int DisplayIndex { get; set; }
+        public double SystemPrice { get; set; }
+        public double MinSystemPrice { get; set; }
+        public double MaxSystemPrice { get; set; }
+        public double Margin { get; set; }
         //public virtual ICollection<ProductVM>? Products { get; set; }
     }
 }
