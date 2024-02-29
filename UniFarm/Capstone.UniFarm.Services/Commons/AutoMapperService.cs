@@ -21,6 +21,7 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<Category, CategoryRequest>().ReverseMap();
             CreateMap<Category, CategoryResponse>().ReverseMap();
+            CreateMap<Category, CategoryResponseForCustomer>().ReverseMap();
             CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
 
             #endregion

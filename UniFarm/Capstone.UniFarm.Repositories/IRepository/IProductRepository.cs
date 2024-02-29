@@ -9,5 +9,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
+        Task<List<Product>> GetAllProductByCategoryId(Guid categoryId);
+
     }
 }

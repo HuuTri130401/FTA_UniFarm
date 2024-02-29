@@ -51,6 +51,29 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<List<CategoryResponseForCustomer>>> GetAllCategoriesForCustomer()
+        {
+            var result = new OperationResult<List<CategoryResponseForCustomer>>();
+            try
+            {
+                var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
+                var listCategoriesResponse = _mapper.Map<List<CategoryResponseForCustomer>>(listCategories);
+
+                if (listCategoriesResponse == null || !listCategoriesResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, "List Categories is Empty!", listCategoriesResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Categories Done.", listCategoriesResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in GetAllCategories Service Method");
+                throw;
+            }
+        }
+
         public async Task<OperationResult<CategoryResponse>> GetCategoryById(Guid categoryId)
         {
             var result = new OperationResult<CategoryResponse>();

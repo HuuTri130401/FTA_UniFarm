@@ -105,7 +105,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listMenusResponse == null || !listMenusResponse.Any())
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, "List Menus is Empty!", listMenusResponse);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Menus with FarmHub Id {farmHubId} is Empty!", listMenusResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Menus Done.", listMenusResponse);
@@ -166,7 +166,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)menuRequestUpdate.FarmHubId);
                         if (existingFarmHub == null)
                         {
-                            result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update.!");
+                            result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update!");
                             return result;
                         }
                         isAnyFieldUpdated = true;

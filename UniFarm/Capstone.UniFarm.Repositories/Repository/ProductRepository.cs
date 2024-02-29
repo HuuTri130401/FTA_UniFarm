@@ -1,6 +1,7 @@
 ﻿using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,11 @@ namespace Capstone.UniFarm.Repositories.Repository
     {
         public ProductRepository(FTAScript_V1Context context) : base(context)
         {
+        }
+
+        public async Task<List<Product>> GetAllProductByCategoryId(Guid categoryId)
+        {
+            return await _dbSet.Where(p => p.CategoryId == categoryId).ToListAsync();
         }
     }
 }
