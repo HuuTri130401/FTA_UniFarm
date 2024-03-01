@@ -15,10 +15,9 @@ namespace Capstone.UniFarm.Repositories.Repository
         public ProductImageRepository(FTAScript_V1Context context) : base(context)
         {
         }
-
-        public virtual async Task<List<ProductImage>> GetAllProductImageAsync(Guid productId)
+        public virtual async Task<List<ProductImage>> GetAllProductImageAsync(Guid productItemId)
         {
-            return await _dbSet.Where(pi => pi.ProductId == productId).ToListAsync();
+            return await _dbSet.Where(pi => pi.ProductItemId == productItemId).ToListAsync();
         }
     }
 }

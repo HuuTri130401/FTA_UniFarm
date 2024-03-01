@@ -13,6 +13,15 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
     {
         public Guid Id { get; set; }
         public Guid ProductId { get; set; }
+        public Guid FarmHubId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string ProductOrigin { get; set; }
+        public string SpecialTag { get; set; }
+        public string StorageType { get; set; }
+        public bool OutOfStock { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public decimal Price { get; set; }
         public double Quantity { get; set; }
         public double MinOrder { get; set; }

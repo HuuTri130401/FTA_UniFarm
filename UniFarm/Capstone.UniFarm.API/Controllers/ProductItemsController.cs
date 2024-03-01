@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -15,21 +16,24 @@ namespace Capstone.UniFarm.API.Controllers
             _productItemService = productItemService;
         }
 
-        [HttpGet("/api/v1/product/{id}/product-items")]
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - Customer Role - {Huu Tri}")]
+        [HttpGet("product/{id}/product-items")]
         public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
         {
             var response = await _productItemService.GetAllProductItemsByProductId(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpGet("/api/v1/product-item/{id}")]
+        [SwaggerOperation(Summary = "Get ProductItem ById - Customer Role - {Huu Tri}")]
+        [HttpGet("product-item/{id}")]
         public async Task<IActionResult> GetProductItemById(Guid id)
         {
             var response = await _productItemService.GetProductItemById(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost("/api/v1/product/{id}/product-item")]
+        [SwaggerOperation(Summary = "Create Product Item For Product - FarmHub Role - {Huu Tri}")]
+        [HttpPost("product/{id}/product-item")]
         public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemRequest productItemRequest)
         {
             if (ModelState.IsValid)
@@ -40,7 +44,8 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpPut("/api/v1/product-item/{id}")]
+        [SwaggerOperation(Summary = "Update Product Item - FarmHub Role - {Huu Tri}")]
+        [HttpPut("product-item/{id}")]
         public async Task<IActionResult> UpdateProductItem(Guid id, ProductItemRequestUpdate productItemRequestUpdate)
         {
             if (ModelState.IsValid)
@@ -51,7 +56,8 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [HttpDelete("/api/v1/product-item/{id}")]
+        [SwaggerOperation(Summary = "Update Product Item - Admin Role, FarmHub Role - {Huu Tri}")]
+        [HttpDelete("product-item/{id}")]
         public async Task<IActionResult> DeleteProductItem(Guid id)
         {
             var response = await _productItemService.DeleteProductItem(id);

@@ -17,10 +17,10 @@ namespace Capstone.UniFarm.API.Controllers
             _productImageService = productImageService;
         }
 
-        [HttpGet("product/{id}/product-images")]
+        [HttpGet("product-item/{id}/product-images")]
         public async Task<IActionResult> GetAllProductImagesByProductId(Guid id)
         {
-            var response = await _productImageService.GetAllProductImagesByProductId(id);
+            var response = await _productImageService.GetAllProductImagesByProductItemId(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -31,7 +31,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [HttpPost("product/{id}/product-image")]
+        [HttpPost("product-item/{id}/product-image")]
         public async Task<IActionResult> CreateProductImageForProduct(Guid id, ProductImageRequest productImageRequest)
         {
             if (ModelState.IsValid)

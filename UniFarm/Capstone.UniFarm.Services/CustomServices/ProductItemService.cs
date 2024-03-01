@@ -35,19 +35,40 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (existingProduct != null)
                 {
-                    var productItem = _mapper.Map<ProductItem>(productItemRequest);
-                    productItem.ProductId = productId;
-                    productItem.Status = "Active";
-                    await _unitOfWork.ProductItemRepository.AddAsync(productItem);
-                    var checkResult = _unitOfWork.Save();
-                    if(checkResult > 0)
+                    var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(productItemRequest.FarmHubId);
+                    if (existingFarmHub != null)
                     {
-                        result.AddResponseStatusCode(StatusCode.Created, "Add Product Item for Product Success!", true);
+                        var productItem = _mapper.Map<ProductItem>(productItemRequest);
+                        productItem.ProductId = productId;
+                        productItem.Status = "Active";
+                        productItem.CreatedAt = DateTime.Now;
+                        if(productItemRequest.Quantity > 0)
+                        {
+                            productItem.OutOfStock = false; //con hang
+                        }
+                        else
+                        {
+                            productItem.OutOfStock = true;
+                        }
+                        await _unitOfWork.ProductItemRepository.AddAsync(productItem);
+                        var checkResult = _unitOfWork.Save();
+                        if (checkResult > 0)
+                        {
+                            result.AddResponseStatusCode(StatusCode.Created, "Add Product Item for Product Success!", true);
+                        }
+                        else
+                        {
+                            result.AddError(StatusCode.BadRequest, "Add Product Item for Product Failed!");
+                        }
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Add Product Item for Product Failed!");
+                        result.AddError(StatusCode.NotFound, $"Not Found FarmHub with Id: ${productItemRequest.FarmHubId}!");
                     }
+                }
+                else
+                {
+                    result.AddError(StatusCode.NotFound, $"Not Found Product with Id: ${productId}!");
                 }
                 return result;
             }
@@ -143,34 +164,80 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (existingProductItem != null)
                 {
-                    if (productItemRequestUpdate.Price != null)
-                    {
-                        existingProductItem.Price = (decimal)productItemRequestUpdate.Price;
-                    }
-                    if (productItemRequestUpdate.Quantity != null)
-                    {
-                        existingProductItem.Quantity = productItemRequestUpdate.Quantity;
-                    }
-                    if (productItemRequestUpdate.MinOrder != null)
-                    {
-                        existingProductItem.MinOrder = productItemRequestUpdate.MinOrder;
-                    }
-                    if (productItemRequestUpdate.Unit != null)
-                    {
-                        existingProductItem.Unit = productItemRequestUpdate.Unit;
-                    }
+                    bool isAnyFieldUpdated = false;
                     if (productItemRequestUpdate.ProductId != null)
                     {
                         var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync((Guid)productItemRequestUpdate.ProductId);
                         if (existingProduct == null)
                         {
-                            result.AddError(StatusCode.BadRequest, "Product Item must belong to a product to update!");
+                            result.AddError(StatusCode.NotFound, $"Product with id: {productItemRequestUpdate.ProductId} not found!"); ;
                             return result;
                         }
+                        existingProductItem.ProductId = (Guid)productItemRequestUpdate.ProductId;
+                        isAnyFieldUpdated = true;
                     }
-                    if (productItemRequestUpdate.Status != null)
+                    if (productItemRequestUpdate.Title != null)
+                    {
+                        existingProductItem.Title = productItemRequestUpdate.Title;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.Description != null)
+                    {
+                        existingProductItem.Description = productItemRequestUpdate.Description;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.ProductOrigin != null)
+                    {
+                        existingProductItem.ProductOrigin = productItemRequestUpdate.ProductOrigin;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.SpecialTag != null)
+                    {
+                        existingProductItem.SpecialTag = productItemRequestUpdate.SpecialTag;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.StorageType != null)
+                    {
+                        existingProductItem.StorageType = productItemRequestUpdate.StorageType;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.Price != null)
+                    {
+                        existingProductItem.Price = (decimal)productItemRequestUpdate.Price;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.Quantity != null)
+                    {
+                        existingProductItem.Quantity = productItemRequestUpdate.Quantity;
+                        if (productItemRequestUpdate.Quantity > 0)
+                        {
+                            existingProductItem.OutOfStock = false; //con hang
+                        }
+                        else
+                        {
+                            existingProductItem.OutOfStock = true;
+                        }
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.MinOrder != null)
+                    {
+                        existingProductItem.MinOrder = productItemRequestUpdate.MinOrder;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.Unit != null)
+                    {
+                        existingProductItem.Unit = productItemRequestUpdate.Unit;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" || productItemRequestUpdate.Status == "InActive"))
                     {
                         existingProductItem.Status = productItemRequestUpdate.Status;
+                        isAnyFieldUpdated = true;
+                    }
+
+                    if (isAnyFieldUpdated)
+                    {
+                        existingProductItem.UpdatedAt = DateTime.Now;
                     }
 
                     _unitOfWork.ProductItemRepository.Update(existingProductItem);

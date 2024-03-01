@@ -14,7 +14,7 @@ namespace Capstone.UniFarm.Domain.Models
             Batches = new HashSet<Batch>();
             Menus = new HashSet<Menu>();
             Orders = new HashSet<Order>();
-            Products = new HashSet<Product>();
+            ProductItems = new HashSet<ProductItem>();
         }
 
         [Key]
@@ -41,7 +41,7 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual ICollection<Menu> Menus { get; set; }
         [InverseProperty(nameof(Order.FarmHub))]
         public virtual ICollection<Order> Orders { get; set; }
-        [InverseProperty(nameof(Product.FarmHub))]
-        public virtual ICollection<Product> Products { get; set; }
+        [InverseProperty(nameof(ProductItem.FarmHub))]
+        public virtual ICollection<ProductItem> ProductItems { get; set; }
     }
 }

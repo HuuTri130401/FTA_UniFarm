@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -15,6 +16,7 @@ namespace Capstone.UniFarm.API.Controllers
             _farmHubService = farmHubService;
         }
 
+        [SwaggerOperation(Summary = "Get All FarmHubs - Admin Role - {Huu Tri}")]
         [HttpGet("farm-hubs")]
         public async Task<IActionResult> GetAllFarmHubs()
         {
@@ -22,6 +24,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Get FarmHub By Id - Admin Role, FarmHub Role - {Huu Tri}")]
         [HttpGet("farm-hub/{id}")]
         public async Task<IActionResult> GetFarmHubById(Guid id)
         {
@@ -29,6 +32,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Create FarmHub - Admin Role - {Huu Tri}")]
         [HttpPost("farm-hub")]
         public async Task<IActionResult> CreateFarmHub(FarmHubRequest farmHubRequest)
         {
@@ -40,6 +44,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Update FarmHub - Admin Role, FarmHub Role - {Huu Tri}")]
         [HttpPut("farm-hub/{id}")]
         public async Task<IActionResult> UpdateFarmHub(Guid id, FarmHubRequestUpdate FarmHubRequestUpdate)
         {
@@ -51,6 +56,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Delete FarmHub - Admin Role - {Huu Tri}")]
         [HttpDelete("farm-hub/{id}")]
         public async Task<IActionResult> DeleteFarmHub(Guid id)
         {
