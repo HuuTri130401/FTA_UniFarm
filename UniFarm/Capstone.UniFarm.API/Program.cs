@@ -128,18 +128,19 @@ try
     builder.Services.AddScoped<IWalletRepository, WalletRepository>();
     builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
     builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+    builder.Services.AddScoped<IProductItemRepository, ProductItemRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IFarmHubService, FarmHubService>();
     builder.Services.AddScoped<IAreaService, AreaService>();
-
     builder.Services.AddScoped<IApartmentService, ApartmentService>();
     builder.Services.AddScoped<IAccountRoleService, AccountRoleService>();
     builder.Services.AddScoped<IWalletService, WalletService>();
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IMenuService, MenuService>();
+    builder.Services.AddScoped<IProductItemService, ProductItemService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
@@ -157,9 +158,9 @@ try
         c.EnableAnnotations();
         c.SwaggerDoc("v1", new OpenApiInfo()
         {
-            Title = "Farm To Apartment",
-            Description = "Build application for selling agriculture products",
-            Version = "v1"
+            Title = "Farm To Apartments",
+            Description = "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
+            Version = "Version - 01"
         });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {

@@ -12,9 +12,9 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IProductImageService
     {
-        Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductId(Guid productId);
+        Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductItemId(Guid productItemId);
         Task<OperationResult<ProductImageResponse>> GetProductImageById(Guid productImageId);
-        Task<OperationResult<bool>> CreateProductImage(Guid productId, ProductImageRequest productImageRequest);
+        Task<OperationResult<bool>> CreateProductImage(Guid productItemId, ProductImageRequest productImageRequest);
         Task<OperationResult<bool>> DeleteProductImage(Guid productImageId);
         Task<OperationResult<bool>> UpdateProductImage(Guid productImageId, ProductImageRequestUpdate productImageRequestUpdate);
     }

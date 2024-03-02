@@ -32,16 +32,27 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<bool>();
             try
             {
-                var product = _mapper.Map<Product>(productRequest);
-                await _unitOfWork.ProductRepository.AddAsync(product);
-                var checkResult = _unitOfWork.Save();
-                if (checkResult > 0)
+                var existingCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(productRequest.CategoryId);
+                if (existingCategory == null)
                 {
-                    result.AddResponseStatusCode(StatusCode.Created, "Add Product Success!", true);
+                    result.AddError(StatusCode.NotFound, $"Category with id: {productRequest.CategoryId} not found!");
+                    return result;
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Add Product Failed!"); ;
+                    var product = _mapper.Map<Product>(productRequest);
+                    product.CreatedAt = DateTime.Now;
+                    product.Status = "Active";
+                    await _unitOfWork.ProductRepository.AddAsync(product);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Created, "Add Product Success!", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Add Product Failed!"); ;
+                    }
                 }
                 return result;
             }
@@ -93,7 +104,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (listProductsResponse == null || !listProductsResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List Products is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, "List Products is Empty!", listProductsResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Products Done.", listProductsResponse);
@@ -102,6 +113,29 @@ namespace Capstone.UniFarm.Services.CustomServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred in GetAllProducts Service Method");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<List<ProductResponse>>> GetAllProductsByCategoryId(Guid categoryId)
+        {
+            var result = new OperationResult<List<ProductResponse>>();
+            try
+            {
+                var listProducts = await _unitOfWork.ProductRepository.GetAllProductByCategoryId(categoryId);
+                var listProducsResponse = _mapper.Map<List<ProductResponse>>(listProducts);
+
+                if (listProducsResponse == null || !listProducsResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Products with Category Id {categoryId} is Empty!", listProducsResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, $"Get List Products with Category Id {categoryId} Done!", listProducsResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetAllProductsByCategoryId Service Method");
                 throw;
             }
         }
@@ -128,7 +162,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> UpdateProduct(Guid productId, ProductRequest productRequest)
+        public async Task<OperationResult<bool>> UpdateProduct(Guid productId, ProductRequestUpdate productRequest)
         {
             var result = new OperationResult<bool>();
             try
@@ -136,8 +170,48 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (existingProduct != null)
                 {
-                    existingProduct = _mapper.Map<Product>(productRequest);
-                    existingProduct.Id = productId;
+                    bool isAnyFieldUpdated = false;
+                    if (productRequest.CategoryId != null)
+                    {
+                        var existingCategory = await _unitOfWork.CategoryRepository.GetByIdAsync((Guid)productRequest.CategoryId);
+                        if (existingCategory == null)
+                        {
+                            result.AddError(StatusCode.NotFound, $"Category with id: {productRequest.CategoryId} not found!"); ;
+                            return result;
+                        }
+                        existingProduct.CategoryId = productRequest.CategoryId;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productRequest.Name != null)
+                    {
+                        existingProduct.Name = productRequest.Name;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productRequest.Code != null)
+                    {
+                        existingProduct.Code = productRequest.Code;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productRequest.Description != null)
+                    {
+                        existingProduct.Description = productRequest.Description;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productRequest.Label != null)
+                    {
+                        existingProduct.Label = productRequest.Label;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (productRequest.Status != null && (productRequest.Status == "Active" || productRequest.Status == "InActive"))
+                    {
+                        existingProduct.Status = productRequest.Status;
+                        isAnyFieldUpdated = true;
+                    }
+                    if (isAnyFieldUpdated)
+                    {
+                        existingProduct.UpdatedAt = DateTime.Now;
+                    }
+
                     _unitOfWork.ProductRepository.Update(existingProduct);
 
                     var checkResult = _unitOfWork.Save();
@@ -149,6 +223,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         result.AddError(StatusCode.BadRequest, "Update Product Failed!"); ;
                     }
+                }
+                else
+                {
+                    result.AddError(StatusCode.NotFound, $"Product with id: {productId} not found!"); ;
                 }
                 return result;
             }

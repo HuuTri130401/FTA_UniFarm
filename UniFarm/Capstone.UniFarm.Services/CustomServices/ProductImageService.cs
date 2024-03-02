@@ -27,32 +27,33 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<bool>> CreateProductImage(Guid productId,ProductImageRequest productImageRequest)
+
+        public async Task<OperationResult<bool>> CreateProductImage(Guid productItemId, ProductImageRequest productImageRequest)
         {
             var result = new OperationResult<bool>();
 
             try
             {
-                var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
-                if (existingProduct != null)
+                var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
+                if (existingProductItem != null)
                 {
                     var productImage = _mapper.Map<ProductImage>(productImageRequest);
-                    productImage.ProductId = productId; 
+                    productImage.ProductItemId = productItemId;
                     productImage.Status = "Active";
                     await _unitOfWork.ProductImageRepository.AddAsync(productImage);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
                     {
-                        result.AddResponseStatusCode(StatusCode.Created, "Add Image to Product Success!", true);
+                        result.AddResponseStatusCode(StatusCode.Created, "Add Image for ProductItem Success!", true);
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Add Image to Product Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); ;
                     }
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Add Image to Product Failed!"); ;
+                    result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); ;
                 }
                 return result;
             }
@@ -94,17 +95,17 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductId(Guid productId)
+        public async Task<OperationResult<List<ProductImageResponse>>> GetAllProductImagesByProductItemId(Guid productItemId)
         {
             var result = new OperationResult<List<ProductImageResponse>>();
             try
             {
-                var listProductImages = await _unitOfWork.ProductImageRepository.GetAllProductImageAsync(productId);
+                var listProductImages = await _unitOfWork.ProductImageRepository.GetAllProductImageAsync(productItemId);
                 var listProductImagesResponse = _mapper.Map<List<ProductImageResponse>>(listProductImages);
 
                 if (listProductImagesResponse == null || !listProductImagesResponse.Any())
                 {
-                    result.AddError(StatusCode.NotFound, "List ProductImages is Empty!");
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Images with ProductItem Id {productItemId} is Empty!", listProductImagesResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Images Done.", listProductImagesResponse);
@@ -112,10 +113,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllFarmHubs Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllProductImagesByProductId Service Method");
                 throw;
             }
-            throw new NotImplementedException();
         }
 
         public async Task<OperationResult<ProductImageResponse>> GetProductImageById(Guid productImageId)
@@ -135,7 +135,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetFarmHubById service method for FarmHub ID: {productImageId}");
+                _logger.LogError(ex, $"Error occurred in GetProductImageById service method for productImage ID: {productImageId}");
                 throw;
             }
         }
@@ -162,7 +162,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync((Guid)productImageRequestUpdate.ProductId);
                         if(existingProduct == null)
                         {
-                            result.AddError(StatusCode.BadRequest, "Product Image must belong to a product to update.!");
+                            result.AddError(StatusCode.BadRequest, "Product Image must belong to a product to update!");
                             return result;
                         }
                     }

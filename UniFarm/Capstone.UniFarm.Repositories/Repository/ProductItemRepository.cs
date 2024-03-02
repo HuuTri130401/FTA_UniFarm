@@ -10,14 +10,15 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Repositories.Repository
 {
-    public class ProductImageRepository : GenericRepository<ProductImage>, IProductImageRepository
+    public class ProductItemRepository : GenericRepository<ProductItem>, IProductItemRepository
     {
-        public ProductImageRepository(FTAScript_V1Context context) : base(context)
+        public ProductItemRepository(FTAScript_V1Context context) : base(context)
         {
         }
-        public virtual async Task<List<ProductImage>> GetAllProductImageAsync(Guid productItemId)
+
+        public async Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId)
         {
-            return await _dbSet.Where(pi => pi.ProductItemId == productItemId).ToListAsync();
+            return await _dbSet.Where(pi => pi.ProductId == productId).ToListAsync();
         }
     }
 }

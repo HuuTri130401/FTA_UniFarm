@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -15,6 +16,7 @@ namespace Capstone.UniFarm.API.Controllers
             _menuService = menuService;
         }
 
+        [SwaggerOperation(Summary = "Get All Menus By FarmHub Id - FarmHub Role - {Huu Tri}")]
         [HttpGet("farm-hub/{id}/menus")]
         public async Task<IActionResult> GetAllMenusByFarmHubId(Guid id)
         {
@@ -22,6 +24,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Get Menu By Id - FarmHub Role - {Huu Tri}")]
         [HttpGet("menu/{id}")]
         public async Task<IActionResult> GetMenuById(Guid id)
         {
@@ -29,6 +32,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Create Menu For FarmHub - FarmHub Role - {Huu Tri}")]
         [HttpPost("farm-hub/{id}/menu")]
         public async Task<IActionResult> CreateMenuForFarmHub(Guid id, MenuRequest menuRequest)
         {
@@ -40,6 +44,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Update Menu - FarmHub Role - {Huu Tri}")]
         [HttpPut("menu/{id}")]
         public async Task<IActionResult> UpdateMenu(Guid id, MenuRequestUpdate menuRequestUpdate)
         {
@@ -51,6 +56,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Update Menu - FarmHub Role - {Huu Tri}")]
         [HttpDelete("menu/{id}")]
         public async Task<IActionResult> DeleteMenu(Guid id)
         {

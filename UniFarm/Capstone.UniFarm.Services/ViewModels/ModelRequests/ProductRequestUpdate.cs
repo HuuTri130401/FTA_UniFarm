@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
-    public class ProductRequest
+    public class ProductRequestUpdate
     {
-        [Required(ErrorMessage = "CategoryId is required")]
-        public Guid CategoryId { get; set; }
-        [Required(ErrorMessage = "Name is required")]
+        public Guid? CategoryId { get; set; }
         [StringLength(50, ErrorMessage = "Name length cannot exceed 50 characters")]
         [MinLength(3, ErrorMessage = "Name length must be at least 3 characters")]
-        public string Name { get; set; }
-        [Required(ErrorMessage = "Code is required")]
+        public string? Name { get; set; }
         [StringLength(10, ErrorMessage = "Code length cannot exceed 10 characters")]
         [MinLength(2, ErrorMessage = "Code length must be at least 2 characters")]
-        public string Code { get; set; }
+        public string? Code { get; set; }
         [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
         public string? Description { get; set; }
+
         [StringLength(30, ErrorMessage = "Label length cannot exceed 30 characters")]
         public string? Label { get; set; }
+        [RegularExpression("^(Active|InActive)$", ErrorMessage = "Status must be either 'Active' or 'InActive'")]
+        public string? Status { get; set; }
     }
 }

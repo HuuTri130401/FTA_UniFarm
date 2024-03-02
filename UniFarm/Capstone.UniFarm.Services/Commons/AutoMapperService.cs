@@ -21,6 +21,7 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<Category, CategoryRequest>().ReverseMap();
             CreateMap<Category, CategoryResponse>().ReverseMap();
+            CreateMap<Category, CategoryResponseForCustomer>().ReverseMap();
             CreateMap<Category, CategoryRequestUpdate>().ReverseMap();
 
             #endregion
@@ -58,6 +59,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
 
             CreateMap<Product, ProductRequest>().ReverseMap();
+            CreateMap<Product, ProductRequestUpdate>().ReverseMap();
             CreateMap<Product, ProductResponse>().ReverseMap();
 
             CreateMap<ProductImage, ProductImageRequest>().ReverseMap();
@@ -67,6 +69,10 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Menu, MenuRequest>().ReverseMap();
             CreateMap<Menu, MenuRequestUpdate>().ReverseMap();
             CreateMap<Menu, MenuResponse>().ReverseMap();
+
+            CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
+            CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
+            CreateMap<ProductItem, ProductItemResponse>().ReverseMap();
         }
     }
 }

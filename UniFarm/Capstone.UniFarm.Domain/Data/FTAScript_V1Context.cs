@@ -265,21 +265,15 @@ namespace Capstone.UniFarm.Domain.Data
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Product__Categor__59063A47");
-
-                entity.HasOne(d => d.FarmHub)
-                    .WithMany(p => p.Products)
-                    .HasForeignKey(d => d.FarmHubId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Product__FarmHub__5812160E");
             });
 
             modelBuilder.Entity<ProductImage>(entity =>
             {
                 entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
 
-                entity.HasOne(d => d.Product)
+                entity.HasOne(d => d.ProductItem)
                     .WithMany(p => p.ProductImages)
-                    .HasForeignKey(d => d.ProductId)
+                    .HasForeignKey(d => d.ProductItemId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__ProductIm__Produ__5CD6CB2B");
             });

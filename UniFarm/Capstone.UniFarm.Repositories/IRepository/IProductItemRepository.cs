@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Repositories.IRepository
 {
-    public interface IProductImageRepository : IGenericRepository<ProductImage>
+    public interface IProductItemRepository : IGenericRepository<ProductItem>
     {
-        Task<List<ProductImage>> GetAllProductImageAsync(Guid productItemId);
+        Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId);
     }
 }

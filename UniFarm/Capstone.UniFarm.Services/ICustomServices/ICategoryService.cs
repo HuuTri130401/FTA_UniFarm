@@ -9,12 +9,12 @@ namespace Capstone.UniFarm.Services.ICustomServices
     public interface ICategoryService
     {
         Task<OperationResult<List<CategoryResponse>>> GetAllCategories();
+        Task<OperationResult<List<CategoryResponseForCustomer>>> GetAllCategoriesForCustomer();
         Task<OperationResult<CategoryResponse>> GetCategoryById(Guid categoryId);
         Task<OperationResult<bool>> CreateCategory(CategoryRequest categoryRequest);
         Task<OperationResult<bool>> DeleteCategory(Guid categoryId);
         Task<OperationResult<bool>> UpdateCategory(Guid categoryId, CategoryRequestUpdate categoryRequestUpdate);
         Task<OperationResult<Pagination<CategoryResponse>>> GetCategoryPaginationAsync(int pageIndex = 0, int pageSize = 10);
-        
         Task<Guid> GetCategoriesCountAsync(ISpecifications<Category> specifications);
     }
 }
