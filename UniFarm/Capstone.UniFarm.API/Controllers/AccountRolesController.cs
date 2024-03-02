@@ -15,20 +15,16 @@ public class AccountRolesController : BaseController
     }
 
     [HttpGet("account-roles")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [SwaggerOperation(Summary = "Get all account roles - Done {Tien}")]
     public async Task<IActionResult> GetAllAccountRoles(
         [FromQuery] Guid? id,
         [FromQuery] Guid? accountId,
         [FromQuery] string? status,
         [FromQuery] bool? isAscending,
-        string? orderBy = null,
-        string[]? includeProperties = null,
-        int pageIndex = 0,
-        int pageSize = 10)
+        [FromQuery] string? orderBy = null,
+        [FromQuery] string[]? includeProperties = null,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10)
     {
         var response = await _accountRoleService
             .GetAll(isAscending,
