@@ -60,7 +60,7 @@ public class AreasController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [SwaggerOperation(Summary = "Get area by id - Done {Tien}")]
-    public async Task<IActionResult> GetArea([FromQuery] Guid id)
+    public async Task<IActionResult> GetArea(Guid id)
     {
         var response = await _areaService.GetById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
@@ -74,7 +74,7 @@ public class AreasController : BaseController
     public async Task<IActionResult> CreateArea([FromBody] AreaRequestCreate requestCreateModel)
     {
         var response = await _areaService.Create(requestCreateModel);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Created($"area/{response.Payload.Id}",response);
     }
     
     [HttpPut("area/update/{id}")]
@@ -101,10 +101,4 @@ public class AreasController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
-    [HttpGet("odata/areas")]
-    [EnableQuery]
-    public async Task<IEnumerable<AreaResponse>> GetAll()
-    {
-        return (await _areaService.GetAll(null)).Payload!.AsQueryable();
-    }
 }

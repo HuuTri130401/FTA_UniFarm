@@ -105,7 +105,20 @@ namespace Capstone.UniFarm.Repositories.Repository
             }
             return items.Skip(pageIndex * pageSize).Take(pageSize);
         }
-        
+
+        public IQueryable<TEntity> FilterByExpression(Expression<Func<TEntity, bool>> predicate, string[]? includeProperties = null)
+        {
+            IQueryable<TEntity> items = _dbSet.AsNoTracking();
+            if (includeProperties != null)
+            {
+                foreach (var includeProperty in includeProperties)
+                {
+                    items = items.Include(includeProperty);
+                }
+            }
+            return items.Where(predicate);
+        }
+
         private IQueryable<TEntity> ApplyOrder(IQueryable<TEntity> source, string orderBy, bool isAscending)
         {
             var parameter = Expression.Parameter(typeof(TEntity), "x");

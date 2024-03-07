@@ -7,8 +7,9 @@ namespace Capstone.UniFarm.Services.ICustomServices;
 
 public interface IWalletService
 {
-    Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null, Expression<Func<Area, bool>>? filter = null, string[]? includeProperties = null, int pageIndex = 0, int pageSize = 10);
+    Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null, Expression<Func<Wallet, bool>>? filter = null, string[]? includeProperties = null, int pageIndex = 0, int pageSize = 10);
     Task<OperationResult<Wallet>> GetById(Guid objectId);
     Task<OperationResult<Wallet>> Create(WalletRequest objectRequestCreate);
-    Task<OperationResult<Wallet>> Update(Guid Id, Wallet objectRequestUpdate);
+    Task<OperationResult<Wallet>> Update(Guid id, Wallet objectRequestUpdate);
+    Task<OperationResult<Wallet>> FindByExpression(Expression<Func<Wallet, bool>> filter , string[]? includeProperties = null);
 }

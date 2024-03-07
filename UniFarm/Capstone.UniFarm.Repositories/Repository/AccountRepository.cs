@@ -20,12 +20,20 @@ namespace Capstone.UniFarm.Repositories.Repository
         
         public override void SoftRemove(Account entity)
         {
+            if(entity.RoleName == EnumConstants.RoleEnumString.ADMIN)
+            {
+                return;
+            }
             entity.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
             _dbSet.Update(entity);
         }
         
         public new Account Remove(Account entity)
         {
+            if(entity.RoleName == EnumConstants.RoleEnumString.ADMIN)
+            {
+                return null;
+            }
             entity.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
             _dbSet.Update(entity);
             return entity;

@@ -9,7 +9,7 @@ namespace Capstone.UniFarm.Services.Commons
 {
     public class OperationResult<T>
     {
-        public StatusCode StatusCode { get; set; }
+        public StatusCode StatusCode { get; set; } = StatusCode.Ok;
         public string? Message { get; set; }
         public bool IsError { get; set; }
 

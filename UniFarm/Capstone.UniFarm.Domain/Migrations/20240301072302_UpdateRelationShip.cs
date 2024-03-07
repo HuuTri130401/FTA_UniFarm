@@ -17,9 +17,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                 name: "FK__ProductIm__Produ__5CD6CB2B",
                 table: "ProductImage");
 
-            migrationBuilder.DropIndex(
+            /*migrationBuilder.DropIndex(
                 name: "IX_Product_FarmHubId",
-                table: "Product");
+                table: "Product");*/
 
             migrationBuilder.DeleteData(
                 table: "Roles",
@@ -63,10 +63,10 @@ namespace Capstone.UniFarm.Domain.Migrations
                 table: "ProductImage",
                 newName: "ProductItemId");
 
-            migrationBuilder.RenameIndex(
+            /*migrationBuilder.RenameIndex(
                 name: "IX_ProductImage_ProductId",
                 table: "ProductImage",
-                newName: "IX_ProductImage_ProductItemId");
+                newName: "IX_ProductImage_ProductItemId");*/
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "CreatedAt",

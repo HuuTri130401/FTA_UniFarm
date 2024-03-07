@@ -19,6 +19,8 @@ namespace Capstone.UniFarm.Repositories.IRepository
         void SoftRemoveRange(List<TEntity> entities);
         TEntity Remove(TEntity entity);
         public IQueryable<TEntity> FilterAll(bool? isAscending, string? orderBy = null, Expression<Func<TEntity, bool>>? predicate = null, string[]? includeProperties = null, int pageIndex = 0, int pageSize = 10);
+        IQueryable<TEntity> FilterByExpression(Expression<Func<TEntity, bool>> predicate, string[]? includeProperties = null);
+        
         Task<TEntity?> FindSingleAsync(Expression<Func<TEntity, bool>>? predicate, params Expression<Func<TEntity, object>>[]? includeProperties);
     }
 }

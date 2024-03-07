@@ -27,6 +27,9 @@ namespace Capstone.UniFarm.Domain.Models
         public string? LastName { get; set; }
         [StringLength(12)]
         public string? Phone { get; set; }
+        
+        public override string UserName { get; set; }
+
         [StringLength(50)]
         public override string Email { get; set; }
         public string? Avatar { get; set; }  = null;

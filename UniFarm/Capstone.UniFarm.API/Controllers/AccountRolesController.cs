@@ -44,7 +44,7 @@ public class AccountRolesController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [SwaggerOperation(Summary = "Get account role by id - Done {Tien}")]
-    public async Task<IActionResult> GetAccountRole([FromQuery] Guid id)
+    public async Task<IActionResult> GetAccountRole(Guid id)
     {
         var response = await _accountRoleService.GetById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);

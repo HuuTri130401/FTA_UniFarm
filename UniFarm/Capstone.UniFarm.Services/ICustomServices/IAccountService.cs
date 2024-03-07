@@ -15,13 +15,22 @@ namespace Capstone.UniFarm.Services.ICustomServices
     public interface IAccountService
     {
         string GenerateJwtToken(Account user, byte[] key, string userRole);
-        Task<OperationResult<IEnumerable<AccountResponse>>> GetAllAccounts(Expression<Func<Account, bool>>? predicate);
-        Task<OperationResult<AccountResponse>> GetAccountById(Guid accountId);
-        Task<OperationResult<AccountResponse>> GetAccountByPredicate(Expression<Func<Account, bool>>? predicate);
-        Task<OperationResult<RegisterRequest>> CreateAccount(RegisterRequest registerRequest);
-        Task<OperationResult<bool>> DeleteAccount(Guid id);
-        Task<OperationResult<AccountResponse>> UpdateAccount(Guid Id, AccountRequest accountRequest);
-        Task<OperationResult<Pagination<AccountResponse>>> GetAccountPaginationAsync(int pageIndex = 0, int pageSize = 10);
+        OperationResult<AboutMeResponse.AboutMeRoleAndID> GetIdAndRoleFromToken(string token);
+        
+        Task<OperationResult<AccountRequestCreate>> CreateAccount(AccountRequestCreate accountRequestCreate);
+        
         Task<OperationResult<Account>> HandleLoginGoogle(IEnumerable<Claim> claims);
+        Task<OperationResult<AccountResponse>> GetAccountByExpression(Expression<Func<Account, bool>> predicate, string[]? includeProperties = null);
+        Task<OperationResult<AccountResponse>> UpdateAccount(Guid id, AccountRequestUpdate accountRequestUpdate);
+        
+        Task<OperationResult<AboutMeResponse.AboutCustomerResponse>> GetAboutCustomer(Guid accountId);
+
+        Task<OperationResult<AboutMeResponse.AboutFarmHubResponse>> GetAboutFarmHub(Guid accountId);
+        Task<OperationResult<AboutMeResponse.AboutCollectedStaffResponse>> GetAboutCollectedStaff(Guid accountId);
+        Task<OperationResult<AboutMeResponse.AboutStationStaffResponse>> GetAboutStationStaff(Guid accountId);
+        Task<OperationResult<AboutMeResponse.AboutAdminResponse>> GetAboutAdmin(Guid accountId);
+
+        Task<OperationResult<AccountResponse>> GetAccountById(Guid accountId);
+
     }
 }

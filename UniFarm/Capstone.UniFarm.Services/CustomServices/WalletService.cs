@@ -5,6 +5,7 @@ using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Capstone.UniFarm.Services.CustomServices;
@@ -34,6 +35,7 @@ public class WalletService : IWalletService
             {
                 result.StatusCode = StatusCode.Created;
                 result.Payload = objectWallet;
+                result.IsError = false;
             }
             else
             {
@@ -46,6 +48,7 @@ public class WalletService : IWalletService
         {
             result.AddError(StatusCode.BadRequest, ex.Message);
             _logger.LogError("Wallet create error" + ex.Message);
+            result.IsError = true;
             throw;
         }
 
@@ -56,8 +59,37 @@ public class WalletService : IWalletService
     {
         throw new NotImplementedException();
     }
+
+    public async Task<OperationResult<Wallet>> FindByExpression(Expression<Func<Wallet, bool>> filter = null, string[]? includeProperties = null)
+    {
+        var result = new OperationResult<Wallet>();
+        try
+        {
+            var objectWallet = _unitOfWork.WalletRepository.FilterByExpression(filter, includeProperties);
+            if (objectWallet.Any())
+            {
+                result.StatusCode = StatusCode.Ok;
+                result.Payload = await objectWallet.FirstOrDefaultAsync();
+                result.IsError = false;
+            }
+            else
+            {
+                result.IsError = true;
+                result.AddError(StatusCode.NotFound, "Wallet not found!");
+                result.Payload = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            result.AddError(StatusCode.BadRequest, ex.Message);
+            _logger.LogError("Wallet find by expression error " + ex.Message);
+            throw;
+        }
+        return result;
+    }
     
-    public Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null, Expression<Func<Area, bool>>? filter = null, string[]? includeProperties = null,
+
+    public Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null, Expression<Func<Wallet, bool>>? filter = null, string[]? includeProperties = null,
         int pageIndex = 0, int pageSize = 10)
     {
         throw new NotImplementedException();

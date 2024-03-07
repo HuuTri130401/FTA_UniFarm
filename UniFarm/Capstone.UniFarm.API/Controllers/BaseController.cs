@@ -7,7 +7,7 @@ namespace Capstone.UniFarm.API.Controllers
 {
     [Route("api/v1/")]
     [ApiController]
-    public class BaseController : ODataController
+    public class BaseController : ControllerBase
     {
         protected IActionResult HandleErrorResponse(List<Error> errors)
         {

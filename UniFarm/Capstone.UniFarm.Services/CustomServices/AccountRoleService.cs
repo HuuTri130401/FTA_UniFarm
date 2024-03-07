@@ -152,4 +152,23 @@ public class AccountRoleService : IAccountRoleService
         }
         return result;
     }
+
+    public Task<OperationResult<AccountRole>> GetAccountRoleByExpression(Expression<Func<AccountRole, bool>> predicate, string[]? includeProperties = null)
+    {
+        var result = new OperationResult<AccountRole>();
+        try
+        {
+            var accountRole = _unitOfWork.AccountRoleRepository.FilterByExpression(
+                predicate, includeProperties);
+            result.Payload = _mapper.Map<AccountRole>(accountRole);
+            result.StatusCode = StatusCode.Ok;
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+            throw;
+        }
+
+        return Task.FromResult(result);
+    }
 }

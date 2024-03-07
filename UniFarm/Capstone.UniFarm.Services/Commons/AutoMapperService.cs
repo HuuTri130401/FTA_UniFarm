@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
@@ -9,12 +10,29 @@ namespace Capstone.UniFarm.Services.Commons
 {
     public class AutoMapperService : Profile
     {
-        public AutoMapperService()
+
+        public AutoMapperService(
+        )
         {
             #region Account Mapping
+
             CreateMap<Account, AccountResponse>().ReverseMap();
-            CreateMap<RegisterRequest, Account>()
+            CreateMap<AccountRequestCreate, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
+
+            CreateMap<AccountRequestUpdate, Account>()
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => System.DateTime.Now))
+                .ForMember(dest => dest.Status,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status))
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role))
+                .ReverseMap();
+                
+            CreateMap<Account, AboutMeResponse.AboutCustomerResponse>();
+            CreateMap<Account, AboutMeResponse.AboutFarmHubResponse>();
+            CreateMap<Account, AboutMeResponse.AboutCollectedStaffResponse>();
+            CreateMap<Account, AboutMeResponse.AboutStationStaffResponse>();
+            CreateMap<Account, AboutMeResponse.AboutAdminResponse>();
             #endregion
 
             #region Category Mapping
@@ -45,13 +63,48 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Apartment, ApartmentResponse>();
 
             #endregion
-            
+
             #region Wallet Mapping
+
             CreateMap<WalletRequest, Wallet>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => 0))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
+
+            #endregion
+
+            #region Station Mapping
+
+            CreateMap<StationRequestCreate, Station>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
+
+            CreateMap<StationRequestUpdate, Station>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status,opt => opt.MapFrom(src =>
+                        String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
+
+            CreateMap<Station, StationResponse>();
+
+            #endregion
+
+            #region CollectedHub Mapping
+            CreateMap<CollectedHubRequestCreate, CollectedHub>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
+            
+            
+            CreateMap<CollectedHubRequestUpdate, CollectedHub>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status,opt => opt.MapFrom(src =>
+                    String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
+            
+            CreateMap<CollectedHub, CollectedHubResponse>();
             #endregion
 
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();

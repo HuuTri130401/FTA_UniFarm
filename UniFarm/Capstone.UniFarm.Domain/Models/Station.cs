@@ -18,7 +18,8 @@ namespace Capstone.UniFarm.Domain.Models
 
         [Key]
         public Guid Id { get; set; }
-        public Guid? AreaId { get; set; }
+        [Required]
+        public Guid AreaId { get; set; }
         [StringLength(100)]
         public string? Code { get; set; }
         [StringLength(255)]

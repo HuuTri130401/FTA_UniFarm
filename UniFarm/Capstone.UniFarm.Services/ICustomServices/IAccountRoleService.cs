@@ -13,4 +13,7 @@ public interface IAccountRoleService
     Task<OperationResult<bool>> Delete(Guid id);
     Task<OperationResult<AccountRole>> Update(Guid id, AccountRoleRequestUpdate objectRequestUpdate);
     Task<OperationResult<AccountRole>> CreateModel(AccountRole entity);
+    
+    Task<OperationResult<AccountRole>> GetAccountRoleByExpression(Expression<Func<AccountRole, bool>> predicate, string[]? includeProperties = null);
+
 }

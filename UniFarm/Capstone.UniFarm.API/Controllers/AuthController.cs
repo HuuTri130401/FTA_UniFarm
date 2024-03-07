@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Text;
+using Capstone.UniFarm.API.Helpers;
 using Capstone.UniFarm.Domain.Enum;
 
 namespace Capstone.UniFarm.API.Controllers
@@ -40,9 +41,9 @@ namespace Capstone.UniFarm.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [SwaggerOperation(Summary = "Register account for customer - Done {Tien}")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest model)
+        public async Task<IActionResult> Register([FromBody] AccountRequestCreate model)
         {
-            model.Role = EnumConstants.RoleEnum.Customer;
+            model.Role = EnumConstants.RoleEnumString.CUSTOMER;
             var response = await _accountService.CreateAccount(model);
             return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/login",response.Payload);
         }
@@ -67,6 +68,11 @@ namespace Capstone.UniFarm.API.Controllers
             if (!signInResult.Succeeded)
             {
                 return Unauthorized();
+            }
+            
+            if(user.Status == EnumConstants.ActiveInactiveEnum.INACTIVE)
+            {
+                return BadRequest(new ErrorResponse(400, "Bad Request", "Account has been blocked! Please contact admin for more information fta@gmail.com", DateTime.Now));
             }
 
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);

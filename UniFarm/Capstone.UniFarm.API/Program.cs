@@ -1,4 +1,3 @@
-
 using System.Security.Claims;
 using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Domain.Models;
@@ -46,42 +45,46 @@ try
         options.AddDefaultPolicy(builder =>
         {
             builder.WithOrigins("http://localhost:3000")
-                   .AllowAnyOrigin()
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         });
     });
-    
-    
+
+
     //============ Identity =============//
     builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
-    {
-        // Lockout settings
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.AllowedForNewUsers = true;
+        {
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
 
-        // User settings
-        options.User.RequireUniqueEmail = true;
-        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-        options.User.AllowedUserNameCharacters += " ";
+            // User settings
+            options.User.RequireUniqueEmail = false;
+            /*
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.AllowedUserNameCharacters += " ";
+            */
+            options.User.AllowedUserNameCharacters = null;
 
-        // SignIn settings
-        options.SignIn.RequireConfirmedEmail = false;
-        options.SignIn.RequireConfirmedPhoneNumber = false;
-    })
-    .AddEntityFrameworkStores<FTAScript_V1Context>()
-    .AddDefaultTokenProviders();
+            // SignIn settings
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        })
+        .AddEntityFrameworkStores<FTAScript_V1Context>()
+        .AddDefaultTokenProviders()
+        .AddUserManager<CustomUserManager>();
 
     /*============== Google authentication ============ */
     builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        /*options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;*/
-    })
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            /*options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;*/
+        })
         .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -97,13 +100,13 @@ try
         })
         .AddCookie()
         .AddGoogle(options =>
-        { 
+        {
             options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
             options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         });
 
     //============ Config Odata =============//
-    builder.Services.AddControllers()
+    /*builder.Services.AddControllers()
         .AddOData(options => options
             .AddRouteComponents("odata", GetEdmModel())
             .Count()
@@ -111,7 +114,7 @@ try
             .Expand()
             .Select()
             .OrderBy()
-            .SetMaxTop(null));
+            .SetMaxTop(null));*/
 
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
@@ -129,7 +132,9 @@ try
     builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
     builder.Services.AddScoped<IMenuRepository, MenuRepository>();
     builder.Services.AddScoped<IProductItemRepository, ProductItemRepository>();
-    
+    builder.Services.AddScoped<IStationRepository, StationRepository>();
+    builder.Services.AddScoped<ICollectedHubRepository, CollectedHubRepository>();
+
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
@@ -141,6 +146,9 @@ try
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IMenuService, MenuService>();
     builder.Services.AddScoped<IProductItemService, ProductItemService>();
+    builder.Services.AddScoped<IStationService, StationService>();
+    builder.Services.AddScoped<ICollectedHubService, CollectedHubService>();
+    builder.Services.AddScoped<IManageUsersService, ManageUsersService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
@@ -153,13 +161,15 @@ try
     builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddAuthentication();
     builder.Services.AddSwaggerGen(c =>
     {
         c.EnableAnnotations();
         c.SwaggerDoc("v1", new OpenApiInfo()
         {
             Title = "Farm To Apartments",
-            Description = "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
+            Description =
+                "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
             Version = "Version - 01"
         });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -200,7 +210,7 @@ try
     });
 
     var app = builder.Build();
-    
+
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -212,13 +222,13 @@ try
     app.MapControllers();
     app.UseCors();
     app.Run();
-    
-    static IEdmModel GetEdmModel()
+
+    /*static IEdmModel GetEdmModel()
     {
         var builder = new ODataConventionModelBuilder();
         builder.EntitySet<AreaRequestCreate>("Areas");
         return builder.GetEdmModel();
-    }
+    }*/
 }
 catch (Exception exception)
 {
@@ -231,5 +241,3 @@ finally
     // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
     NLog.LogManager.Shutdown();
 }
-
-

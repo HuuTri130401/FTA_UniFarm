@@ -10,5 +10,6 @@ public record AccountRoleRequest
     public Guid? CollectedHubId { get; set; }
     public Guid? FarmHubId { get; set; }
     [StringLength(100)]
+    [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status can be either 'Active' or 'Inactive'.")]
     public string? Status { get; set; }
 }

@@ -78,7 +78,7 @@ public class AreaService : IAreaService
             if (count > 0)
             {
                 result.Payload = _mapper.Map<AreaResponse>(area);
-                result.StatusCode = StatusCode.Ok;
+                result.StatusCode = StatusCode.Created;
             }
             else
             {
