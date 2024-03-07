@@ -31,7 +31,6 @@ namespace Capstone.UniFarm.Services.CustomServices
         public async Task<OperationResult<bool>> CreateProductImage(Guid productItemId, ProductImageRequest productImageRequest)
         {
             var result = new OperationResult<bool>();
-
             try
             {
                 var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
@@ -100,8 +99,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<List<ProductImageResponse>>();
             try
             {
-                var listProductImages = await _unitOfWork.ProductImageRepository.GetAllProductImageAsync(productItemId);
-                var listProductImagesResponse = _mapper.Map<List<ProductImageResponse>>(listProductImages);
+                var listProductItemImages = await _unitOfWork.ProductImageRepository.GetAllProductImageAsync(productItemId);
+                var activeProductItemImages = listProductItemImages.Where(pi => pi.Status == "Active").ToList();
+                var listProductImagesResponse = _mapper.Map<List<ProductImageResponse>>(activeProductItemImages);
 
                 if (listProductImagesResponse == null || !listProductImagesResponse.Any())
                 {
@@ -123,14 +123,21 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<ProductImageResponse>();
             try
             {
-                var productImage = await _unitOfWork.ProductImageRepository.GetByIdAsync(productImageId);
-                if (productImage == null)
+                var productItemImage = await _unitOfWork.ProductImageRepository.GetByIdAsync(productImageId);
+
+                if (productItemImage == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product Image with Id: {productImageId}");
                     return result;
                 }
-                var productImageResponse = _mapper.Map<ProductImageResponse>(productImage);
-                result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Image by Id: {productImageId} Success!", productImageResponse);
+                else if (productItemImage.Status == "Active")
+                {
+                    var productItemImageIsActive = productItemImage;
+                    var productImageResponse = _mapper.Map<ProductImageResponse>(productItemImageIsActive);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Image by Id: {productImageId} Success!", productImageResponse);
+                    return result;
+                }
+                result.AddError(StatusCode.NotFound, $"Can't found Product Image with Id: {productImageId}");
                 return result;
             }
             catch (Exception ex)
@@ -160,7 +167,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     if (productImageRequestUpdate.ProductId != null)
                     {
                         var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync((Guid)productImageRequestUpdate.ProductId);
-                        if(existingProduct == null)
+                        if (existingProduct == null)
                         {
                             result.AddError(StatusCode.BadRequest, "Product Image must belong to a product to update!");
                             return result;
@@ -184,7 +191,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Update ProductImage Failed!"); 
+                        result.AddError(StatusCode.BadRequest, "Update ProductImage Failed!");
                     }
                 }
                 return result;
