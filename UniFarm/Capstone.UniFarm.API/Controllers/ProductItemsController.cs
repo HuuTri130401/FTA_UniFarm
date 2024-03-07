@@ -16,7 +16,7 @@ namespace Capstone.UniFarm.API.Controllers
             _productItemService = productItemService;
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - FarmHub, Admin, Customer Role - {Huu Tri}")]
         [HttpGet("product/{id}/product-items")]
         public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
         {
@@ -56,7 +56,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Product Item - Admin Role, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Delete Product Item - Admin Role, FarmHub Role - {Huu Tri}")]
         [HttpDelete("product-item/{id}")]
         public async Task<IActionResult> DeleteProductItem(Guid id)
         {
