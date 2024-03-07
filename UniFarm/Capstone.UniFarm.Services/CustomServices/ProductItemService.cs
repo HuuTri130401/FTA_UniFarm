@@ -116,7 +116,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
+                var activeProductItems = listProductItems.Where(pi => pi.Status == "Active").ToList();
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
                 {
@@ -143,9 +144,14 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                     return result;
+                }else if(productItem.Status == "Active")
+                {
+                    var productItemIsActive = productItem;
+                    var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
+                    return result;
                 }
-                var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
-                result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
+                result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                 return result;
             }
             catch (Exception ex)
