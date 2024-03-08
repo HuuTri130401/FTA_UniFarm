@@ -15,7 +15,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string? Name { get; set; }
         [StringLength(20, ErrorMessage = "Tag length cannot exceed 50 characters")]
         public string? Tag { get; set; }
-        [RegularExpression("^(Active|InActive)$", ErrorMessage = "Status must be either 'Active' or 'InActive'")]
+        [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be either 'Active' or 'Inactive'")]
         public string? Status { get; set; }
     }
 }

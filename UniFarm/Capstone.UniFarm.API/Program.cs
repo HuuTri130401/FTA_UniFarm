@@ -129,6 +129,7 @@ try
     builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
     builder.Services.AddScoped<IMenuRepository, MenuRepository>();
     builder.Services.AddScoped<IProductItemRepository, ProductItemRepository>();
+    builder.Services.AddScoped<IProductItemInMenuRepository, ProductItemInMenuRepository>();
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
@@ -141,6 +142,7 @@ try
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IMenuService, MenuService>();
     builder.Services.AddScoped<IProductItemService, ProductItemService>();
+    builder.Services.AddScoped<IProductItemInMenuService, ProductItemInMenuService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection

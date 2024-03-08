@@ -61,7 +61,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(farmhubId);
                 if (existingFarmHub != null)
                 {
-                    existingFarmHub.Status = "InActive";
+                    existingFarmHub.Status = "Inactive";
                     _unitOfWork.FarmHubRepository.Update(existingFarmHub);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -164,7 +164,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingFarmHub.Address = farmHubRequestUpdate.Address;
                         isAnyFieldUpdated = true;
                     }
-                    if (farmHubRequestUpdate.Status != null && (farmHubRequestUpdate.Status == "Active" || farmHubRequestUpdate.Status == "InActive"))
+                    if (farmHubRequestUpdate.Status != null && (farmHubRequestUpdate.Status == "Active" || farmHubRequestUpdate.Status == "Inactive"))
                     {
                         existingFarmHub.Status = farmHubRequestUpdate.Status;
                         isAnyFieldUpdated = true;
