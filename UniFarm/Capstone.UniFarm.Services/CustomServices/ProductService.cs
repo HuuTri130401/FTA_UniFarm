@@ -70,7 +70,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (existingProduct != null)
                 {
-                    existingProduct.Status = "InActive";
+                    existingProduct.Status = "Inactive";
                     _unitOfWork.ProductRepository.Update(existingProduct);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -100,7 +100,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProducts = await _unitOfWork.ProductRepository.GetAllAsync();
-                var listProductsResponse = _mapper.Map<List<ProductResponse>>(listProducts);
+                var activeProducts = listProducts.Where(pr => pr.Status == "Active").ToList();
+                var listProductsResponse = _mapper.Map<List<ProductResponse>>(activeProducts);
 
                 if (listProductsResponse == null || !listProductsResponse.Any())
                 {
@@ -123,7 +124,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProducts = await _unitOfWork.ProductRepository.GetAllProductByCategoryId(categoryId);
-                var listProducsResponse = _mapper.Map<List<ProductResponse>>(listProducts);
+                var activeProducts = listProducts.Where(pr => pr.Status == "Active").ToList();
+                var listProducsResponse = _mapper.Map<List<ProductResponse>>(activeProducts);
 
                 if (listProducsResponse == null || !listProducsResponse.Any())
                 {
@@ -150,9 +152,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product with Id: {productId}");
                     return result;
+                } else if(product.Status == "Active")
+                {
+                    var productResponse = _mapper.Map<ProductResponse>(product);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get Product by Id: {productId} Success!", productResponse);
                 }
-                var productResponse = _mapper.Map<ProductResponse>(product);
-                result.AddResponseStatusCode(StatusCode.Ok, $"Get Product by Id: {productId} Success!", productResponse);
+                result.AddError(StatusCode.NotFound, $"Can't found Product with Id: {productId}");
                 return result;
             }
             catch (Exception ex)
@@ -202,7 +207,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProduct.Label = productRequest.Label;
                         isAnyFieldUpdated = true;
                     }
-                    if (productRequest.Status != null && (productRequest.Status == "Active" || productRequest.Status == "InActive"))
+                    if (productRequest.Status != null && (productRequest.Status == "Active" || productRequest.Status == "Inactive"))
                     {
                         existingProduct.Status = productRequest.Status;
                         isAnyFieldUpdated = true;

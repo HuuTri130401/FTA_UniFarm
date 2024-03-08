@@ -19,7 +19,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string? Image { get; set; }
         [StringLength(100, ErrorMessage = "Address length cannot exceed 100 characters")]
         public string? Address { get; set; }
-        [RegularExpression("^(Active|InActive)$", ErrorMessage = "Status must be either 'Active' or 'InActive'")]
+        [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be either 'Active' or 'Inactive'")]
         public string? Status { get; set; }
     }
 }

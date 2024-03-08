@@ -57,7 +57,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
-                var listCategoriesResponse = _mapper.Map<List<CategoryResponseForCustomer>>(listCategories);
+                var activeCategories = listCategories.Where(c => c.Status == "Active").ToList();
+                var listCategoriesResponse = _mapper.Map<List<CategoryResponseForCustomer>>(activeCategories);
 
                 if (listCategoriesResponse == null || !listCategoriesResponse.Any())
                 {
@@ -85,8 +86,13 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"Can't found Category with Id: {categoryId}");
                     return result;
                 }
-                var categoryResponse = _mapper.Map<CategoryResponse>(category);
-                result.AddResponseStatusCode(StatusCode.Ok, $"Get Category by Id: {categoryId} Success!", categoryResponse);
+                else if (category.Status == "Active")
+                {
+                    var categoryResponse = _mapper.Map<CategoryResponse>(category);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get Category by Id: {categoryId} Success!", categoryResponse);
+                    return result;
+                }
+                result.AddError(StatusCode.NotFound, $"Can't found Category with Id: {categoryId}");
                 return result;
             }
             catch (Exception ex)
@@ -104,7 +110,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
                 if (category != null)
                 {
-                    category.Status = "InActive";
+                    category.Status = "Inactive";
                     _unitOfWork.CategoryRepository.Update(category);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -218,7 +224,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingCategory.Margin = categoryRequestUpdate.Margin;
                         isAnyFieldUpdated = true;
                     }
-                    if (categoryRequestUpdate.Status != null && (categoryRequestUpdate.Status == "Active" || categoryRequestUpdate.Status == "InActive"))
+                    if (categoryRequestUpdate.Status != null && (categoryRequestUpdate.Status == "Active" || categoryRequestUpdate.Status == "Inactive"))
                     {
                         existingCategory.Status = categoryRequestUpdate.Status;
                         isAnyFieldUpdated = true;
