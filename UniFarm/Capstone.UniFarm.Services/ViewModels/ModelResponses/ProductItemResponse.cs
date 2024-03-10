@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Capstone.UniFarm.Domain.Models;
 
 namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
@@ -27,5 +28,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public double MinOrder { get; set; }
         public string Unit { get; set; }
         public string Status { get; set; }
+        public ICollection<ProductImageResponse> ProductImages { get; set; }
     }
 }

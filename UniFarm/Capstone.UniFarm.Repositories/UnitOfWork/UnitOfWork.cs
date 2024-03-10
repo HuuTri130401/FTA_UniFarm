@@ -38,7 +38,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IMenuRepository menuRepository,
             
             IStationRepository stationRepository,
-            ICollectedHubRepository collectedHubRepository
+            ICollectedHubRepository collectedHubRepository,
             IProductItemRepository productItemRepository,
             IProductItemInMenuRepository productItemInMenuRepository
         )
