@@ -140,7 +140,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<ProductItemResponse>();
             try
             {
-                var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
+                var productItem = await _unitOfWork.ProductItemRepository.GetProductItemByIdAsync(productItemId);
                 if (productItem == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");

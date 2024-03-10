@@ -21,7 +21,8 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .Include(p => p.ProductItem)
                 .Include(m => m.Menu)
-                .Where(mn => mn.MenuId == menuId).ToListAsync();
+                .Where(mn => mn.MenuId == menuId)
+                .ToListAsync();
         }
 
         public async Task<bool> GetProductItemByMenuId(Guid menuId)
