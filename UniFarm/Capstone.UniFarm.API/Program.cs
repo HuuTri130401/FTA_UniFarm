@@ -135,6 +135,8 @@ try
     builder.Services.AddScoped<IStationRepository, StationRepository>();
     builder.Services.AddScoped<ICollectedHubRepository, CollectedHubRepository>();
     builder.Services.AddScoped<IProductItemInMenuRepository, ProductItemInMenuRepository>();
+    builder.Services.AddScoped<IBusinessDayRepository, BusinessDayRepository>();
+
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
@@ -151,6 +153,7 @@ try
     builder.Services.AddScoped<IStationService, StationService>();
     builder.Services.AddScoped<ICollectedHubService, CollectedHubService>();
     builder.Services.AddScoped<IManageUsersService, ManageUsersService>();
+    builder.Services.AddScoped<IBusinessDayService, BusinessDayService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection

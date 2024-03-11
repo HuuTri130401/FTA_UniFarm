@@ -28,6 +28,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public double MinOrder { get; set; }
         public string Unit { get; set; }
         public string Status { get; set; }
+        public FarmHubResponse FarmHub { get; set; }
         public ICollection<ProductImageResponse> ProductImages { get; set; }
     }
 }

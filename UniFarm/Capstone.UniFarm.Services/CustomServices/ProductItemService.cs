@@ -145,7 +145,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                     return result;
-                }else if(productItem.Status == "Available")
+                }
+                else if(productItem.Status == "Available")
                 {
                     var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
