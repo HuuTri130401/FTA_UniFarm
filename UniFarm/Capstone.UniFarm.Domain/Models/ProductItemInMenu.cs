@@ -13,9 +13,12 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid Id { get; set; }
         public Guid ProductItemId { get; set; }
         public Guid MenuId { get; set; }
-        public double? Price { get; set; }
+        
         [StringLength(100)]
         public double? Quantity { get; set; }
+        public double? Sold { get; set; }
+        public double? OriginPrice { get; set; }
+        public double? SalePrice { get; set; }
         public string? Status { get; set; }
 
         [ForeignKey(nameof(MenuId))]

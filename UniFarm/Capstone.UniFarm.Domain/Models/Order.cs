@@ -12,9 +12,7 @@ namespace Capstone.UniFarm.Domain.Models
         public Order()
         {
             Transactions = new HashSet<Transaction>();
-            Batches = new HashSet<Batch>();
             OrderDetails = new HashSet<OrderDetail>();
-            Transfers = new HashSet<Transfer>();
         }
 
         [Key]
@@ -42,7 +40,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? UpdatedAt { get; set; }
         public DateTime? ExpiredDayInStation { get; set; }
         public DateTime? ShippedDate { get; set; }
-        public Guid ShipByStationId { get; set; }
+        public Guid? ShipByStationStaffId { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]
         [InverseProperty("Orders")]
@@ -59,11 +57,8 @@ namespace Capstone.UniFarm.Domain.Models
         
         [InverseProperty(nameof(Transaction.Order))]
         public virtual ICollection<Transaction> Transactions { get; set; }
-        [InverseProperty(nameof(Batch.Order))]
-        public virtual ICollection<Batch> Batches { get; set; }
+
         [InverseProperty(nameof(OrderDetail.Order))]
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        [InverseProperty(nameof(Transfer.Order))]
-        public virtual ICollection<Transfer> Transfers { get; set; }
     }
 }

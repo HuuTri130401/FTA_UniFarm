@@ -153,11 +153,6 @@ namespace Capstone.UniFarm.Domain.Data
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Batch__FarmHubId__0E6E26BF");
 
-                entity.HasOne(d => d.Order)
-                    .WithMany(p => p.Batches)
-                    .HasForeignKey(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Batch__OrderId__0F624AF8");
             });
 
             modelBuilder.Entity<BusinessDay>(entity =>
@@ -342,12 +337,7 @@ namespace Capstone.UniFarm.Domain.Data
                     .HasForeignKey(d => d.CollectedId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Transfer__Collec__14270015");
-
-                entity.HasOne(d => d.Order)
-                    .WithMany(p => p.Transfers)
-                    .HasForeignKey(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Transfer__OrderI__160F4887");
+                
 
                 entity.HasOne(d => d.Station)
                     .WithMany(p => p.Transfers)
