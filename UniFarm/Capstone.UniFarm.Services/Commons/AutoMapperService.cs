@@ -138,6 +138,12 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
             CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
             CreateMap<ProductItem, ProductItemResponse>().ReverseMap();
+
+            CreateMap<ProductItemInMenu, ProductItemInMenuRequest>().ReverseMap();
+            CreateMap<ProductItemInMenu, ProductItemInMenuResponse>().ReverseMap();
+
+            CreateMap<BusinessDay, BusinessDayRequest>().ReverseMap();
+            CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 
         [Range(0, double.MaxValue, ErrorMessage = "Margin must be a non-negative number.")]
         public double? Margin { get; set; }
-        [RegularExpression("^(Active|InActive)$", ErrorMessage = "Status must be either 'Active' or 'InActive'")]
+        [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be either 'Active' or 'Inactive'")]
         public string? Status { get; set; }
     }
 }

@@ -44,6 +44,18 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Assign Menu to BusinessDay - FarmHub Role - {Huu Tri}")]
+        [HttpPost("business-day/{businessDayId}/menu/{menuId}")]
+        public async Task<IActionResult> AssignMenuToBusinessDay(Guid businessDayId, Guid menuId)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _menuService.AssignMenuToBusinessDay(businessDayId, menuId);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
+
         [SwaggerOperation(Summary = "Update Menu - FarmHub Role - {Huu Tri}")]
         [HttpPut("menu/{id}")]
         public async Task<IActionResult> UpdateMenu(Guid id, MenuRequestUpdate menuRequestUpdate)

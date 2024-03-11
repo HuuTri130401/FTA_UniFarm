@@ -15,7 +15,7 @@ namespace Capstone.UniFarm.API.Controllers
             _categoryService = categoryService;
         }
 
-        [SwaggerOperation(Summary = "Get All Categories - Admin Role & FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Categories - Admin Role - {Huu Tri}")]
         [HttpGet("categories")]
         public async Task<IActionResult> GetAllCategories()
         {

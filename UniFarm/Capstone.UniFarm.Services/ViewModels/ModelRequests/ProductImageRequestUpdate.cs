@@ -16,7 +16,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 
         [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
         public int? DisplayIndex { get; set; }
-        [RegularExpression("^(Active|InActive)$", ErrorMessage = "Status must be either 'Active' or 'InActive'")]
+        [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be either 'Active' or 'Inactive'")]
         public string? Status { get; set; }
     }
 }

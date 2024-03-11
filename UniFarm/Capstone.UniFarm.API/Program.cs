@@ -134,7 +134,10 @@ try
     builder.Services.AddScoped<IProductItemRepository, ProductItemRepository>();
     builder.Services.AddScoped<IStationRepository, StationRepository>();
     builder.Services.AddScoped<ICollectedHubRepository, CollectedHubRepository>();
+    builder.Services.AddScoped<IProductItemInMenuRepository, ProductItemInMenuRepository>();
+    builder.Services.AddScoped<IBusinessDayRepository, BusinessDayRepository>();
 
+    
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
@@ -146,9 +149,11 @@ try
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IMenuService, MenuService>();
     builder.Services.AddScoped<IProductItemService, ProductItemService>();
+    builder.Services.AddScoped<IProductItemInMenuService, ProductItemInMenuService>();
     builder.Services.AddScoped<IStationService, StationService>();
     builder.Services.AddScoped<ICollectedHubService, CollectedHubService>();
     builder.Services.AddScoped<IManageUsersService, ManageUsersService>();
+    builder.Services.AddScoped<IBusinessDayService, BusinessDayService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
@@ -168,8 +173,7 @@ try
         c.SwaggerDoc("v1", new OpenApiInfo()
         {
             Title = "Farm To Apartments",
-            Description =
-                "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
+            Description = "Building an e-commerce system to buy and sell agricultural products from farms to apartment residents",
             Version = "Version - 01"
         });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

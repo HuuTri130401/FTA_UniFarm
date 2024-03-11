@@ -14,6 +14,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<List<MenuResponse>>> GetAllMenusByFarmHubId(Guid farmHubId);
         Task<OperationResult<MenuResponse>> GetMenuById(Guid menuId);
         Task<OperationResult<bool>> CreateMenuForFarmHub(Guid farmHubId, MenuRequest menuRequest);
+        Task<OperationResult<bool>> AssignMenuToBusinessDay(Guid businessDayId, Guid menuId);
         Task<OperationResult<bool>> DeleteMenu(Guid menuId);
         Task<OperationResult<bool>> UpdateMenu(Guid menuId, MenuRequestUpdate menuRequestUpdate);
     }

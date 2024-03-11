@@ -27,7 +27,6 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-
         public async Task<OperationResult<bool>> CreateProductImage(Guid productItemId, ProductImageRequest productImageRequest)
         {
             var result = new OperationResult<bool>();
@@ -70,7 +69,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProductImage = await _unitOfWork.ProductImageRepository.GetByIdAsync(productImageId);
                 if (existingProductImage != null)
                 {
-                    existingProductImage.Status = "InActive";
+                    existingProductImage.Status = "Inactive";
                     _unitOfWork.ProductImageRepository.Update(existingProductImage);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -132,8 +131,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 else if (productItemImage.Status == "Active")
                 {
-                    var productItemImageIsActive = productItemImage;
-                    var productImageResponse = _mapper.Map<ProductImageResponse>(productItemImageIsActive);
+                    var productImageResponse = _mapper.Map<ProductImageResponse>(productItemImage);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Image by Id: {productImageId} Success!", productImageResponse);
                     return result;
                 }
@@ -177,7 +175,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         existingProductImage.DisplayIndex = productImageRequestUpdate.DisplayIndex;
                     }
-                    if (productImageRequestUpdate.Status != null && (productImageRequestUpdate.Status == "Active" || productImageRequestUpdate.Status == "InActive"))
+                    if (productImageRequestUpdate.Status != null && (productImageRequestUpdate.Status == "Active" || productImageRequestUpdate.Status == "Inactive"))
                     {
                         existingProductImage.Status = productImageRequestUpdate.Status;
                     }

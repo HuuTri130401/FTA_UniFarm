@@ -40,7 +40,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
-                        productItem.Status = "Active";
+                        //productItem.Status = "Pending";
+                        productItem.Status = "Active"; //Tạm thời là Active
                         productItem.CreatedAt = DateTime.Now;
                         if(productItemRequest.Quantity > 0)
                         {
@@ -86,7 +87,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
                 if (existingProductItem != null)
                 {
-                    existingProductItem.Status = "InActive";
+                    existingProductItem.Status = "Inactive";
                     _unitOfWork.ProductItemRepository.Update(existingProductItem);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -116,7 +117,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var activeProductItems = listProductItems.Where(pi => pi.Status == "Active").ToList();
+                var activeProductItems = listProductItems.Where(pi => pi.Status == "Available").ToList();
                 var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
@@ -139,14 +140,14 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<ProductItemResponse>();
             try
             {
-                var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
+                var productItem = await _unitOfWork.ProductItemRepository.GetProductItemByIdAsync(productItemId);
                 if (productItem == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                     return result;
-                }else if(productItem.Status == "Active")
+                }
+                else if(productItem.Status == "Available")
                 {
-                    var productItemIsActive = productItem;
                     var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
                     return result;
@@ -235,7 +236,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProductItem.Unit = productItemRequestUpdate.Unit;
                         isAnyFieldUpdated = true;
                     }
-                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" || productItemRequestUpdate.Status == "InActive"))
+                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" || productItemRequestUpdate.Status == "Inactive"))
                     {
                         existingProductItem.Status = productItemRequestUpdate.Status;
                         isAnyFieldUpdated = true;
