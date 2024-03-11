@@ -19,5 +19,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string Status { get; set; }
+        public ICollection<MenuResponse> Menus { get; set; }
     }
 }

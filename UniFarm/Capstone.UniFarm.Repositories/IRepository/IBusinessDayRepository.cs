@@ -11,5 +11,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
     {
         Task UpdateBusinessDayStatus(Guid businessDayId, string status);
         List<BusinessDay> GetAllBusinessDay();
+        Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId);
     }
 }

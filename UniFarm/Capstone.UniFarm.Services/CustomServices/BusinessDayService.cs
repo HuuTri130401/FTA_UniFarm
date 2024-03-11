@@ -155,7 +155,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<BusinessDayResponse>();
             try
             {
-                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
+                var businessDay = await _unitOfWork.BusinessDayRepository.GetBusinessDayByIdAsync(businessDayId);
                 if (businessDay == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
