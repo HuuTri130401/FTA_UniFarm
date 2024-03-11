@@ -71,15 +71,15 @@ namespace Capstone.UniFarm.Domain.Data
             {
                 entity.HasIndex(e => e.UserName).IsUnique(false);
             });
-            modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles")
-                .HasData(
+            modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles");
+                /*.HasData(
                     new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
                     new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "FarmHub", NormalizedName = "FARMHUB" },
                     new IdentityRole<Guid>
                         { Id = Guid.NewGuid(), Name = "CollectedStaff", NormalizedName = "COLLECTEDSTAFF" },
                     new IdentityRole<Guid>
                         { Id = Guid.NewGuid(), Name = "StationStaff", NormalizedName = "STATIONSTAFF" },
-                    new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Customer", NormalizedName = "CUSTOMER" });
+                    new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Customer", NormalizedName = "CUSTOMER" });*/
             modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
             modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims");
             modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
@@ -223,10 +223,7 @@ namespace Capstone.UniFarm.Domain.Data
                     .HasForeignKey(d => d.StationId)
                     .HasConstraintName("FK__Order__StationId__03F0984C");
 
-                entity.HasOne(d => d.Transaction)
-                    .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.TransactionId)
-                    .HasConstraintName("FK__Order__Transacti__02FC7413");
+                
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -328,6 +325,12 @@ namespace Capstone.UniFarm.Domain.Data
                     .HasForeignKey(d => d.WalletId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Transacti__Walle__7C4F7684");
+                
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.Transactions)
+                    .HasForeignKey(d => d.OrderId)
+                    .HasConstraintName("FK__Transacti__Order__02FC7413");
+                
             });
 
             modelBuilder.Entity<Transfer>(entity =>

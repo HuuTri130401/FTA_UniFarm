@@ -1,10 +1,12 @@
 ﻿using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers;
 
+[Authorize(Roles = "Admin")]
 public class AccountRolesController : BaseController
 {
     private readonly IAccountRoleService _accountRoleService;
@@ -14,7 +16,7 @@ public class AccountRolesController : BaseController
         _accountRoleService = accountRoleService;
     }
 
-    [HttpGet("account-roles")]
+    [HttpGet("admin/account-roles")]
     [SwaggerOperation(Summary = "Get all account roles - Done {Tien}")]
     public async Task<IActionResult> GetAllAccountRoles(
         [FromQuery] Guid? id,
@@ -39,33 +41,16 @@ public class AccountRolesController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpGet("account-role/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("admin/account-role/{id}")]
     [SwaggerOperation(Summary = "Get account role by id - Done {Tien}")]
     public async Task<IActionResult> GetAccountRole(Guid id)
     {
         var response = await _accountRoleService.GetById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+    
 
-    [HttpPost("account-role/create")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [SwaggerOperation(Summary = "Create account role - Done {Tien}", Description = "Create account role")]
-    public async Task<IActionResult> CreateAccountRole([FromBody] AccountRoleRequest model)
-    {
-        var response = await _accountRoleService.Create(model);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/AccountRoles", response.Payload);
-    }
-
-    [HttpPut("account-role/update/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpPut("admin/account-role/update/{id}")]
     [SwaggerOperation(Summary = "Update account role - Done {Tien}")]
     public async Task<IActionResult> UpdateAccountRole(Guid id, [FromBody] AccountRoleRequestUpdate model)
     {
@@ -73,15 +58,19 @@ public class AccountRolesController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpDelete("account-role/delete/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [SwaggerOperation(Summary = "Soft remove account role - Done {Tien}")]
+    [HttpDelete("admin/account-role/delete/{id}")]
+    [SwaggerOperation(Summary = "Soft remove account role by updating status inactive - Done {Tien}")]
     public async Task<IActionResult> DeleteAccountRole([FromQuery] Guid id)
     {
         var response = await _accountRoleService.Delete(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+    
+    [HttpDelete("admin/account-role/delete/{accountId}")]
+    [SwaggerOperation(Summary = "Soft remove account role by updating status inactive - Done {Tien}")]
+    public async Task<IActionResult> DeleteAccountRoleByAccountId([FromQuery] Guid accountId)
+    {
+        var response = await _accountRoleService.Delete(accountId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

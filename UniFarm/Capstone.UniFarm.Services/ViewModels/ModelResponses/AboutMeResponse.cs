@@ -16,6 +16,7 @@ public abstract record AboutMeResponse
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? RoleName { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Avatar { get; set; }
@@ -36,6 +37,7 @@ public abstract record AboutMeResponse
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? RoleName { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Avatar { get; set; }
@@ -51,6 +53,7 @@ public abstract record AboutMeResponse
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? RoleName { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Avatar { get; set; }
@@ -67,6 +70,7 @@ public abstract record AboutMeResponse
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? RoleName { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Avatar { get; set; }
@@ -82,6 +86,7 @@ public abstract record AboutMeResponse
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? RoleName { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Avatar { get; set; }
@@ -91,5 +96,18 @@ public abstract record AboutMeResponse
         public DateTime? UpdatedAt { get; set; }
         public CollectedHub? CollectedHub { get; set; } = null!;
     }
-    
+
+    public record StaffResponse
+    {
+        public Guid Id { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Avatar { get; set; }
+        public string? Code { get; set; }
+        public string? Address { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
 }

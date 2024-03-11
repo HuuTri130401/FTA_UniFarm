@@ -1,11 +1,13 @@
 ﻿using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers
 {
+    [Authorize]
     public class AccountsController : BaseController
     {
         private readonly IAccountService _accountService;
@@ -17,7 +19,6 @@ namespace Capstone.UniFarm.API.Controllers
         
         [HttpGet("aboutMe")]
         [SwaggerOperation(Summary = "About Me - Done {Tien}")]
-        [Authorize]
         public async Task<IActionResult> AboutMe()
         {
             string authHeader = HttpContext.Request.Headers["Authorization"];
@@ -61,6 +62,26 @@ namespace Capstone.UniFarm.API.Controllers
             }
 
             var response = await _accountService.GetAboutAdmin(defineUser.Payload.Id);
+            return response.IsError ? HandleErrorResponse(response!.Errors) : Ok(response.Payload);
+        }
+        
+        [HttpPut("update-profile")]
+        [SwaggerOperation(Summary = "Update Profile - Done {Tien}")]
+        public async Task<IActionResult> UpdateProfile([FromBody] AccountRequestUpdate request)
+        {
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+
+            // The token is prefixed with "Bearer ", so we need to remove that prefix
+            string token = authHeader.Replace("Bearer ", "");
+
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+            request.Role = defineUser.Payload.Role;
+            var response = await _accountService.UpdateAccount(defineUser.Payload.Id, request);
             return response.IsError ? HandleErrorResponse(response!.Errors) : Ok(response.Payload);
         }
     }

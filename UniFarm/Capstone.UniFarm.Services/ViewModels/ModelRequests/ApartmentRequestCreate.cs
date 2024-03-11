@@ -11,7 +11,6 @@ public record ApartmentRequestCreate
     [Required(ErrorMessage = "Name can not be empty")]
     public string Name { get; set; }
     [StringLength(100, MinimumLength = 5 , ErrorMessage = "The code must be at least 5 characters long.")]
-    [RegularExpression(@"^[A-Za-z0-9-]+$", ErrorMessage = "Format code should be number, character or '-'. No special characters allowed.")]
     public string Code { get; set; }
     [StringLength(255)]
     [Required(ErrorMessage = "Address can not be empty")]

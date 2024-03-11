@@ -12,5 +12,23 @@ public interface IAreaService
     Task<OperationResult<AreaResponse>> GetById(Guid objectId);
     Task<OperationResult<AreaResponse>> Create(AreaRequestCreate objectRequestCreate);
     Task<OperationResult<bool>> Delete(Guid id);
-    Task<OperationResult<AreaResponse>> Update(Guid Id, AreaRequestUpdate objectRequestUpdate);
+    Task<OperationResult<AreaResponse>> Update(Guid id, AreaRequestUpdate objectRequestUpdate);
+
+    Task<OperationResult<IEnumerable<StationResponse>>> GetStationsOfArea(
+        bool? isAscending,
+        string? orderBy = null,
+        Expression<Func<Area, bool>>? filterArea = null,
+        Expression<Func<Station, bool>>? filterStation = null,
+        string[]? includeProperties = null,
+        int pageIndex = 0,
+        int pageSize = 10);
+
+    Task<OperationResult<IEnumerable<ApartmentResponse>>> GetApartmentsOfArea(
+        bool? isAscending,
+        string? orderBy = null,
+        Expression<Func<Area, bool>>? filterArea = null,
+        Expression<Func<Apartment, bool>>? filterApartment = null,
+        string[]? includeProperties = null,
+        int pageIndex = 0,
+        int pageSize = 10);
 }

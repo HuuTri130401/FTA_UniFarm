@@ -20,7 +20,12 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? UpdatedAt { get; set; }
         [StringLength(100)]
         public string? Status { get; set; }
+        [StringLength(255)]
+        public string? CreatedBy { get; set; }
 
+        [StringLength(255)]
+        public string? UpdatedBy { get; set; }
+        
         [ForeignKey(nameof(CollectedId))]
         [InverseProperty(nameof(CollectedHub.Transfers))]
         public virtual CollectedHub Collected { get; set; } = null!;

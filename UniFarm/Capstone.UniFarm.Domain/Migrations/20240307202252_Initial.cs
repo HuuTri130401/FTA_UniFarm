@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Capstone.UniFarm.Domain.Migrations
 {
-    public partial class Inital : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -18,6 +18,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Code = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -25,7 +26,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: true),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
@@ -290,7 +290,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    AreaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    AreaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Code = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
@@ -312,6 +312,30 @@ namespace Capstone.UniFarm.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Product",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
+                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Label = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", maxLength: 100, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Product", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK__Product__Categor__59063A47",
+                        column: x => x.CategoryId,
+                        principalTable: "Category",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Menu",
                 columns: table => new
                 {
@@ -319,7 +343,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     FarmHubId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BusinessDayId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(getdate())"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "(getdate())"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Tag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
@@ -333,36 +358,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK__Menu__FarmHubId__693CA210",
-                        column: x => x.FarmHubId,
-                        principalTable: "FarmHub",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Product",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    FarmHubId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Label = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    SpecialTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Source = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Product", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__Product__Categor__59063A47",
-                        column: x => x.CategoryId,
-                        principalTable: "Category",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK__Product__FarmHub__5812160E",
                         column: x => x.FarmHubId,
                         principalTable: "FarmHub",
                         principalColumn: "Id");
@@ -436,26 +431,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Transaction",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    WalletId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(getdate())"),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Transaction", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__Transacti__Walle__7C4F7684",
-                        column: x => x.WalletId,
-                        principalTable: "Wallet",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ApartmentStation",
                 columns: table => new
                 {
@@ -488,65 +463,27 @@ namespace Capstone.UniFarm.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductImage",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DisplayIndex = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductImage", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__ProductIm__Produ__5CD6CB2B",
-                        column: x => x.ProductId,
-                        principalTable: "Product",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProductItem",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Quantity = table.Column<double>(type: "float", nullable: true),
-                    MinOrder = table.Column<double>(type: "float", nullable: true),
-                    Unit = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductItem", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK__ProductIt__Produ__60A75C0F",
-                        column: x => x.ProductId,
-                        principalTable: "Product",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Order",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
                     FarmHubId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     StationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     BusinessDayId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(getdate())"),
                     Code = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ShipAddress = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     ExpectedReceiveDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ShippedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    CustomerStatus = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    DeliveryStatus = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    TotalFarmHubPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    TotalBenefit = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    CustomerStatus = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    DeliveryStatus = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiredDayInStation = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ShippedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ShipByStationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -571,36 +508,43 @@ namespace Capstone.UniFarm.Domain.Migrations
                         column: x => x.StationId,
                         principalTable: "Station",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK__Order__Transacti__02FC7413",
-                        column: x => x.TransactionId,
-                        principalTable: "Transaction",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductItemInMenu",
+                name: "ProductItem",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
-                    ProductItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MenuId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Price = table.Column<double>(type: "float", nullable: true),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FarmHubId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProductOrigin = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SpecialTag = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StorageType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OutOfStock = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Quantity = table.Column<double>(type: "float", nullable: true),
+                    MinOrder = table.Column<double>(type: "float", nullable: true),
+                    Unit = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductItemInMenu", x => x.Id);
+                    table.PrimaryKey("PK_ProductItem", x => x.Id);
                     table.ForeignKey(
-                        name: "FK__ProductIt__MenuI__6E01572D",
-                        column: x => x.MenuId,
-                        principalTable: "Menu",
+                        name: "FK__ProductIt__Produ__60A75C0F",
+                        column: x => x.ProductId,
+                        principalTable: "Product",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK__ProductIt__Produ__6EF57B66",
-                        column: x => x.ProductItemId,
-                        principalTable: "ProductItem",
-                        principalColumn: "Id");
+                        name: "FK_ProductItem_FarmHub_FarmHubId",
+                        column: x => x.FarmHubId,
+                        principalTable: "FarmHub",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -642,29 +586,29 @@ namespace Capstone.UniFarm.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderDetail",
+                name: "Transaction",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
+                    WalletId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Quantity = table.Column<double>(type: "float", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "(getdate())"),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderDetail", x => x.Id);
+                    table.PrimaryKey("PK_Transaction", x => x.Id);
                     table.ForeignKey(
-                        name: "FK__OrderDeta__Order__08B54D69",
+                        name: "FK__Transacti__Order__02FC7413",
                         column: x => x.OrderId,
                         principalTable: "Order",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK__OrderDeta__Produ__09A971A2",
-                        column: x => x.ProductItemId,
-                        principalTable: "ProductItem",
+                        name: "FK__Transacti__Walle__7C4F7684",
+                        column: x => x.WalletId,
+                        principalTable: "Wallet",
                         principalColumn: "Id");
                 });
 
@@ -680,7 +624,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                     ExpiredDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -702,22 +648,90 @@ namespace Capstone.UniFarm.Domain.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
+            migrationBuilder.CreateTable(
+                name: "OrderDetail",
+                columns: table => new
                 {
-                    { new Guid("11dd27b4-f56c-4b44-8163-2f1da2ea0181"), "cd833445-f5b2-447b-b1d6-59c718e2e2a6", "CollectedStaff", "COLLECTEDSTAFF" },
-                    { new Guid("2cbccfd9-84d4-4826-8e79-f9e310fb28c5"), "80192500-677e-4c5d-883f-e89bcbba49e2", "Admin", "ADMIN" },
-                    { new Guid("c321e808-0bae-4312-85ad-7104ce0ef837"), "e6a11b40-e52f-480c-b1d9-b88bd69d5bc4", "FarmHub", "FARMHUB" },
-                    { new Guid("db82caac-692d-4c3b-b3c3-06fc101a4071"), "821b918e-c804-4a5e-89cb-e66ab2bcc30b", "StationStaff", "STATIONSTAFF" },
-                    { new Guid("e271d563-8aea-4354-acad-461bc2b15d66"), "57940425-6d6e-4413-8040-2a4ddc520724", "Customer", "CUSTOMER" }
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
+                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<double>(type: "float", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OriginUnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Unit = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalOriginPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderDetail", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK__OrderDeta__Order__08B54D69",
+                        column: x => x.OrderId,
+                        principalTable: "Order",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK__OrderDeta__Produ__09A971A2",
+                        column: x => x.ProductItemId,
+                        principalTable: "ProductItem",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductImage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
+                    ProductItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Caption = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DisplayIndex = table.Column<int>(type: "int", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductImage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK__ProductIm__Produ__5CD6CB2B",
+                        column: x => x.ProductItemId,
+                        principalTable: "ProductItem",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductItemInMenu",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())"),
+                    ProductItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MenuId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Price = table.Column<double>(type: "float", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductItemInMenu", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK__ProductIt__MenuI__6E01572D",
+                        column: x => x.MenuId,
+                        principalTable: "Menu",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK__ProductIt__Produ__6EF57B66",
+                        column: x => x.ProductItemId,
+                        principalTable: "ProductItem",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "Account",
                 column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Account_UserName",
+                table: "Account",
+                column: "UserName");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
@@ -804,11 +818,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                 column: "StationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Order_TransactionId",
-                table: "Order",
-                column: "TransactionId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OrderDetail_OrderId",
                 table: "OrderDetail",
                 column: "OrderId");
@@ -829,14 +838,14 @@ namespace Capstone.UniFarm.Domain.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Product_FarmHubId",
-                table: "Product",
-                column: "FarmHubId");
+                name: "IX_ProductImage_ProductItemId",
+                table: "ProductImage",
+                column: "ProductItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductImage_ProductId",
-                table: "ProductImage",
-                column: "ProductId");
+                name: "IX_ProductItem_FarmHubId",
+                table: "ProductItem",
+                column: "FarmHubId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductItem_ProductId",
@@ -869,6 +878,11 @@ namespace Capstone.UniFarm.Domain.Migrations
                 name: "IX_Station_AreaId",
                 table: "Station",
                 column: "AreaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transaction_OrderId",
+                table: "Transaction",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transaction_WalletId",
@@ -938,6 +952,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                 name: "RoleClaims");
 
             migrationBuilder.DropTable(
+                name: "Transaction");
+
+            migrationBuilder.DropTable(
                 name: "Transfer");
 
             migrationBuilder.DropTable(
@@ -962,6 +979,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                 name: "ProductItem");
 
             migrationBuilder.DropTable(
+                name: "Wallet");
+
+            migrationBuilder.DropTable(
                 name: "CollectedHub");
 
             migrationBuilder.DropTable(
@@ -977,25 +997,19 @@ namespace Capstone.UniFarm.Domain.Migrations
                 name: "BusinessDay");
 
             migrationBuilder.DropTable(
-                name: "Station");
-
-            migrationBuilder.DropTable(
-                name: "Transaction");
-
-            migrationBuilder.DropTable(
-                name: "Category");
+                name: "Account");
 
             migrationBuilder.DropTable(
                 name: "FarmHub");
 
             migrationBuilder.DropTable(
+                name: "Station");
+
+            migrationBuilder.DropTable(
+                name: "Category");
+
+            migrationBuilder.DropTable(
                 name: "Area");
-
-            migrationBuilder.DropTable(
-                name: "Wallet");
-
-            migrationBuilder.DropTable(
-                name: "Account");
         }
     }
 }

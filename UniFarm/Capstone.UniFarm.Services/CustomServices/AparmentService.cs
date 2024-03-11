@@ -34,12 +34,21 @@ public class ApartmentService : IApartmentService
         try
         {
             var listApartments = _unitOfWork.ApartmentRepository.FilterAll(isAscending, orderBy, filter, includeProperties, pageIndex, pageSize);
+            if (!listApartments.Any())
+            {
+                result.AddError(StatusCode.NotFound, "Apartment not found");
+                result.StatusCode = StatusCode.NotFound;
+                return Task.FromResult(result);
+            }
             result.Payload = _mapper.Map<IEnumerable<ApartmentResponse>>(listApartments);
             result.StatusCode = StatusCode.Ok;
+            result.Message = "Get all apartments successfully";
+            result.IsError = false;
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
+            result.IsError = true;
             throw;
         }
         return Task.FromResult(result);

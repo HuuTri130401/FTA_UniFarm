@@ -11,12 +11,12 @@ namespace Capstone.UniFarm.Domain.Models
     {
         public Transaction()
         {
-            Orders = new HashSet<Order>();
         }
 
         [Key]
         public Guid Id { get; set; }
         public Guid WalletId { get; set; }
+        public Guid OrderId { get; set; }
         public DateTime PaymentDate { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? Amount { get; set; }
@@ -26,7 +26,9 @@ namespace Capstone.UniFarm.Domain.Models
         [ForeignKey(nameof(WalletId))]
         [InverseProperty("Transactions")]
         public virtual Wallet Wallet { get; set; } = null!;
-        [InverseProperty(nameof(Order.Transaction))]
-        public virtual ICollection<Order> Orders { get; set; }
+
+        [ForeignKey(nameof(OrderId))]
+        [InverseProperty("Transactions")]
+        public virtual Order Order { get; set; }
     }
 }

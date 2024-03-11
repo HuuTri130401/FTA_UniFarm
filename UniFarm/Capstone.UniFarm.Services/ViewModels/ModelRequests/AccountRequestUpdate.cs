@@ -39,6 +39,5 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [RegularExpression("^(Customer|FarmHub|CollectedStaff|StationStaff)$", ErrorMessage = "Status can be either Customer, FarmHub, CollectedStaff, StationStaff")]
         public string Role { get; set; }
         public string Status { get; set; } = EnumConstants.ActiveInactiveEnum.ACTIVE;
-        
     }
 }

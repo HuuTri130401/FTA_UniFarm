@@ -36,6 +36,12 @@ namespace Capstone.UniFarm.Repositories.Repository
             return entity;
         }
 
+        public Task<TEntity> UpdateAsync(TEntity entity)
+        {
+            _dbSet.Update(entity);
+            return Task.FromResult(entity);
+        }
+
         public virtual void SoftRemove(TEntity entity)
         {
             _dbSet.Update(entity);
@@ -104,6 +110,31 @@ namespace Capstone.UniFarm.Repositories.Repository
                 items = ApplyOrder(items, orderBy, isAscending ?? true); 
             }
             return items.Skip(pageIndex * pageSize).Take(pageSize);
+        }
+        
+        public IQueryable<TEntity> GetAllWithoutPaging(
+            bool? isAscending, 
+            string? orderBy = null, 
+            Expression<Func<TEntity, bool>>? predicate = null, 
+            string[]? includeProperties = null)
+        {
+            IQueryable<TEntity> items = _dbSet.AsNoTracking();
+            if (includeProperties != null)
+            {
+                foreach (var includeProperty in includeProperties)
+                {
+                    items = items.Include(includeProperty);
+                }
+            }
+            if (predicate != null)
+            {
+                items = items.Where(predicate);
+            }
+            if (!string.IsNullOrEmpty(orderBy)) // Check if orderBy is provided
+            {
+                items = ApplyOrder(items, orderBy, isAscending ?? true); 
+            }
+            return items;
         }
 
         public IQueryable<TEntity> FilterByExpression(Expression<Func<TEntity, bool>> predicate, string[]? includeProperties = null)

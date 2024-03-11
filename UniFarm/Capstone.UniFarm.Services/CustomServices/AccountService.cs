@@ -43,7 +43,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             _stationService = stationService;
             _mapper = mapper;
         }
-        
+
         public string GenerateJwtToken(Account user, byte[] key, string userRole)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -57,7 +57,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }),
                 Audience = "FTAAudience",
                 Issuer = "FTAIssuer",
-                Expires = DateTime.UtcNow.AddHours(24),
+                Expires = DateTime.UtcNow.AddMonths(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
@@ -65,8 +65,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        
-        public async Task<OperationResult<AccountRequestCreate>> CreateAccount(AccountRequestCreate accountRequestCreate)
+
+        public async Task<OperationResult<AccountRequestCreate>> CreateAccount(
+            AccountRequestCreate accountRequestCreate)
         {
             var result = new OperationResult<AccountRequestCreate>();
             try
@@ -80,7 +81,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 var checkPhone =
-                    await _unitOfWork.AccountRepository.FindSingleAsync(x => x.Phone == accountRequestCreate.PhoneNumber);
+                    await _unitOfWork.AccountRepository.FindSingleAsync(
+                        x => x.Phone == accountRequestCreate.PhoneNumber);
                 if (checkPhone != null)
                 {
                     result.AddError(StatusCode.BadRequest, "Phone already exists");
@@ -169,7 +171,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
             return result;
         }
-        
+
         public async Task<OperationResult<Account>> HandleLoginGoogle(IEnumerable<Claim> claims)
         {
             var result = new OperationResult<Account>();
@@ -240,7 +242,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        
                         result.IsError = true;
                         var description = creationResult.Errors.FirstOrDefault()?.Description;
                         if (description != null)
@@ -250,12 +251,14 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 else
                 {
-                    if(user.Status == EnumConstants.ActiveInactiveEnum.INACTIVE)
+                    if (user.Status == EnumConstants.ActiveInactiveEnum.INACTIVE)
                     {
-                        result.AddError(StatusCode.UnAuthorize, "Account has been blocked! Please contact admin for more information fta@gmail.com");
+                        result.AddError(StatusCode.UnAuthorize,
+                            "Account has been blocked! Please contact admin for more information fta@gmail.com");
                         result.IsError = true;
                         return result;
                     }
+
                     result.IsError = false;
                     result.Payload = user;
                 }
@@ -332,6 +335,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.StatusCode = StatusCode.BadRequest;
                     return result;
                 }
+
                 _unitOfWork.AccountRepository.Update(accountUpdate);
                 await _unitOfWork.SaveChangesAsync();
                 result.Payload = _mapper.Map<AccountResponse>(accountUpdate);
@@ -396,7 +400,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 var accountResponse = _mapper.Map<AboutMeResponse.AboutCustomerResponse>(account);
-                
+
                 var myWallet = await _walletService.FindByExpression(x =>
                     x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE);
                 if (myWallet.Payload == null || myWallet.IsError)
@@ -442,7 +446,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var account = await _unitOfWork.AccountRepository
                     .FilterByExpression(x => x.Id == accountId
                                              && x.RoleName == EnumConstants.RoleEnumString.FARMHUB
-                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE)
+                    .FirstOrDefaultAsync();
                 if (account == null)
                 {
                     result.AddError(StatusCode.NotFound, "Account not found");
@@ -453,9 +458,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 var accountResponse = _mapper.Map<AboutMeResponse.AboutFarmHubResponse>(account);
-                
+
                 var accountRole = await _accountRoleService.GetAccountRoleByExpression(x =>
-                    x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE);
+                    x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE,null);
                 if (accountRole.Payload!.FarmHubId != null)
                 {
                     var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(accountRole.Payload.FarmHubId.Value);
@@ -511,7 +516,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 var accountResponse = _mapper.Map<AboutMeResponse.AboutCollectedStaffResponse>(account);
-                
+
                 var accountRole = await _accountRoleService.GetAccountRoleByExpression(x =>
                     x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE);
                 if (accountRole.Payload!.CollectedHubId != null)
@@ -551,7 +556,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var account = await _unitOfWork.AccountRepository
                     .FilterByExpression(x => x.Id == accountId
                                              && x.RoleName == EnumConstants.RoleEnumString.STATIONSTAFF
-                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE)
+                    .FirstOrDefaultAsync();
                 if (account == null)
                 {
                     result.AddError(StatusCode.NotFound, "Account not found");
@@ -599,7 +605,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var account = await _unitOfWork.AccountRepository
                     .FilterByExpression(x => x.Id == accountId
                                              && x.RoleName == EnumConstants.RoleEnumString.ADMIN
-                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE)
+                    .FirstOrDefaultAsync();
                 if (account == null)
                 {
                     result.AddError(StatusCode.NotFound, "Account not found");
@@ -631,7 +638,40 @@ namespace Capstone.UniFarm.Services.CustomServices
                 result.StatusCode = StatusCode.ServerError;
                 throw;
             }
+            return result;
+        }
 
+        public async Task<OperationResult<IEnumerable<AccountResponse>>> GetAllWithoutPaging(bool? isAscending,
+            string? orderBy = null, Expression<Func<Account, bool>>? filter = null, string[]? includeProperties = null)
+        {
+            var result = new OperationResult<IEnumerable<AccountResponse>>();
+            try
+            {
+                var accounts = _unitOfWork.AccountRepository
+                    .GetAllWithoutPaging(isAscending, orderBy, filter, includeProperties);
+                if (!accounts.Any())
+                {
+                    result.AddError(StatusCode.NotFound, "Account not found");
+                    result.Message = "Account not found";
+                    result.IsError = true;
+                    result.StatusCode = StatusCode.NotFound;
+                    return result;
+                }
+
+                var accountResponse = _mapper.Map<IEnumerable<AccountResponse>>(accounts);
+                result.Payload = accountResponse;
+                result.Message = "Get account successfully";
+                result.IsError = false;
+                result.StatusCode = StatusCode.Ok;
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError("Get account by expression error " + e.Message);
+                result.IsError = true;
+                result.Message = "Get account by expression error";
+                result.StatusCode = StatusCode.ServerError;
+                throw;
+            }
             return result;
         }
     }

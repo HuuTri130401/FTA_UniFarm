@@ -1,4 +1,6 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using System.ComponentModel.DataAnnotations;
+using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +12,12 @@ namespace Capstone.UniFarm.API.Controllers;
 public class AreasController : BaseController
 {
     private readonly IAreaService _areaService;
-    
+
     public AreasController(IAreaService areaService)
     {
         _areaService = areaService;
     }
-    
+
     [HttpGet("areas")]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -39,7 +41,8 @@ public class AreasController : BaseController
         var response = await _areaService.GetAll(
             isAscending: isAscending,
             filter: x => (!id.HasValue || x.Id == id) &&
-                         (string.IsNullOrEmpty(keyword) || x.Province.Contains(keyword) || x.District.Contains(keyword) || x.Commune.Contains(keyword) || x.Address.Contains(keyword)) &&
+                         (string.IsNullOrEmpty(keyword) || x.Province.Contains(keyword) ||
+                          x.District.Contains(keyword) || x.Commune.Contains(keyword) || x.Address.Contains(keyword)) &&
                          (string.IsNullOrEmpty(province) || x.Province.Contains(province)) &&
                          (string.IsNullOrEmpty(district) || x.District.Contains(district)) &&
                          (string.IsNullOrEmpty(commune) || x.Commune.Contains(commune)) &&
@@ -54,51 +57,122 @@ public class AreasController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    
+
     [HttpGet("area/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [SwaggerOperation(Summary = "Get area by id - Done {Tien}")]
     public async Task<IActionResult> GetArea(Guid id)
     {
         var response = await _areaService.GetById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
-    
-    [HttpPost("area/create")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [SwaggerOperation(Summary = "Create area - Done {Tien}", Description = "Create new area")]
+
+    [HttpPost("admin/area/create")]
+    [SwaggerOperation(Summary = "Create area - Admin Role - {Tien}", Description = "Create new area")]
     public async Task<IActionResult> CreateArea([FromBody] AreaRequestCreate requestCreateModel)
     {
         var response = await _areaService.Create(requestCreateModel);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Created($"area/{response.Payload.Id}",response);
+        return response.IsError
+            ? HandleErrorResponse(response.Errors)
+            : Created($"area/{response.Payload.Id}", response);
     }
-    
-    [HttpPut("area/update/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [SwaggerOperation(Summary = "Update area - Done {Tien}", Description = "Update area by id")]
+
+    [HttpPut("admin/area/update/{id}")]
+    [SwaggerOperation(Summary = "Update area - Admin Role - {Tien}", Description = "Update area by id")]
     public async Task<IActionResult> UpdateArea(Guid id, [FromBody] AreaRequestUpdate requestModel)
     {
         var response = await _areaService.Update(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
-    
-    [HttpDelete("area/delete/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+    [HttpDelete("admin/area/delete/{id}")]
     [SwaggerOperation(Summary = "Soft remove area - Done {Tien}", Description = "Delete area by id")]
     public async Task<IActionResult> RemoveArea(Guid id)
     {
         var response = await _areaService.Delete(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
-    
+
+
+    [HttpGet("admin/area/{id}/stations")]
+    [SwaggerOperation(Summary = "Get all stations of area - Admin Role - Done {Tien}")]
+    public async Task<IActionResult> GetStationsOfAreaForAdmin(
+        [Required] Guid id,
+        [FromQuery] string? keyword,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool? isAscending,
+        [FromQuery] string[]? includeProperties = null,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+    )
+    {
+        var response = await _areaService.GetStationsOfArea(
+            isAscending,
+            orderBy,
+            filterArea: x => x.Id == id,
+            filterStation: x => x.AreaId == id && (string.IsNullOrEmpty(keyword)
+                                                   || x.Address!.Contains(keyword)
+                                                   || x.Code!.Contains(keyword)
+                                                   || x.Name!.Contains(keyword)),
+            includeProperties,
+            pageIndex,
+            pageSize
+        );
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+
+    [HttpGet("area/{id}/stations")]
+    [SwaggerOperation(Summary = "Get all stations of area - Done {Tien}")]
+    public async Task<IActionResult> GetStationsOfArea(
+        [Required] Guid id,
+        [FromQuery] string? keyword,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool? isAscending,
+        [FromQuery] string[]? includeProperties = null,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+    )
+    {
+        var response = await _areaService.GetStationsOfArea(
+            isAscending,
+            orderBy,
+            filterArea: x => x.Id == id && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE,
+            filterStation: x => x.AreaId == id && (string.IsNullOrEmpty(keyword) || x.Address!.Contains(keyword) ||
+                                                   x.Code!.Contains(keyword) ||
+                                                   x.Name!.Contains(keyword) ||
+                                                   x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE),
+            includeProperties,
+            pageIndex,
+            pageSize
+        );
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+
+
+    [HttpGet("area/{id}/apartments")]
+    [SwaggerOperation(Summary = "Get all apartments of area - Done {Tien}")]
+    public async Task<IActionResult> GetApartmentsOfArea(
+        [Required] Guid id,
+        [FromQuery] string? keyword,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool? isAscending,
+        [FromQuery] string[]? includeProperties = null,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+    )
+    {
+        var response = await _areaService.GetApartmentsOfArea(
+            isAscending,
+            orderBy,
+            filterArea: x => x.Id == id,
+            filterApartment: x => (x.AreaId == id && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE)
+                                  || string.IsNullOrEmpty(keyword)
+                                  || x.Address!.Contains(keyword)
+                                  || x.Code!.Contains(keyword)
+                                  || x.Name!.Contains(keyword),
+            includeProperties,
+            pageIndex,
+            pageSize
+        );
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
 }

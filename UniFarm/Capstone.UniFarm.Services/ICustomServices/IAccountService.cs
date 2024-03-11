@@ -29,6 +29,8 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<AboutMeResponse.AboutCollectedStaffResponse>> GetAboutCollectedStaff(Guid accountId);
         Task<OperationResult<AboutMeResponse.AboutStationStaffResponse>> GetAboutStationStaff(Guid accountId);
         Task<OperationResult<AboutMeResponse.AboutAdminResponse>> GetAboutAdmin(Guid accountId);
+        
+        Task<OperationResult<IEnumerable<AccountResponse>>> GetAllWithoutPaging(bool? isAscending, string? orderBy = null, Expression<Func<Account, bool>>? filter = null, string[]? includeProperties = null);
 
         Task<OperationResult<AccountResponse>> GetAccountById(Guid accountId);
 

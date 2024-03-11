@@ -16,9 +16,6 @@ public class ApartmentsController : BaseController
     }
 
     [HttpGet("apartments")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [SwaggerOperation(Summary = "Get all apartments - Done {Tien}")]
     public async Task<IActionResult> GetAllApartments(
         [FromQuery] string? keyword,
@@ -35,10 +32,10 @@ public class ApartmentsController : BaseController
         var response = await _apartmentService.GetAll(
             isAscending: isAscending,
             filter: x => (!id.HasValue || x.Id == id) &&
-                         (string.IsNullOrEmpty(keyword) || x.Name.Contains(keyword) || x.Address.Contains(keyword)) &&
-                         (string.IsNullOrEmpty(name) || x.Name.Contains(name)) &&
-                         (string.IsNullOrEmpty(address) || x.Address.Contains(address)) &&
-                         (string.IsNullOrEmpty(status) || x.Status.Contains(status)),
+                         (string.IsNullOrEmpty(keyword) || x.Name!.Contains(keyword) || x.Address!.Contains(keyword)) &&
+                         (string.IsNullOrEmpty(name) || x.Name!.Contains(name)) &&
+                         (string.IsNullOrEmpty(address) || x.Address!.Contains(address)) &&
+                         (string.IsNullOrEmpty(status) || x.Status!.Contains(status)),
             orderBy: orderBy,
             includeProperties: includeProperties,
             pageIndex: pageIndex,
@@ -58,21 +55,17 @@ public class ApartmentsController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpPost("apartment/create")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [SwaggerOperation(Summary = "Create apartment - Done {Tien}", Description = "Create new apartment")]
+    [HttpPost("admin/apartment/create")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerOperation(Summary = "Create apartment - Admin - {Tien}", Description = "Create new apartment")]
     public async Task<IActionResult> CreateApartment([FromBody] ApartmentRequestCreate model)
     {
         var response = await _apartmentService.Create(model);
         return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/apartments", response.Payload);
     }
 
-    [HttpPut("apartment/update/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("admin/apartment/update/{id}")]
+    [Authorize(Roles = "Admin")]
     [SwaggerOperation(Summary = "Update apartment - Done {Tien}", Description = "Update apartment by id")]
     public async Task<IActionResult> UpdateApartment(Guid id, [FromBody] ApartmentRequestUpdate model)
     {
@@ -80,10 +73,8 @@ public class ApartmentsController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpDelete("apartment/delete/{id}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("admin/apartment/delete/{id}")]
+    [Authorize(Roles = "Admin")]
     [SwaggerOperation(Summary = "Soft remove apartment - Done {Tien}", Description = "Delete apartment by id")]
     public async Task<IActionResult> DeleteApartment([FromQuery] Guid id)
     {

@@ -11,6 +11,7 @@ namespace Capstone.UniFarm.Domain.Models
     {
         public Order()
         {
+            Transactions = new HashSet<Transaction>();
             Batches = new HashSet<Batch>();
             OrderDetails = new HashSet<OrderDetail>();
             Transfers = new HashSet<Transfer>();
@@ -20,7 +21,6 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid Id { get; set; }
         public Guid FarmHubId { get; set; }
         public Guid CustomerId { get; set; }
-        public Guid? TransactionId { get; set; }
         public Guid? StationId { get; set; }
         public Guid BusinessDayId { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -29,14 +29,20 @@ namespace Capstone.UniFarm.Domain.Models
         [StringLength(255)]
         public string? ShipAddress { get; set; }
         public DateTime? ExpectedReceiveDate { get; set; }
-        public DateTime? ShippedDate { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? TotalAmount { get; set; }
-        [StringLength(100)]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? TotalFarmHubPrice { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? TotalBenefit { get; set; }
+        [StringLength(255)]
         public string? CustomerStatus { get; set; }
-        [StringLength(100)]
+        [StringLength(255)]
         public string? DeliveryStatus { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? ExpiredDayInStation { get; set; }
+        public DateTime? ShippedDate { get; set; }
+        public Guid ShipByStationId { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]
         [InverseProperty("Orders")]
@@ -50,9 +56,9 @@ namespace Capstone.UniFarm.Domain.Models
         [ForeignKey(nameof(StationId))]
         [InverseProperty("Orders")]
         public virtual Station? Station { get; set; }
-        [ForeignKey(nameof(TransactionId))]
-        [InverseProperty("Orders")]
-        public virtual Transaction? Transaction { get; set; }
+        
+        [InverseProperty(nameof(Transaction.Order))]
+        public virtual ICollection<Transaction> Transactions { get; set; }
         [InverseProperty(nameof(Batch.Order))]
         public virtual ICollection<Batch> Batches { get; set; }
         [InverseProperty(nameof(OrderDetail.Order))]

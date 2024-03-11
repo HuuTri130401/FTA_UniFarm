@@ -11,10 +11,10 @@ namespace Capstone.UniFarm.Domain.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public Guid? AccountId { get; set; }
-        public Guid? StationId { get; set; }
-        public Guid? CollectedHubId { get; set; }
-        public Guid? FarmHubId { get; set; }
+        public Guid AccountId { get; set; }
+        public Guid? StationId { get; set; } = null;
+        public Guid? CollectedHubId { get; set; } = null;
+        public Guid? FarmHubId { get; set; } = null;
         [StringLength(100)]
         public string? Status { get; set; }
 

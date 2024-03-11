@@ -95,7 +95,7 @@ namespace Capstone.UniFarm.API.Controllers
         #endregion
 
         #region API Google Reponse
-        [HttpGet("google/response")]
+        [HttpGet("login")]
         [SwaggerOperation(Summary = "Handle Google authentication response - Done {Tien}")]
         public async Task<IActionResult> GoogleResponse()
         {
