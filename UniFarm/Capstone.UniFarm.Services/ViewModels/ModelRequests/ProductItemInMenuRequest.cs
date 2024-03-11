@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +15,9 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public Guid ProductItemId { get; set; }
         //[Required(ErrorMessage = "MenuId is required")]
         //public Guid MenuId { get; set; }
-        //public double? Price { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal Price { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Quantity must be a non-negative number.")]
+        public double Quantity { get; set; }
     }
 }

@@ -109,36 +109,30 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> RemoveProductItemFromMenu(Guid menuId, Guid productItemId)
+        public async Task<OperationResult<bool>> RemoveProductItemFromMenu(Guid productItemInMenuId)
         {
             var result = new OperationResult<bool>();
             try
             {
-                var existingMenu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
-                if (existingMenu == null)
+                var existingProductItemInMenu = await _unitOfWork.ProductItemInMenuRepository.GetByIdAsync(productItemInMenuId);
+                if (existingProductItemInMenu != null)
                 {
-                    result.AddError(StatusCode.NotFound, $"Menu with id: {menuId} not found!");
-                    return result;
-                }
-
-                var productItemInMenu = await _unitOfWork.ProductItemInMenuRepository.GetByMenuIdAndProductItemId(menuId, productItemId);
-                if (productItemInMenu == null)
-                {
-                    result.AddError(StatusCode.NotFound, $"ProductItem with id: {productItemId} is not associated with the menu!");
-                    return result;
-                }
-
-                _unitOfWork.ProductItemInMenuRepository.DeleteProductItemInMenu(productItemInMenu);
-                var checkResult = _unitOfWork.Save();
-                if (checkResult > 0)
-                {
-                    result.AddResponseStatusCode(StatusCode.Ok, "Remove Product Item from Menu Success!", true);
+                    existingProductItemInMenu.Status = "Inactive";
+                    _unitOfWork.ProductItemInMenuRepository.Update(existingProductItemInMenu);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product Item In Menu have Id: {productItemInMenuId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Delete Product Item In Menu Failed!"); ;
+                    }
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Remove Product Item from Menu Failed!");
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product Item In Menu have Id: {productItemInMenuId}. Delete Faild!.", false);
                 }
-
                 return result;
             }
             catch (Exception)

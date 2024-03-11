@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Data;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +19,9 @@ namespace Capstone.UniFarm.Repositories.Repository
 
         public async Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId)
         {
-            return await _dbSet 
-                .Where(pi => pi.ProductId == productId)
-                //.Include(pi => pi.ProductImages) //!!!!!!!
+            return await _dbSet
+                .Where(p => p.ProductId == productId)
+                .Include(pi => pi.ProductImages)
                 .ToListAsync();
         }
 
@@ -28,6 +29,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(pi => pi.ProductImages)
+                .Include(fr => fr.FarmHub)
                 .FirstOrDefaultAsync(pi => pi.Id == productId);
         }
     }
