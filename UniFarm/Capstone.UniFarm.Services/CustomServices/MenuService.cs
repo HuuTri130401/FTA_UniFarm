@@ -27,6 +27,48 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
+        public async Task<OperationResult<bool>> AssignMenuToBusinessDay(Guid businessDayId, Guid menuId)
+        {
+            var result = new OperationResult<bool>();
+
+            try
+            {
+                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
+                if (businessDay == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"BusinessDay with Id {businessDayId} not found.");
+                    return result;
+                }
+
+                var menu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
+                if (menu == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Menu with Id {menuId} not found.");
+                    return result;
+                }
+
+                menu.BusinessDayId = businessDayId;
+
+                _unitOfWork.MenuRepository.Update(menu);
+                var checkResult = _unitOfWork.Save();
+
+                if (checkResult > 0)
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, "Menu assigned to BusinessDay successfully!", true);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, "Failed to assign menu to BusinessDay.");
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
         public async Task<OperationResult<bool>> CreateMenuForFarmHub(Guid farmHubId, MenuRequest menuRequest)
         {
             var result = new OperationResult<bool>();

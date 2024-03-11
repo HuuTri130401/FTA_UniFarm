@@ -21,6 +21,13 @@ namespace Capstone.UniFarm.Repositories.Repository
             return _dbSet.ToList();
         }
 
+        public async Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId)
+        {
+            return await _dbSet
+            .Include(m => m.Menus)
+                .FirstOrDefaultAsync(bd => bd.Id == businessDayId);
+        }
+
         public async Task UpdateBusinessDayStatus(Guid businessDayId, string status)
         {
             var businessDay = await _dbSet.FirstOrDefaultAsync(bd => bd.Id == businessDayId);
