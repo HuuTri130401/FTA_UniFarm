@@ -134,6 +134,35 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByFarmHubAccountId(Guid farmHubAccountId)
+        {
+            var result = new OperationResult<List<ProductItemResponse>>();
+            try
+            {
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                if(accountRoleInfor != null)
+                {
+                    var farmHubId = accountRoleInfor.FarmHubId;
+                    var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByFarmHubId((Guid)farmHubId);
+                    var productItems = listProductItems.Where(pi => pi.Status != "Inactive").ToList();
+                    var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(productItems);
+
+                    if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items in this FarmHub is Empty!", listProductItemsResponse);
+                        return result;
+                    }
+                    result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In FarmHub Done.", listProductItemsResponse);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByFarmhubId Service Method");
+                throw;
+            }
+        }
+
         public async Task<OperationResult<ProductItemResponse>> GetProductItemById(Guid productItemId)
         {
             var result = new OperationResult<ProductItemResponse>();
