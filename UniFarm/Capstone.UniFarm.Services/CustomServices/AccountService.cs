@@ -674,5 +674,69 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             return result;
         }
+
+        public async Task<OperationResult<FarmHubRegisterRequest>> CreateFarmhubAccount(FarmHubRegisterRequest farmHubRegisterRequest)
+        {
+            var result = new OperationResult<FarmHubRegisterRequest>();
+            try
+            {
+                var checkEmail = await _userManager.FindByEmailAsync(farmHubRegisterRequest.Email);
+                if (checkEmail != null)
+                {
+                    result.AddError(StatusCode.BadRequest, "Email already exists");
+                    result.IsError = true;
+                    return result;
+                }
+
+                var newAccount = _mapper.Map<Account>(farmHubRegisterRequest);
+                newAccount.CreatedAt = DateTime.UtcNow;
+                newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, farmHubRegisterRequest.Password);
+                newAccount.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
+                newAccount.RoleName = EnumConstants.RoleEnumString.FARMHUB;
+                var accountRole = new AccountRole
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = newAccount.Id,
+                    Account = newAccount,
+                    Status = EnumConstants.ActiveInactiveEnum.ACTIVE
+                };
+                newAccount.AccountRoles = accountRole;
+
+                var response = await _userManager.CreateAsync(newAccount);
+                if (response.Succeeded)
+                {
+                    var wallet = new WalletRequest
+                    {
+                        AccountId = newAccount.Id,
+                    };
+
+                    var walletResult = await _walletService.Create(wallet);
+                    if (walletResult.IsError)
+                    {
+                        result.AddError(StatusCode.BadRequest,
+                            "Create wallet error " + walletResult.Errors.FirstOrDefault()?.Message);
+                        result.IsError = true;
+                        return result;
+                    }
+
+                    await _userManager.AddToRoleAsync(newAccount, farmHubRegisterRequest.Role);
+                    result.Payload = farmHubRegisterRequest;
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Payload = null;
+                    result.AddError(StatusCode.BadRequest, response.Errors.AsEnumerable().ToList().ToString()!);
+                    result.IsError = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.AddUnknownError(ex.Message);
+                throw;
+            }
+
+            return result;
+        }
     }
 }

@@ -12,8 +12,10 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public Guid Id { get; set; }
         public Guid ProductItemId { get; set; }
         public Guid MenuId { get; set; }
-        public decimal Price { get; set; }
         public double Quantity { get; set; }
+        public double Sold { get; set; }
+        public double SalePrice { get; set; }
+        public decimal Price { get; set; }
         public string Status { get; set; }
         public MenuResponse? Menu { get; set; }
         public ProductItemResponse? ProductItem { get; set; }

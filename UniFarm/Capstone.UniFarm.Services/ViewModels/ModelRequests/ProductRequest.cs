@@ -17,7 +17,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string Name { get; set; }
         [Required(ErrorMessage = "Code is required")]
         [StringLength(10, ErrorMessage = "Code length cannot exceed 10 characters")]
-        [MinLength(2, ErrorMessage = "Code length must be at least 2 characters")]
+        [MinLength(4, ErrorMessage = "Code length must be at least 4 characters")]
         public string Code { get; set; }
         [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
         public string? Description { get; set; }

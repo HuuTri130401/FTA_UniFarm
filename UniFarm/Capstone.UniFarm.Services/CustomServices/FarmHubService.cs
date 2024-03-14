@@ -8,7 +8,9 @@ using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,23 +29,33 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<bool>> CreateFarmHub(FarmHubRequest farmHubRequest)
+        public async Task<OperationResult<bool>> CreateFarmHub(Guid farmHubAccountId, FarmHubRequest farmHubRequest)
         {
             var result = new OperationResult<bool>();
             try
             {
-                var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
-                farmHub.Status = "Active";
-                farmHub.CreatedAt = DateTime.Now;
-                await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
-                var checkResult = _unitOfWork.Save();
-                if (checkResult > 0)
+                var accountRole = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                if (accountRole != null && accountRole.FarmHubId == null)
                 {
-                    result.AddResponseStatusCode(StatusCode.Created, "Add FarmHub Success!", true);
+                    var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
+                    farmHub.Status = "Active";
+                    farmHub.CreatedAt = DateTime.Now;
+                    await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
+                    var checkFarmHubResult = _unitOfWork.Save();
+                    if (checkFarmHubResult > 0)
+                    {
+                        accountRole.FarmHubId = farmHub.Id;
+                        _unitOfWork.AccountRoleRepository.Update(accountRole);
+                        var checkResult = _unitOfWork.Save();
+                        if (checkResult > 0)
+                        {
+                            result.AddResponseStatusCode(StatusCode.Created, "Add FarmHub Success!", true);
+                        }
+                    }
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Add FarmHub Failed!"); ;
+                    result.AddError(StatusCode.BadRequest, "Only users with the FarmHub role can create a FarmHub!"); ;
                 }
                 return result;
             }

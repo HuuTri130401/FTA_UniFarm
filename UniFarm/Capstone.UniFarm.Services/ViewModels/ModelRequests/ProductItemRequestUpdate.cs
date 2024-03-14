@@ -29,7 +29,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [Range(0, double.MaxValue, ErrorMessage = "MinOrder must be a non-negative number.")]
         public double? MinOrder { get; set; }
         public string? Unit { get; set; }
-        [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be either 'Active' or 'Inactive'")]
+        [RegularExpression("^(Active|Inactive|Available)$", ErrorMessage = "Status must be either 'Active' or 'Inactive' or 'Available'")]
         public string? Status { get; set; }
     }
 }
