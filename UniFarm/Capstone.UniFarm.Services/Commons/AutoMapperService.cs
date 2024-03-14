@@ -19,7 +19,8 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Account, AccountResponse>().ReverseMap();
             CreateMap<AccountRequestCreate, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
-
+            CreateMap<FarmHubRegisterRequest, Account>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
             CreateMap<AccountRequestUpdate, Account>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => System.DateTime.Now))
                 .ForMember(dest => dest.Status,
@@ -27,7 +28,7 @@ namespace Capstone.UniFarm.Services.Commons
                         string.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role))
                 .ReverseMap();
-                
+
             CreateMap<Account, AboutMeResponse.AboutCustomerResponse>();
             CreateMap<Account, AboutMeResponse.AboutFarmHubResponse>();
             CreateMap<Account, AboutMeResponse.AboutCollectedStaffResponse>();
@@ -35,8 +36,8 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Account, AboutMeResponse.AboutAdminResponse>();
             CreateMap<Account, AboutMeResponse.StaffResponse>();
             #endregion
-            
-            
+
+
             #region Role Mapping
 
             CreateMap<AccountRoleRequest, AccountRole>()
@@ -96,7 +97,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<StationRequestUpdate, Station>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
-                .ForMember(dest => dest.Status,opt => opt.MapFrom(src =>
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
                         String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
 
             CreateMap<Station, StationResponse>();
@@ -108,14 +109,14 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
-            
-            
+
+
             CreateMap<CollectedHubRequestUpdate, CollectedHub>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
-                .ForMember(dest => dest.Status,opt => opt.MapFrom(src =>
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
                     String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
-            
+
             CreateMap<CollectedHub, CollectedHubResponse>();
             CreateMap<CollectedHub, CollectedHubResponseContainStaffs>();
             #endregion

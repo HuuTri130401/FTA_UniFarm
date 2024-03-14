@@ -151,13 +151,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (product == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product with Id: {productId}");
-                    return result;
-                } else if(product.Status == "Active")
+                }else 
+                if(product.Status == "Active")
                 {
                     var productResponse = _mapper.Map<ProductResponse>(product);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product by Id: {productId} Success!", productResponse);
                 }
-                result.AddError(StatusCode.NotFound, $"Can't found Product with Id: {productId}");
                 return result;
             }
             catch (Exception ex)

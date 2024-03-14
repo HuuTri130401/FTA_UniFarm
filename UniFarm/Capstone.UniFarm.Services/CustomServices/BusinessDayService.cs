@@ -20,14 +20,12 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<BusinessDayService> _logger;
         private readonly IMapper _mapper;
-        private readonly Timer _timer;
 
         public BusinessDayService(IUnitOfWork unitOfWork, ILogger<BusinessDayService> logger, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
-            //_timer = new Timer(UpdateBusinessDayStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
         }
 
         public async Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest)
@@ -87,9 +85,11 @@ namespace Capstone.UniFarm.Services.CustomServices
         //        throw;
         //    }
         //}
+
         public bool IsValidBusinessDay(BusinessDayRequest businessDayRequest)
         {
-            if (businessDayRequest.EndOfRegister <= businessDayRequest.RegiterDay.AddDays(2) && businessDayRequest.OpenDay == businessDayRequest.EndOfRegister.AddDays(1))
+            if (businessDayRequest.EndOfRegister <= businessDayRequest.RegiterDay.AddDays(2) 
+                && businessDayRequest.OpenDay == businessDayRequest.EndOfRegister.AddDays(1))
                 return true;
             return false;
         }

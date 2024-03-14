@@ -38,7 +38,7 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Delete Product Item from Menu - FarmHub Role - {Huu Tri}")]
-        [HttpDelete("product-items-in-meu/{id}")]
+        [HttpDelete("product-item-in-menu/{id}")]
         public async Task<IActionResult> DeleteProductItemInMenu(Guid id)
         {
             var response = await _productItemInMenuService.RemoveProductItemFromMenu(id);

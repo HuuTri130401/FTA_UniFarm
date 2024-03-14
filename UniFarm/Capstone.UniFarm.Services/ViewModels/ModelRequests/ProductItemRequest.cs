@@ -9,8 +9,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public class ProductItemRequest
     {
-        [Required(ErrorMessage = "FarmHubId is required")]
-        public Guid FarmHubId { get; set; }
+        //[Required(ErrorMessage = "FarmHubId is required")]
+        //public Guid FarmHubId { get; set; }
         [Required(ErrorMessage = "Title is required")]
         [StringLength(50, ErrorMessage = "Title length cannot exceed 50 characters")]
         [MinLength(3, ErrorMessage = "Title length must be at least 3 characters")]

@@ -18,7 +18,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
         OperationResult<AboutMeResponse.AboutMeRoleAndID> GetIdAndRoleFromToken(string token);
         
         Task<OperationResult<AccountRequestCreate>> CreateAccount(AccountRequestCreate accountRequestCreate);
-        
+        Task<OperationResult<FarmHubRegisterRequest>> CreateFarmhubAccount(FarmHubRegisterRequest farmHubRegisterRequest);
         Task<OperationResult<Account>> HandleLoginGoogle(IEnumerable<Claim> claims);
         Task<OperationResult<AccountResponse>> GetAccountByExpression(Expression<Func<Account, bool>> predicate, string[]? includeProperties = null);
         Task<OperationResult<AccountResponse>> UpdateAccount(Guid id, AccountRequestUpdate accountRequestUpdate);

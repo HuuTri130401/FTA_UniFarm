@@ -15,8 +15,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public Guid ProductItemId { get; set; }
         //[Required(ErrorMessage = "MenuId is required")]
         //public Guid MenuId { get; set; }
-        [Column(TypeName = "decimal(10, 2)")]
-        public decimal Price { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "SalePrice must be a non-negative number.")]
+        public double SalePrice { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "Quantity must be a non-negative number.")]
         public double Quantity { get; set; }
     }

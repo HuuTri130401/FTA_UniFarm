@@ -13,7 +13,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [MinLength(3, ErrorMessage = "Name length must be at least 3 characters")]
         public string? Name { get; set; }
         [StringLength(10, ErrorMessage = "Code length cannot exceed 10 characters")]
-        [MinLength(6, ErrorMessage = "Code length must be at least 6 characters")]
+        [MinLength(4, ErrorMessage = "Code length must be at least 4 characters")]
         public string? Code { get; set; }
         public string? Description { get; set; }
         public string? Image { get; set; }
