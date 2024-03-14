@@ -4,7 +4,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests;
 
 public record AccountRoleRequestUpdate
 {
-    public Guid Id { get; set; }
     public Guid? AccountId { get; set; }
     public Guid? StationId { get; set; }
     public Guid? CollectedHubId { get; set; }

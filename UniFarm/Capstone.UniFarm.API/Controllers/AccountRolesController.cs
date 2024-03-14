@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using System.ComponentModel.DataAnnotations;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,6 @@ public class AccountRolesController : BaseController
     [HttpGet("admin/account-roles")]
     [SwaggerOperation(Summary = "Get all account roles - Done {Tien}")]
     public async Task<IActionResult> GetAllAccountRoles(
-        [FromQuery] Guid? id,
         [FromQuery] Guid? accountId,
         [FromQuery] string? status,
         [FromQuery] bool? isAscending,
@@ -31,8 +31,7 @@ public class AccountRolesController : BaseController
         var response = await _accountRoleService
             .GetAll(isAscending,
                 orderBy,
-                filter: x => (!id.HasValue || x.Id == id) &&
-                             (!accountId.HasValue || x.AccountId == accountId) &&
+                filter: x => (!accountId.HasValue || x.AccountId == accountId) &&
                              (string.IsNullOrEmpty(status) || x.Status.Contains(status)),
                 includeProperties,
                 pageIndex,
@@ -41,36 +40,38 @@ public class AccountRolesController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpGet("admin/account-role/{id}")]
-    [SwaggerOperation(Summary = "Get account role by id - Done {Tien}")]
-    public async Task<IActionResult> GetAccountRole(Guid id)
+    [HttpGet("admin/account-role/{accountId}")]
+    [SwaggerOperation(Summary = "Get account role by accountId - Done {Tien}")]
+    public async Task<IActionResult> GetAccountRole(Guid accountId)
     {
-        var response = await _accountRoleService.GetById(id);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }
-    
-
-    [HttpPut("admin/account-role/update/{id}")]
-    [SwaggerOperation(Summary = "Update account role - Done {Tien}")]
-    public async Task<IActionResult> UpdateAccountRole(Guid id, [FromBody] AccountRoleRequestUpdate model)
-    {
-        var response = await _accountRoleService.Update(id, model);
+        var response = await _accountRoleService.GetByAccountId(accountId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    [HttpDelete("admin/account-role/delete/{id}")]
-    [SwaggerOperation(Summary = "Soft remove account role by updating status inactive - Done {Tien}")]
+
+    [HttpPut("admin/account-role/update/{accountId}")]
+    [SwaggerOperation(Summary = "Update account role by account Id - Done {Tien}")]
+    public async Task<IActionResult> UpdateAccountRole([Required] Guid accountId,
+        [FromBody] AccountRoleRequestUpdate model)
+    {
+        model.AccountId = accountId;
+        var response = await _accountRoleService.Update(accountId, model);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+
+    /*[HttpDelete("admin/account-role/delete/{id}")]
+    [SwaggerOperation(Summary = "Soft remove account role by Id - Done {Tien}")]
     public async Task<IActionResult> DeleteAccountRole([FromQuery] Guid id)
     {
         var response = await _accountRoleService.Delete(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }
-    
+    }*/
+
     [HttpDelete("admin/account-role/delete/{accountId}")]
-    [SwaggerOperation(Summary = "Soft remove account role by updating status inactive - Done {Tien}")]
+    [SwaggerOperation(Summary = "Soft remove account role by account Id - Done {Tien}")]
     public async Task<IActionResult> DeleteAccountRoleByAccountId([FromQuery] Guid accountId)
     {
-        var response = await _accountRoleService.Delete(accountId);
+        var response = await _accountRoleService.DeleteByAccountId(accountId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

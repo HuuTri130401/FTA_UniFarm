@@ -43,7 +43,8 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
 
-            CreateMap<AccountRoleRequestUpdate, AccountRole>();
+            CreateMap<AccountRoleRequestUpdate, AccountRole>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()));
             #endregion
 
             #region Category Mapping
@@ -117,6 +118,13 @@ namespace Capstone.UniFarm.Services.Commons
             
             CreateMap<CollectedHub, CollectedHubResponse>();
             CreateMap<CollectedHub, CollectedHubResponseContainStaffs>();
+            #endregion
+
+
+            #region Payment Mapping
+            CreateMap<PaymentRequestCreate, Payment>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+                .ForMember(dest => dest.PaymentDay, opt => opt.MapFrom(src => DateTime.Now));
             #endregion
 
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();

@@ -33,6 +33,9 @@ namespace Capstone.UniFarm.Domain.Models
         public decimal? TotalFarmHubPrice { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? TotalBenefit { get; set; }
+        public Guid? BatchId { get; set; }
+        public Guid? CollectedHubId { get; set; }
+        public Guid? TransferId { get; set; }
         [StringLength(255)]
         public string? CustomerStatus { get; set; }
         [StringLength(255)]

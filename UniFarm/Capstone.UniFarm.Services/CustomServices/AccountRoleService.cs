@@ -49,18 +49,29 @@ public class AccountRoleService : IAccountRoleService
         return Task.FromResult(result);
     }
 
-    public async Task<OperationResult<AccountRole>> GetById(Guid objectId)
+    public async Task<OperationResult<AccountRole>> GetByAccountId(Guid objectId)
     {
         var result = new OperationResult<AccountRole>();
         try
         {
-            var accountRole = await _unitOfWork.AccountRoleRepository.GetByIdAsync(objectId);
-            result.Payload = _mapper.Map<AccountRole>(accountRole);
+            var accountRole = await _unitOfWork.AccountRoleRepository.FilterByExpression(x => x.AccountId == objectId).FirstOrDefaultAsync();
+            if(accountRole == null)
+            {
+                result.AddError(StatusCode.NotFound, "AccountRole not found");
+                result.IsError = true;
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+            result.Payload = accountRole;
             result.StatusCode = StatusCode.Ok;
+            result.Message = "AccountRole find by accountId successfully";
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "AccountRole not found";
+            result.IsError = true;
             throw;
         }
 
@@ -68,11 +79,7 @@ public class AccountRoleService : IAccountRoleService
     }
 
 
-    /// <summary>
-    /// Valiadate when create new account Role( check exist AccountId, One account has 1 role whether Collected, FarmHub or Station field, And role is responsive to accountRole
-    /// </summary>
-    /// <param name="objectRequestCreate"></param>
-    /// <returns></returns>
+
     public async Task<OperationResult<AccountRole>> Create(AccountRoleRequest objectRequestCreate)
     {
         var result = new OperationResult<AccountRole>();
@@ -234,20 +241,11 @@ public class AccountRoleService : IAccountRoleService
         return result;
     }
 
-    public async Task<OperationResult<AccountRole>> Update(Guid objectId, AccountRoleRequestUpdate objectRequestUpdate)
+    public async Task<OperationResult<AccountRole>> Update(Guid accountId, AccountRoleRequestUpdate objectRequestUpdate)
     {
         var result = new OperationResult<AccountRole>();
         try
         {
-            var objectAccountRole = await _unitOfWork.AccountRoleRepository.GetByIdAsync(objectId);
-            if (objectAccountRole == null)
-            {
-                result.AddError(StatusCode.NotFound, "AccountRole not found");
-                result.IsError = true;
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
             var userRole = _userManager
                 .GetRolesAsync(await _userManager.FindByIdAsync(objectRequestUpdate.AccountId.ToString())).Result
                 .FirstOrDefault();
@@ -258,11 +256,13 @@ public class AccountRoleService : IAccountRoleService
                 result.StatusCode = StatusCode.BadRequest;
                 return result;
             }
-
+            
             var accountRoleExist = _unitOfWork.AccountRoleRepository.FilterByExpression(x =>
-                x.AccountId == objectRequestUpdate.AccountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE);
+                x.AccountId == objectRequestUpdate.AccountId);
+            
             var accountRole = _mapper.Map<AccountRole>(objectRequestUpdate);
 
+            accountRole.Id = accountRoleExist.FirstOrDefault()!.Id;
             if (userRole == EnumConstants.RoleEnumString.FARMHUB)
             {
                 if (objectRequestUpdate.FarmHubId == null)
@@ -312,19 +312,6 @@ public class AccountRoleService : IAccountRoleService
                     return result;
                 }
 
-                accountRoleExist = accountRoleExist.Where(
-                    x => x.AccountId == objectRequestUpdate.AccountId
-                         && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE
-                         && x.StationId != null);
-                if (accountRoleExist.Any())
-                {
-                    result.AddError(StatusCode.BadRequest, "This account already assign to a station staff");
-                    result.IsError = true;
-                    result.StatusCode = StatusCode.BadRequest;
-                    return result;
-                }
-
-
                 var station = await _unitOfWork.StationRepository.FilterByExpression(x =>
                         x.Id == objectRequestUpdate.StationId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE)
                     .FirstOrDefaultAsync();
@@ -345,18 +332,6 @@ public class AccountRoleService : IAccountRoleService
                 {
                     result.AddError(StatusCode.BadRequest,
                         "CollectedStaffId is required for this collected staff role");
-                    result.IsError = true;
-                    result.StatusCode = StatusCode.BadRequest;
-                    return result;
-                }
-
-                accountRoleExist = accountRoleExist.Where(
-                    x => x.AccountId == objectRequestUpdate.AccountId
-                         && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE
-                         && x.CollectedHubId != null);
-                if (accountRoleExist.Any())
-                {
-                    result.AddError(StatusCode.BadRequest, "This account already assign to a collected staff");
                     result.IsError = true;
                     result.StatusCode = StatusCode.BadRequest;
                     return result;
@@ -400,6 +375,7 @@ public class AccountRoleService : IAccountRoleService
             result.AddUnknownError(ex.Message);
             result.IsError = true;
             result.StatusCode = StatusCode.ServerError;
+            result.Message = "AccountRole not updated";
             throw;
         }
 
@@ -419,7 +395,6 @@ public class AccountRoleService : IAccountRoleService
                 result.StatusCode = StatusCode.NotFound;
                 return result;
             }
-
             objectAccountRole.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
             result.Payload = true;
             result.StatusCode = StatusCode.Ok;
@@ -427,6 +402,8 @@ public class AccountRoleService : IAccountRoleService
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "AccountRole not deleted";
             throw;
         }
 
@@ -438,21 +415,29 @@ public class AccountRoleService : IAccountRoleService
         var result = new OperationResult<bool>();
         try
         {
-            var accountRoles = _unitOfWork.AccountRoleRepository.FilterByExpression(x => x.AccountId == accountId);
-            foreach (var accountRole in accountRoles)
+            var accountRole = await _unitOfWork.AccountRoleRepository.FilterByExpression(x => x.AccountId == accountId)
+                .FirstOrDefaultAsync();
+            if(accountRole == null)
             {
-                accountRole.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
+                result.AddError(StatusCode.NotFound, "AccountRole not found");
+                result.IsError = true;
+                result.StatusCode = StatusCode.NotFound;
+                result.Payload = false;
+                return result;
             }
-
+            accountRole!.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
+            await _unitOfWork.SaveChangesAsync();
             result.Payload = true;
             result.StatusCode = StatusCode.Ok;
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "AccountRole not deleted";
+            result.IsError = true;
             throw;
         }
-
         return result;
     }
 
@@ -470,7 +455,6 @@ public class AccountRoleService : IAccountRoleService
                 result.AddError(StatusCode.NotFound, "AccountRole not found");
                 result.IsError = true;
             }
-            
             result.Payload = accountRole.FirstOrDefault();
             result.StatusCode = StatusCode.Ok;
         }
@@ -482,7 +466,6 @@ public class AccountRoleService : IAccountRoleService
 
         return Task.FromResult(result);
     }
-
 
     public Task<OperationResult<IEnumerable<AccountRole>>> GetAllWithoutPaging(bool? isAscending,
         string? orderBy = null,

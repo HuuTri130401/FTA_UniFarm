@@ -27,7 +27,6 @@ namespace Capstone.UniFarm.API.Controllers
                 return Unauthorized();
             }
 
-            // The token is prefixed with "Bearer ", so we need to remove that prefix
             string token = authHeader.Replace("Bearer ", "");
 
             var defineUser = _accountService.GetIdAndRoleFromToken(token);
@@ -84,5 +83,6 @@ namespace Capstone.UniFarm.API.Controllers
             var response = await _accountService.UpdateAccount(defineUser.Payload.Id, request);
             return response.IsError ? HandleErrorResponse(response!.Errors) : Ok(response.Payload);
         }
+        
     }
 }

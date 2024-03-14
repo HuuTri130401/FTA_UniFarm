@@ -22,6 +22,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ReceivedDate { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
+        public string? NoteReceived { get; set; }
         
         [StringLength(100)]
         public string? Status { get; set; }
@@ -34,6 +35,5 @@ namespace Capstone.UniFarm.Domain.Models
         [InverseProperty("Transfers")]
         public virtual Station Station { get; set; } = null!;
         public virtual ICollection<Order>? Orders { get; set; }
-
     }
 }

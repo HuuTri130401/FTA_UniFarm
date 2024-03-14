@@ -21,6 +21,9 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? PaymentDay { get; set; }
         [StringLength(100)]
         public string? Status { get; set; }
+        
+        [RegularExpression("^(Deposit|Withdraw)$", ErrorMessage = "Type can be either Deposit or Withdraw.")]
+        public string Type { get; set; }
 
         [ForeignKey(nameof(WalletId))]
         [InverseProperty("Payments")]

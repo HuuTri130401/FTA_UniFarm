@@ -13,14 +13,14 @@ namespace Capstone.UniFarm.Domain.Models
         {
             Orders = new HashSet<Order>();
         }
-        [Key]
-        public Guid Id { get; set; }
+
+        [Key] public Guid Id { get; set; }
         public Guid CollectedId { get; set; }
         public Guid FarmHubId { get; set; }
         public Guid BusinessDayId { get; set; }
         public DateTime? ShipDate { get; set; }
         public DateTime? ReceiveDate { get; set; }
-        [StringLength(100)]
+        [StringLength(100)] 
         public string? Status { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]
@@ -33,6 +33,5 @@ namespace Capstone.UniFarm.Domain.Models
         [InverseProperty("Batches")]
         public virtual FarmHub FarmHub { get; set; } = null!;
         public virtual ICollection<Order>? Orders { get; set; }
-
     }
 }
