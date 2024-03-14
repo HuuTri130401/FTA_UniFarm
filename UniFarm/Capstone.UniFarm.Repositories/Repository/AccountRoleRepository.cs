@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Repositories.Repository;
 
@@ -22,5 +23,10 @@ public class AccountRoleRepository : GenericRepository<AccountRole>, IAccountRol
         entity.Status = EnumConstants.ActiveInactiveEnum.INACTIVE;
         _dbSet.Update(entity);
         return entity;
+    }
+
+    public async Task<AccountRole> GetAccountRoleByAccountIdAsync(Guid farmhubAccountId)
+    {
+        return await _dbSet.FirstOrDefaultAsync(fr => fr.AccountId == farmhubAccountId);
     }
 }

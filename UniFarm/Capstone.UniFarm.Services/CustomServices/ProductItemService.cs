@@ -40,8 +40,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
-                        //productItem.Status = "Pending";
-                        productItem.Status = "Active"; //Tạm thời là Active
+                        productItem.Status = "Active"; 
                         productItem.CreatedAt = DateTime.Now;
                         if(productItemRequest.Quantity > 0)
                         {
@@ -236,7 +235,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProductItem.Unit = productItemRequestUpdate.Unit;
                         isAnyFieldUpdated = true;
                     }
-                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" || productItemRequestUpdate.Status == "Inactive"))
+                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" 
+                        || productItemRequestUpdate.Status == "Inactive"
+                        || productItemRequestUpdate.Status == "Available"))
                     {
                         existingProductItem.Status = productItemRequestUpdate.Status;
                         isAnyFieldUpdated = true;

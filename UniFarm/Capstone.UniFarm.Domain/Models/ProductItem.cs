@@ -32,7 +32,6 @@ namespace Capstone.UniFarm.Domain.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Price { get; set; }
         public double? Quantity { get; set; }
-        public int? Sold { get; set; }
         public double? MinOrder { get; set; }
         [StringLength(10)]
         public string? Unit { get; set; }

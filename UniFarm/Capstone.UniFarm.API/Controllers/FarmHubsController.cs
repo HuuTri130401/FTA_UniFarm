@@ -1,8 +1,12 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using Capstone.UniFarm.Services.CustomServices;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Data;
+using System.Security.Claims;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -10,10 +14,12 @@ namespace Capstone.UniFarm.API.Controllers
     public class FarmHubsController : BaseController
     {
         private readonly IFarmHubService _farmHubService;
+        private readonly IAccountService _accountService;
 
-        public FarmHubsController(IFarmHubService farmHubService)
+        public FarmHubsController(IFarmHubService farmHubService, IAccountService accountService)
         {
             _farmHubService = farmHubService;
+            _accountService = accountService;
         }
 
         [SwaggerOperation(Summary = "Get All FarmHubs - Admin Role - {Huu Tri}")]
@@ -34,11 +40,28 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Create FarmHub - Admin Role - {Huu Tri}")]
         [HttpPost("farm-hub")]
+        [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> CreateFarmHub(FarmHubRequest farmHubRequest)
         {
             if (ModelState.IsValid)
             {
-                var response = await _farmHubService.CreateFarmHub(farmHubRequest);
+                string authHeader = HttpContext.Request.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader))
+                {
+                    return Unauthorized();
+                }
+
+                // The token is prefixed with "Bearer ", so we need to remove that prefix
+                string token = authHeader.Replace("Bearer ", "");
+
+                var defineUser = _accountService.GetIdAndRoleFromToken(token);
+                if (defineUser.Payload == null) {
+                    return HandleErrorResponse(defineUser!.Errors);
+                }
+                var farmHubAccountId = defineUser.Payload.Id;
+                //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                //var farmHubAccountId = Guid.Parse(userIdClaim.Value);
+                var response = await _farmHubService.CreateFarmHub(farmHubAccountId, farmHubRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
