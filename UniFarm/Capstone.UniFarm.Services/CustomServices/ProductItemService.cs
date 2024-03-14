@@ -27,7 +27,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<bool>> CreateProductItemForProduct(Guid productId, ProductItemRequest productItemRequest)
+        public async Task<OperationResult<bool>> CreateProductItemForProduct(Guid productId, Guid farmHubAccountId, ProductItemRequest productItemRequest)
         {
             var result = new OperationResult<bool>();
             try
@@ -35,14 +35,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (existingProduct != null)
                 {
-                    var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(productItemRequest.FarmHubId);
-                    if (existingFarmHub != null)
+                    var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                    if (accountRoleInfor != null)
                     {
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
-                        productItem.Status = "Active"; 
+                        productItem.Status = "Active";
                         productItem.CreatedAt = DateTime.Now;
-                        if(productItemRequest.Quantity > 0)
+                        productItem.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
+                        if (productItemRequest.Quantity > 0)
                         {
                             productItem.OutOfStock = false; //con hang
                         }
@@ -60,10 +61,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                         {
                             result.AddError(StatusCode.BadRequest, "Add Product Item for Product Failed!");
                         }
-                    }
-                    else
-                    {
-                        result.AddError(StatusCode.NotFound, $"Not Found FarmHub with Id: ${productItemRequest.FarmHubId}!");
                     }
                 }
                 else
@@ -140,7 +137,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
-                if(accountRoleInfor != null)
+                if (accountRoleInfor != null)
                 {
                     var farmHubId = accountRoleInfor.FarmHubId;
                     var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByFarmHubId((Guid)farmHubId);
@@ -174,7 +171,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                     return result;
                 }
-                else if(productItem.Status == "Available")
+                else if (productItem.Status == "Available")
                 {
                     var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
@@ -264,7 +261,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProductItem.Unit = productItemRequestUpdate.Unit;
                         isAnyFieldUpdated = true;
                     }
-                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active" 
+                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active"
                         || productItemRequestUpdate.Status == "Inactive"
                         || productItemRequestUpdate.Status == "Available"))
                     {

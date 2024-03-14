@@ -31,7 +31,7 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "Get All Product Items In Farmhub - FarmHub Role - {Huu Tri}")]
         [HttpGet("product-items")]
         [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> GetAllProductItemsByFarmHubId()
+        public async Task<IActionResult> GetAllProductItemsInFarmHub()
         {
             string authHeader = HttpContext.Request.Headers["Authorization"];
             if (string.IsNullOrEmpty(authHeader))
@@ -52,7 +52,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get ProductItem ById - Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Product Item By Id - Customer Role - {Huu Tri}")]
         [HttpGet("product-item/{id}")]
         public async Task<IActionResult> GetProductItemById(Guid id)
         {
@@ -66,7 +66,22 @@ namespace Capstone.UniFarm.API.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _productItemService.CreateProductItemForProduct(id, productItemRequest);
+                string authHeader = HttpContext.Request.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader))
+                {
+                    return Unauthorized();
+                }
+
+                // The token is prefixed with "Bearer ", so we need to remove that prefix
+                string token = authHeader.Replace("Bearer ", "");
+
+                var defineUser = _accountService.GetIdAndRoleFromToken(token);
+                if (defineUser.Payload == null)
+                {
+                    return HandleErrorResponse(defineUser!.Errors);
+                }
+                var farmHubAccountId = defineUser.Payload.Id;
+                var response = await _productItemService.CreateProductItemForProduct(id, farmHubAccountId, productItemRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
