@@ -1,8 +1,11 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using Capstone.UniFarm.Services.CustomServices;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Data;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -10,17 +13,36 @@ namespace Capstone.UniFarm.API.Controllers
     public class MenusController : BaseController
     {
         private readonly IMenuService _menuService;
+        private readonly IAccountService _accountService;
 
-        public MenusController(IMenuService menuService)
+        public MenusController(IMenuService menuService, IAccountService accountService)
         {
             _menuService = menuService;
+            _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All Menus By FarmHub Id - FarmHub Role - {Huu Tri}")]
-        [HttpGet("farm-hub/{id}/menus")]
-        public async Task<IActionResult> GetAllMenusByFarmHubId(Guid id)
+        [SwaggerOperation(Summary = "Get All Menus In FarmHub - FarmHub Role - {Huu Tri}")]
+        [HttpGet("menus")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> GetAllMenusInFarmHubId()
         {
-            var response = await _menuService.GetAllMenusByFarmHubId(id);
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+
+            // The token is prefixed with "Bearer ", so we need to remove that prefix
+            string token = authHeader.Replace("Bearer ", "");
+
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null)
+            {
+                return HandleErrorResponse(defineUser!.Errors);
+            }
+            var farmHubAccountId = defineUser.Payload.Id;
+
+            var response = await _menuService.GetAllMenusByFarmHubAccountId(farmHubAccountId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -33,12 +55,28 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Create Menu For FarmHub - FarmHub Role - {Huu Tri}")]
-        [HttpPost("farm-hub/{id}/menu")]
-        public async Task<IActionResult> CreateMenuForFarmHub(Guid id, MenuRequest menuRequest)
+        [HttpPost("menu")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> CreateMenuForFarmHub(MenuRequest menuRequest)
         {
             if (ModelState.IsValid)
             {
-                var response = await _menuService.CreateMenuForFarmHub(id, menuRequest);
+                string authHeader = HttpContext.Request.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader))
+                {
+                    return Unauthorized();
+                }
+
+                // The token is prefixed with "Bearer ", so we need to remove that prefix
+                string token = authHeader.Replace("Bearer ", "");
+
+                var defineUser = _accountService.GetIdAndRoleFromToken(token);
+                if (defineUser.Payload == null)
+                {
+                    return HandleErrorResponse(defineUser!.Errors);
+                }
+                var farmHubAccountId = defineUser.Payload.Id;
+                var response = await _menuService.CreateMenuForFarmHub(farmHubAccountId, menuRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");

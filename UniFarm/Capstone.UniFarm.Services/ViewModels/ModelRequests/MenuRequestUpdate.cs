@@ -9,7 +9,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public class MenuRequestUpdate
     {
-        public Guid? FarmHubId { get; set; }
+        //public Guid? FarmHubId { get; set; }
         public Guid? BusinessDayId { get; set; }
         [StringLength(50, ErrorMessage = "Name length cannot exceed 50 characters")]
         public string? Name { get; set; }

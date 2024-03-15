@@ -54,22 +54,28 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
-                        if (productItemsInMenu.Any(p => p.ProductItemId == productItemInMenuRequest.ProductItemId))
-                        {
-                            result.AddError(StatusCode.BadRequest, $"Product Item have Id: {productItemInMenuRequest.ProductItemId} already exists in the menu!");
-                            return result;
-                        }
+                        //var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
+                        //if (productItemsInMenu.Any(p => p.ProductItemId == productItemInMenuRequest.ProductItemId))
+                        //{
+                        //    result.AddError(StatusCode.BadRequest, $"Product Item have Id: {productItemInMenuRequest.ProductItemId} already exists in the menu!");
+                        //    return result;
+                        //}
 
                         productItemInMenuRequest.ProductItemId = existingProductItem.Id;
                         var productItemInMenu = _mapper.Map<ProductItemInMenu>(productItemInMenuRequest);
                         productItemInMenu.MenuId = menuId;
-                        productItemInMenu.Status = "Pending";
+                        productItemInMenu.Status = "Preparing";
                         await _unitOfWork.ProductItemInMenuRepository.AddAsync(productItemInMenu);
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
                         {
-                            result.AddResponseStatusCode(StatusCode.Created, "Add Product Item to Menu Success!", true);
+                            existingProductItem.Status = "AddedToMenu";
+                            _unitOfWork.ProductItemRepository.Update(existingProductItem);
+                            var checkUpdateStatusProductItem = _unitOfWork.Save();
+                            if(checkUpdateStatusProductItem > 0)
+                            {
+                                result.AddResponseStatusCode(StatusCode.Created, "Add Product Item to Menu Success!", true);
+                            }
                         }
                         else
                         {
@@ -115,14 +121,22 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var existingProductItemInMenu = await _unitOfWork.ProductItemInMenuRepository.GetByIdAsync(productItemInMenuId);
+
                 if (existingProductItemInMenu != null)
                 {
+                    var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(existingProductItemInMenu.ProductItemId);
                     existingProductItemInMenu.Status = "Inactive";
                     _unitOfWork.ProductItemInMenuRepository.Update(existingProductItemInMenu);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
                     {
-                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product Item In Menu have Id: {productItemInMenuId} Success.", true);
+                        existingProductItem.Status = "AwaitingMenuAddition";
+                        _unitOfWork.ProductItemRepository.Update(existingProductItem);
+                        var checkUpdateStatusProductItem = _unitOfWork.Save();
+                        if (checkUpdateStatusProductItem > 0)
+                        {
+                            result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product Item In Menu have Id: {productItemInMenuId} Success.", true);
+                        }
                     }
                     else
                     {
