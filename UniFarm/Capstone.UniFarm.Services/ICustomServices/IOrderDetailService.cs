@@ -7,6 +7,6 @@ namespace Capstone.UniFarm.Services.ICustomServices;
 
 public interface IOrderDetailService
 {
-    Task<OperationResult<OrderDetailResponseForCustomer>> CreateOrderDetail(OrderDetailRequestCreate orderDetail);
+    //Task<OperationResult<OrderDetailResponseForCustomer>> CreateOrderDetail(OrderDetailRequestCreate orderDetail);
     
 }

@@ -18,9 +18,4 @@ public class OrderDetailService : IOrderDetailService
         _mapper = mapper;
     }
     
-    public Task<OperationResult<OrderDetailResponseForCustomer>> CreateOrderDetail(OrderDetailRequestCreate orderDetail)
-    {
-        throw new NotImplementedException();
-    }
-    
 }
