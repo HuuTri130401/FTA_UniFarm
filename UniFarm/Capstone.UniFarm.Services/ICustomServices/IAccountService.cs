@@ -34,5 +34,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
 
         Task<OperationResult<AccountResponse>> GetAccountById(Guid accountId);
 
+        
     }
 }

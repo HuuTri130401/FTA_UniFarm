@@ -130,7 +130,9 @@ namespace Capstone.UniFarm.API.Controllers
             return Ok(new { Token = token });
         }
         #endregion
-
+        
+        
+        
         #region API Logout
         [HttpGet("logout")]
         [SwaggerOperation(Summary = "Log the user out")]

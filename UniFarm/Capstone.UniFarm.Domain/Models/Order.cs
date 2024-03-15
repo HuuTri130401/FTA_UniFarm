@@ -20,7 +20,7 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid FarmHubId { get; set; }
         public Guid CustomerId { get; set; }
         public Guid? StationId { get; set; }
-        public Guid BusinessDayId { get; set; }
+        public Guid? BusinessDayId { get; set; }
         public DateTime CreatedAt { get; set; }
         [StringLength(100)]
         public string? Code { get; set; }
@@ -44,10 +44,11 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ExpiredDayInStation { get; set; }
         public DateTime? ShippedDate { get; set; }
         public Guid? ShipByStationStaffId { get; set; }
+        public bool? IsPaid { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]
         [InverseProperty("Orders")]
-        public virtual BusinessDay BusinessDay { get; set; } = null!;
+        public virtual BusinessDay? BusinessDay { get; set; } = null!;
         [ForeignKey(nameof(CustomerId))]
         [InverseProperty(nameof(Account.Orders))]
         public virtual Account Customer { get; set; } = null!;
@@ -56,12 +57,12 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual FarmHub FarmHub { get; set; } = null!;
         [ForeignKey(nameof(StationId))]
         [InverseProperty("Orders")]
-        public virtual Station? Station { get; set; }
+        public virtual Station Station { get; set; }
         
         [InverseProperty(nameof(Transaction.Order))]
-        public virtual ICollection<Transaction> Transactions { get; set; }
+        public virtual ICollection<Transaction>? Transactions { get; set; }
 
         [InverseProperty(nameof(OrderDetail.Order))]
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
     }
 }

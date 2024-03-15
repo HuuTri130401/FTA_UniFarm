@@ -26,6 +26,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         ICollectedHubRepository CollectedHubRepository { get; }
         IBusinessDayRepository BusinessDayRepository { get; }
         IPaymentRepository PaymentRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IOrderDetailRepository OrderDetailRepository { get; }
         int Save();
         Task<int> SaveChangesAsync();
     }

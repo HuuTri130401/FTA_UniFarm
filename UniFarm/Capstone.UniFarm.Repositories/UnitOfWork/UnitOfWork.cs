@@ -26,6 +26,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IMenuRepository MenuRepository { get; }
         public IProductItemInMenuRepository ProductItemInMenuRepository { get; }
         public IBusinessDayRepository BusinessDayRepository { get; }
+        public IOrderRepository OrderRepository { get; }
+        public IOrderDetailRepository OrderDetailRepository { get; }
         
         public IPaymentRepository PaymentRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
@@ -44,7 +46,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IProductItemRepository productItemRepository,
             IProductItemInMenuRepository productItemInMenuRepository,
             IBusinessDayRepository businessDayRepository,
-            IPaymentRepository paymentRepository
+            IPaymentRepository paymentRepository,
+            IOrderRepository orderRepository,
+            IOrderDetailRepository orderDetailRepository
         )
         {
             _dbContext = dbContext;
@@ -64,6 +68,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             CollectedHubRepository = collectedHubRepository;
             BusinessDayRepository = businessDayRepository;
             PaymentRepository = paymentRepository;
+            OrderRepository = orderRepository;
+            OrderDetailRepository = orderDetailRepository;
         }
 
         public void Dispose()

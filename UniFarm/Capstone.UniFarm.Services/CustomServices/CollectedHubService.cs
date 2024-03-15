@@ -8,6 +8,7 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
@@ -96,8 +97,8 @@ public class CollectedHubService : ICollectedHubService
         var result = new OperationResult<CollectedHubResponse>();
         try
         {
-            var collectedHub = _unitOfWork.CollectedHubRepository.FilterByExpression(filter, null);
-            if (!collectedHub.Any())
+            var collectedHub = _unitOfWork.CollectedHubRepository.FilterByExpression(filter, null).FirstOrDefaultAsync().Result;
+            if (collectedHub == null)
             {
                 result.Message = "CollectedHub not found";
                 result.StatusCode = StatusCode.NotFound;

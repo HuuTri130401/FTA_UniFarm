@@ -1,4 +1,6 @@
-﻿namespace Capstone.UniFarm.Services.ViewModels.ModelResponses;
+﻿using Capstone.UniFarm.Domain.Models;
+
+namespace Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 public record StationResponse
 {
@@ -12,5 +14,5 @@ public record StationResponse
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string? Status { get; set; }
-    public AreaResponse? Area { get; set; }
+    public Area? Area { get; set; }
 }

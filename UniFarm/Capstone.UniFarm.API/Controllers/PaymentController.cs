@@ -18,7 +18,7 @@ public class PaymentController : BaseController
         _accountService = accountService;
     }
 
-    [HttpPost("payment")]
+    /*[HttpPost("payment")]
     public async Task<IActionResult> CreatePayment(PaymentRequestCreate paymentRequest)
     {
         if (ModelState.IsValid)
@@ -86,6 +86,6 @@ public class PaymentController : BaseController
             includeProperties, 
             pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }
+    }*/
     
 }

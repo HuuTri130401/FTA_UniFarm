@@ -543,7 +543,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<Guid?>("BatchId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BusinessDayId")
+                    b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
@@ -578,6 +578,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<Guid>("FarmHubId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("IsPaid")
+                        .HasColumnType("bit");
+
                     b.Property<string>("ShipAddress")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -589,6 +592,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("StationId")
+                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("TotalAmount")
@@ -633,7 +637,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("OriginUnitPrice")
+                    b.Property<decimal?>("OriginUnitPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("ProductItemId")
@@ -642,10 +646,10 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<double>("Quantity")
                         .HasColumnType("float");
 
-                    b.Property<decimal>("TotalOriginPrice")
+                    b.Property<decimal?>("TotalOriginPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("TotalPrice")
+                    b.Property<decimal?>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Unit")
@@ -688,6 +692,10 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<string>("To")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("WalletId")
                         .HasColumnType("uniqueidentifier");
@@ -808,9 +816,6 @@ namespace Capstone.UniFarm.Domain.Migrations
 
                     b.Property<double?>("Quantity")
                         .HasColumnType("float");
-
-                    b.Property<int?>("Sold")
-                        .HasColumnType("int");
 
                     b.Property<string>("SpecialTag")
                         .HasColumnType("nvarchar(max)");
@@ -966,6 +971,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("CollectedId")
                         .HasColumnType("uniqueidentifier");
@@ -1268,7 +1276,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasOne("Capstone.UniFarm.Domain.Models.BusinessDay", "BusinessDay")
                         .WithMany("Orders")
                         .HasForeignKey("BusinessDayId")
-                        .IsRequired()
                         .HasConstraintName("FK__Order__BusinessD__04E4BC85");
 
                     b.HasOne("Capstone.UniFarm.Domain.Models.Account", "Customer")
@@ -1286,6 +1293,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasOne("Capstone.UniFarm.Domain.Models.Station", "Station")
                         .WithMany("Orders")
                         .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("FK__Order__StationId__03F0984C");
 
                     b.HasOne("Capstone.UniFarm.Domain.Models.Transfer", null)

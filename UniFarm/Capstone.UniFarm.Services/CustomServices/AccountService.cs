@@ -65,6 +65,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+        
 
         public async Task<OperationResult<AccountRequestCreate>> CreateAccount(
             AccountRequestCreate accountRequestCreate)
@@ -526,7 +527,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                             x.Id == accountRole.Payload.CollectedHubId.Value);
                     if (collectedStaff.Payload != null)
                     {
-                        _mapper.Map(collectedStaff, accountResponse.CollectedHub);
+                        accountResponse.CollectedHub = collectedStaff.Payload;
                     }
                 }
 
@@ -573,10 +574,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (accountRole.Payload!.StationId != null)
                 {
                     var station =
-                        await _stationService.GetFilterByExpression(x => x.Id == accountRole.Payload.StationId.Value);
+                        await _stationService.GetFilterByExpression(x => x.Id == accountRole.Payload.StationId, null);
                     if (station.Payload != null)
                     {
-                        _mapper.Map(station, accountResponse.Station);
+                        accountResponse.Station = station.Payload;
                     }
                 }
 

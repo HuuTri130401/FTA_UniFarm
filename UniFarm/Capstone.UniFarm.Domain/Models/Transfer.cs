@@ -23,7 +23,7 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
         public string? NoteReceived { get; set; }
-        
+        public string? Code { get; set; }
         [StringLength(100)]
         public string? Status { get; set; }
         

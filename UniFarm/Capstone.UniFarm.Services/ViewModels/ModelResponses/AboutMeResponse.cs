@@ -78,7 +78,7 @@ public abstract record AboutMeResponse
         public string? Address { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public Station? Station { get; set; } = null!;
+        public StationResponse? Station { get; set; } = null!;
     }
     
     public record AboutCollectedStaffResponse
@@ -94,7 +94,7 @@ public abstract record AboutMeResponse
         public string? Address { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public CollectedHub? CollectedHub { get; set; } = null!;
+        public CollectedHubResponse? CollectedHub { get; set; } = null!;
     }
 
     public record StaffResponse

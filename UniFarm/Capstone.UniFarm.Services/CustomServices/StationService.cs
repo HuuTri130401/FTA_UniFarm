@@ -8,6 +8,7 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
@@ -119,7 +120,7 @@ public class StationService : IStationService
         var result = new OperationResult<StationResponse>();
         try
         {
-            var station = _unitOfWork.StationRepository.FilterByExpression(filter, null);
+            var station = _unitOfWork.StationRepository.FilterByExpression(filter, null).FirstOrDefaultAsync().Result;
             if (station == null)
             {
                 result.Message = "station not found";
@@ -157,7 +158,7 @@ public class StationService : IStationService
 
             stationCreated.Area = await _unitOfWork.AreaRepository.GetByIdAsync(objectRequestCreate.AreaId);
             var stationResponse = _mapper.Map<StationResponse>(stationCreated);
-            stationResponse.Area = _mapper.Map<AreaResponse>(stationCreated.Area);
+            stationResponse.Area = _mapper.Map<Area>(stationCreated.Area);
             result.Payload = stationResponse;
             result.StatusCode = StatusCode.Created;
         }
@@ -230,7 +231,7 @@ public class StationService : IStationService
 
                 station.Area = await _unitOfWork.AreaRepository.GetByIdAsync(objectRequestUpdate.AreaId);
                 var stationResponse = _mapper.Map<StationResponse>(station);
-                stationResponse.Area = _mapper.Map<AreaResponse>(station.Area);
+                stationResponse.Area = _mapper.Map<Area>(station.Area);
                 result.Payload = stationResponse;
                 result.StatusCode = StatusCode.Ok;
             }
