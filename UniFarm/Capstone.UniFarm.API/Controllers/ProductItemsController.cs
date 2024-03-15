@@ -20,7 +20,7 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - FarmHub, Admin, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - Admin, Customer Role - {Huu Tri}")]
         [HttpGet("product/{id}/product-items")]
         public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
         {
@@ -28,7 +28,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get All Product Items In Farmhub - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Product Items In FarmHub - FarmHub Role - {Huu Tri}")]
         [HttpGet("product-items")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> GetAllProductItemsInFarmHub()
@@ -52,7 +52,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Product Item By Id - Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Product Item By Id - FarmHub, Customer Role - {Huu Tri}")]
         [HttpGet("product-item/{id}")]
         public async Task<IActionResult> GetProductItemById(Guid id)
         {
@@ -62,6 +62,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Create Product Item For Product - FarmHub Role - {Huu Tri}")]
         [HttpPost("product/{id}/product-item")]
+        [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemRequest productItemRequest)
         {
             if (ModelState.IsValid)
@@ -89,6 +90,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Update Product Item - FarmHub Role - {Huu Tri}")]
         [HttpPut("product-item/{id}")]
+        [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> UpdateProductItem(Guid id, ProductItemRequestUpdate productItemRequestUpdate)
         {
             if (ModelState.IsValid)
@@ -101,6 +103,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Delete Product Item - Admin Role, FarmHub Role - {Huu Tri}")]
         [HttpDelete("product-item/{id}")]
+        [Authorize(Roles = "FarmHub, Admin")]
         public async Task<IActionResult> DeleteProductItem(Guid id)
         {
             var response = await _productItemService.DeleteProductItem(id);

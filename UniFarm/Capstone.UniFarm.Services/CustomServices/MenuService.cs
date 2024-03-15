@@ -69,17 +69,17 @@ namespace Capstone.UniFarm.Services.CustomServices
         }
 
 
-        public async Task<OperationResult<bool>> CreateMenuForFarmHub(Guid farmHubId, MenuRequest menuRequest)
+        public async Task<OperationResult<bool>> CreateMenuForFarmHub(Guid farmHubAccountId, MenuRequest menuRequest)
         {
             var result = new OperationResult<bool>();
 
             try
             {
-                var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(farmHubId);
-                if (existingFarmHub != null)
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                 {
                     var menu = _mapper.Map<Menu>(menuRequest);
-                    menu.FarmHubId = farmHubId;
+                    menu.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                     menu.Status = "Active";
                     menu.CreatedAt = DateTime.Now;
                     await _unitOfWork.MenuRepository.AddAsync(menu);
@@ -88,14 +88,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         result.AddResponseStatusCode(StatusCode.Created, "Add Menu for FarmHub Success!", true);
                     }
-                    else
-                    {
-                        result.AddError(StatusCode.BadRequest, "Add Menu for FarmHub Failed!"); ;
-                    }
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Add Menu for FarmHub Failed!"); ;
+                    result.AddError(StatusCode.BadRequest, "Please Create Your FarmHub before Create Menu!");
                 }
                 return result;
             }
@@ -137,21 +133,30 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<MenuResponse>>> GetAllMenusByFarmHubId(Guid farmHubId)
+        public async Task<OperationResult<List<MenuResponse>>> GetAllMenusByFarmHubAccountId(Guid farmHubAccountId)
         {
             var result = new OperationResult<List<MenuResponse>>();
             try
             {
-                var listMenus = await _unitOfWork.MenuRepository.GetAllMenuByFarmHubIdAsync(farmHubId);
-                var menusIsActive = listMenus.Where(menu => menu.Status != "Inactive");
-                var listMenusResponse = _mapper.Map<List<MenuResponse>>(menusIsActive);
-
-                if (listMenusResponse == null || !listMenusResponse.Any())
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, $"List Menus with FarmHub Id {farmHubId} is Empty!", listMenusResponse);
-                    return result;
+                    var farmHubId = accountRoleInfor.FarmHubId;
+                    var listMenus = await _unitOfWork.MenuRepository.GetAllMenuByFarmHubIdAsync((Guid)farmHubId);
+                    var menusIsActive = listMenus.Where(menu => menu.Status != "Inactive");
+                    var listMenusResponse = _mapper.Map<List<MenuResponse>>(menusIsActive);
+
+                    if (listMenusResponse == null || !listMenusResponse.Any())
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok, $"List Menus in this FarmHub is Empty!", listMenusResponse);
+                        return result;
+                    }
+                    result.AddResponseStatusCode(StatusCode.Ok, "Get List Menus In FarmHub Done.", listMenusResponse);
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Menus Done.", listMenusResponse);
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, "Please Create Your FarmHub before Get List Menus!");
+                }
                 return result;
             }
             catch (Exception ex)
@@ -204,16 +209,16 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingMenu.Tag = menuRequestUpdate.Tag;
                         isAnyFieldUpdated = true;
                     }
-                    if (menuRequestUpdate.FarmHubId != null)
-                    {
-                        var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)menuRequestUpdate.FarmHubId);
-                        if (existingFarmHub == null)
-                        {
-                            result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update!");
-                            return result;
-                        }
-                        isAnyFieldUpdated = true;
-                    }
+                    //if (menuRequestUpdate.FarmHubId != null)
+                    //{
+                    //    var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)menuRequestUpdate.FarmHubId);
+                    //    if (existingFarmHub == null)
+                    //    {
+                    //        result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update!");
+                    //        return result;
+                    //    }
+                    //    isAnyFieldUpdated = true;
+                    //}
 
                     if (menuRequestUpdate.Status != null && (menuRequestUpdate.Status == "Active" || menuRequestUpdate.Status == "Inactive"))
                     {

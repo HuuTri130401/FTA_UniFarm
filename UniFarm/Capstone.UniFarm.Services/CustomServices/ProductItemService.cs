@@ -36,11 +36,11 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (existingProduct != null)
                 {
                     var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
-                    if (accountRoleInfor != null)
+                    if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                     {
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
-                        productItem.Status = "Active";
+                        productItem.Status = "AwaitingMenuAddition";
                         productItem.CreatedAt = DateTime.Now;
                         productItem.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                         if (productItemRequest.Quantity > 0)
@@ -61,6 +61,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         {
                             result.AddError(StatusCode.BadRequest, "Add Product Item for Product Failed!");
                         }
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Please Create Your FarmHub before Create Product Item!");
                     }
                 }
                 else
@@ -113,7 +117,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var activeProductItems = listProductItems.Where(pi => pi.Status == "Available").ToList();
+                var activeProductItems = listProductItems.Where(pi => pi.Status == "Active").ToList();
                 var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
@@ -137,7 +141,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
-                if (accountRoleInfor != null)
+                if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                 {
                     var farmHubId = accountRoleInfor.FarmHubId;
                     var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByFarmHubId((Guid)farmHubId);
@@ -150,6 +154,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         return result;
                     }
                     result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In FarmHub Done.", listProductItemsResponse);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, "Please Create Your FarmHub before Get List Product Items!");
                 }
                 return result;
             }
@@ -171,7 +179,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
                     return result;
                 }
-                else if (productItem.Status == "Available")
+                else if (productItem.Status != "Inactive")
                 {
                     var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
                     result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
@@ -261,13 +269,13 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProductItem.Unit = productItemRequestUpdate.Unit;
                         isAnyFieldUpdated = true;
                     }
-                    if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active"
-                        || productItemRequestUpdate.Status == "Inactive"
-                        || productItemRequestUpdate.Status == "Available"))
-                    {
-                        existingProductItem.Status = productItemRequestUpdate.Status;
-                        isAnyFieldUpdated = true;
-                    }
+                    //if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active"
+                    //    || productItemRequestUpdate.Status == "Inactive"
+                    //    || productItemRequestUpdate.Status == "Available"))
+                    //{
+                    //    existingProductItem.Status = productItemRequestUpdate.Status;
+                    //    isAnyFieldUpdated = true;
+                    //}
 
                     if (isAnyFieldUpdated)
                     {
