@@ -131,7 +131,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<List<BusinessDayResponse>>();
             try
             {
-                var listBusinessDays = await _unitOfWork.BusinessDayRepository.GetAllAsync();
+                var listBusinessDays = await _unitOfWork.BusinessDayRepository.GetAllBusinessDay();
                 var activeBusinessDays = listBusinessDays.Where(c => c.Status != "Inactive").ToList();
                 var businessDayResponses = _mapper.Map<List<BusinessDayResponse>>(activeBusinessDays);
 

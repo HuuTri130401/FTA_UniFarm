@@ -142,6 +142,28 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<FarmHubResponse>> GetFarmHubInforByFarmHubAccountId(Guid farmHubAccountId)
+        {
+            var result = new OperationResult<FarmHubResponse>();
+            var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+            if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
+            {
+                var farmHubId = accountRoleInfor.FarmHubId;
+                var farmhub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)farmHubId);
+                if (farmhub == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found FarmHub with Id: {(Guid)farmHubId}");
+                }
+                var farmhubResponse = _mapper.Map<FarmHubResponse>(farmhub);
+                result.AddResponseStatusCode(StatusCode.Ok, $"Get FarmHub by Id: {(Guid)farmHubId} Success!", farmhubResponse);
+            }
+            else
+            {
+                result.AddError(StatusCode.NotFound, $"Please Create Before Get FarmHub Profile!");
+            }
+            return result;
+        }
+
         public async Task<OperationResult<bool>> UpdateFarmHub(Guid farmhubId, FarmHubRequestUpdate farmHubRequestUpdate)
         {
             var result = new OperationResult<bool>();
