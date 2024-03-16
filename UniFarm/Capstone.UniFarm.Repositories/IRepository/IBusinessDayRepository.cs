@@ -10,7 +10,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
     public interface IBusinessDayRepository : IGenericRepository<BusinessDay>
     {
         Task UpdateBusinessDayStatus(Guid businessDayId, string status);
-        List<BusinessDay> GetAllBusinessDay();
+        Task<List<BusinessDay>> GetAllBusinessDay();
         Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId);
     }
 }

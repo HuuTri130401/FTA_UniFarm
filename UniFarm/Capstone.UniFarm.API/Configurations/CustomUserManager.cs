@@ -12,9 +12,8 @@ public class CustomUserManager : UserManager<Account>
     {
     }
     
-    public override Task<Account> FindByNameAsync(string userName)
-    {
-        return Task.FromResult<Account>(null);
-    }
-    
+    //public override Task<Account> FindByNameAsync(string userName)
+    //{
+    //    return Task.FromResult<Account>(null);
+    //}
 }

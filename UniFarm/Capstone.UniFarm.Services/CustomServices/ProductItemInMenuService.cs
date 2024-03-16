@@ -69,7 +69,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
                         {
-                            existingProductItem.Status = "AddedToMenu";
+                            existingProductItem.Status = "Registered";
                             _unitOfWork.ProductItemRepository.Update(existingProductItem);
                             var checkUpdateStatusProductItem = _unitOfWork.Save();
                             if(checkUpdateStatusProductItem > 0)
@@ -124,13 +124,17 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (existingProductItemInMenu != null)
                 {
-                    var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(existingProductItemInMenu.ProductItemId);
                     existingProductItemInMenu.Status = "Inactive";
                     _unitOfWork.ProductItemInMenuRepository.Update(existingProductItemInMenu);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
                     {
-                        existingProductItem.Status = "AwaitingMenuAddition";
+                        var productItemId = existingProductItemInMenu.ProductItemId;
+                        // check product item belong to orther menu ?
+                        var otherMenusForProduct = await _unitOfWork.ProductItemInMenuRepository.FindStatusProductItem(p => p.ProductItemId == productItemId && p.Status != "Inactive");
+                        var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
+                        var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
+                        existingProductItem.Status = newStatus;
                         _unitOfWork.ProductItemRepository.Update(existingProductItem);
                         var checkUpdateStatusProductItem = _unitOfWork.Save();
                         if (checkUpdateStatusProductItem > 0)

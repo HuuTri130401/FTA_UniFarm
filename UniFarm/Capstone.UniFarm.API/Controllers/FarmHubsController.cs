@@ -38,6 +38,28 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Get Profile of FarmHub - FarmHub Role - {Huu Tri}")]
+        [HttpGet("farm-hub/profile")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> GetProfileFarmHub()
+        {
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+            string token = authHeader.Replace("Bearer ", "");
+
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null)
+            {
+                return HandleErrorResponse(defineUser!.Errors);
+            }
+            var farmHubAccountId = defineUser.Payload.Id;
+            var response = await _farmHubService.GetFarmHubInforByFarmHubAccountId(farmHubAccountId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
         [SwaggerOperation(Summary = "Create FarmHub - Admin Role - {Huu Tri}")]
         [HttpPost("farm-hub")]
         [Authorize(Roles = "FarmHub")]
@@ -59,8 +81,7 @@ namespace Capstone.UniFarm.API.Controllers
                     return HandleErrorResponse(defineUser!.Errors);
                 }
                 var farmHubAccountId = defineUser.Payload.Id;
-                //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                //var farmHubAccountId = Guid.Parse(userIdClaim.Value);
+
                 var response = await _farmHubService.CreateFarmHub(farmHubAccountId, farmHubRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
