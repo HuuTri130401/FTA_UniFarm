@@ -27,6 +27,6 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual Order Order { get; set; } = null!;
         [ForeignKey(nameof(ProductItemId))]
         [InverseProperty("OrderDetails")]
-        public virtual ProductItem ProductItem { get; set; } = null!;
+        public virtual ProductItem? ProductItem { get; set; } = null!;
     }
 }

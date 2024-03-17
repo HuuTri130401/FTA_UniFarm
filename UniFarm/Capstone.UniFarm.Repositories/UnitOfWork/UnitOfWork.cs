@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Capstone.UniFarm.Repositories.UnitOfWork
 {
@@ -28,6 +29,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IBusinessDayRepository BusinessDayRepository { get; }
         public IOrderRepository OrderRepository { get; }
         public IOrderDetailRepository OrderDetailRepository { get; }
+        
+        
         
         public IPaymentRepository PaymentRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
@@ -93,6 +96,11 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public async Task<int> SaveChangesAsync()
         {
             return await _dbContext.SaveChangesAsync();
+        }
+        
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _dbContext.Database.BeginTransactionAsync();
         }
     }
 }

@@ -12,12 +12,12 @@ public class PaymentRepository : GenericRepository<Payment>, IPaymentRepository
     
     public override void SoftRemove(Payment entity)
     {
-        throw new NotImplementedException(); 
+        return;
     }
 
     public override void Update(Payment entity)
     {
-        throw new NotImplementedException(); 
+        return;
     }
     
 }

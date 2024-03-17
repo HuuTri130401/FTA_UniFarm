@@ -20,13 +20,13 @@ public abstract record EnumConstants
         public static readonly string ACTIVE = "Active";
         public static readonly string INACTIVE = "Inactive";
     }
-    
+
     public abstract record PaymentEnum
     {
         public static readonly string SUCCESS = "Success";
         public static readonly string FAILURE = "Failure";
     }
-    
+
     public abstract record PaymentTypeEnum
     {
         public static readonly string DEPOSIT = "Deposit";
@@ -42,6 +42,30 @@ public abstract record EnumConstants
         public static readonly string COLLECTEDSTAFF = "CollectedStaff";
         public static readonly string STATIONSTAFF = "StationStaff";
         public static readonly string ADMIN = "Admin";
+    }
+
+    public abstract record NotificationMessage
+    {
+        public static readonly string CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID = "Cart does not exist with same productItemId and farmHubId";
+        public static readonly string CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID = "Cart exist with same productItemId and farmHubId";
+        public static readonly string ORDER_DETAIL_DOES_NOT_EXIST = "OrderDetail does not exist";
+        public static readonly string PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST = "Product Item In Menu does not exist";
+        public static readonly string PRODUCT_ITEM_DOES_NOT_EXIST_OR_INACTIVE = "Product Item does not exist or is not active";
+        public static readonly string PRODUCT_ITEM_AND_FARMHUBID_DOES_NOT_EXIST = "Product Item and FarmHubId does not exist";
+        public static readonly string FARMHUB_DOES_NOT_EXIST = "FarmHub does not exist";
+        public static readonly string CREATE_CART_SUCCESS = "Create cart success";
+        public static readonly string CREATE_CART_FAILURE = "Create cart failure";
+        public static readonly string UPDATE_CART_SUCCESS = "Update cart success";
+        public static readonly string CREATE_CART_ORDER_DETAIL_SUCCESS = "Create cart order detail success";
+        public static readonly string CREATE_CART_ORDER_DETAIL_FAILURE = "Create cart order detail failure";
+        public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Update cart order detail success";
+        
+        public static readonly string ADD_TO_CART_SUCCESS = "Add to cart success";
+        public static readonly string ADD_TO_CART_FAILURE = "Add to cart success";
+        
+        public static readonly string STATION_DOES_NOT_EXIST = "Station does not exist";
+        public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
+        
         
     }
 }
