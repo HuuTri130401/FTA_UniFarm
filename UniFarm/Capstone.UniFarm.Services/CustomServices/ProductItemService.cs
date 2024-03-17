@@ -40,7 +40,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
-                        productItem.Status = "AwaitingMenuAddition";
+                        productItem.Status = "Unregistered";
                         productItem.CreatedAt = DateTime.Now;
                         productItem.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                         if (productItemRequest.Quantity > 0)
@@ -117,7 +117,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var activeProductItems = listProductItems.Where(pi => pi.Status == "Active").ToList();
+                var activeProductItems = listProductItems.Where(pi => pi.Status == "Selling").ToList();
                 var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())

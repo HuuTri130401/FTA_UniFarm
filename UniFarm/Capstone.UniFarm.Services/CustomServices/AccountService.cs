@@ -461,7 +461,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var accountResponse = _mapper.Map<AboutMeResponse.AboutFarmHubResponse>(account);
 
                 var accountRole = await _accountRoleService.GetAccountRoleByExpression(x =>
-                    x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE,null);
+                    x.AccountId == accountId && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE, null);
                 if (accountRole.Payload!.FarmHubId != null)
                 {
                     var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(accountRole.Payload.FarmHubId.Value);
@@ -685,6 +685,14 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (checkEmail != null)
                 {
                     result.AddError(StatusCode.BadRequest, "Email already exists");
+                    result.IsError = true;
+                    return result;
+                }
+
+                var existingUserName = await _userManager.FindByNameAsync(farmHubRegisterRequest.UserName);
+                if (existingUserName != null)
+                {
+                    result.AddError(StatusCode.BadRequest, "FarmHub Name must be unique!");
                     result.IsError = true;
                     return result;
                 }

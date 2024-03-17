@@ -16,9 +16,11 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
         }
 
-        public List<BusinessDay> GetAllBusinessDay()
+        public async Task<List<BusinessDay>> GetAllBusinessDay()
         {
-            return _dbSet.ToList();
+            return await _dbSet
+                //.Include(m => m.Menus)
+                .ToListAsync();
         }
 
         public async Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId)

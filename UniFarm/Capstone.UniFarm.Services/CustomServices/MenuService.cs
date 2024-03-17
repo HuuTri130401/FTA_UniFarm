@@ -48,13 +48,27 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 menu.BusinessDayId = businessDayId;
-
+                menu.Status = "Active";
                 _unitOfWork.MenuRepository.Update(menu);
                 var checkResult = _unitOfWork.Save();
 
                 if (checkResult > 0)
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, "Menu assigned to BusinessDay successfully!", true);
+                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
+                    foreach (var productItemInMenu in productItemsInMenu)
+                    {
+                        var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
+                        if (productItem != null)
+                        {
+                            productItem.Status = "Selling";
+                            _unitOfWork.ProductItemRepository.Update(productItem);
+                            var checkSaveStatusProductItem = _unitOfWork.Save();
+                            if(checkSaveStatusProductItem > 0)
+                            {
+                                result.AddResponseStatusCode(StatusCode.Ok, "Menu assigned to BusinessDay successfully!", true);
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -68,7 +82,6 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-
         public async Task<OperationResult<bool>> CreateMenuForFarmHub(Guid farmHubAccountId, MenuRequest menuRequest)
         {
             var result = new OperationResult<bool>();
@@ -80,7 +93,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     var menu = _mapper.Map<Menu>(menuRequest);
                     menu.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
-                    menu.Status = "Active";
+                    menu.Status = "Preparing";
                     menu.CreatedAt = DateTime.Now;
                     await _unitOfWork.MenuRepository.AddAsync(menu);
                     var checkResult = _unitOfWork.Save();
@@ -220,11 +233,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                     //    isAnyFieldUpdated = true;
                     //}
 
-                    if (menuRequestUpdate.Status != null && (menuRequestUpdate.Status == "Active" || menuRequestUpdate.Status == "Inactive"))
-                    {
-                        existingMenu.Status = menuRequestUpdate.Status;
-                        isAnyFieldUpdated = true;
-                    }
+                    //if (menuRequestUpdate.Status != null && (menuRequestUpdate.Status == "Active" || menuRequestUpdate.Status == "Inactive"))
+                    //{
+                    //    existingMenu.Status = menuRequestUpdate.Status;
+                    //    isAnyFieldUpdated = true;
+                    //}
+
                     if (isAnyFieldUpdated)
                     {
                         existingMenu.UpdatedAt = DateTime.Now;
