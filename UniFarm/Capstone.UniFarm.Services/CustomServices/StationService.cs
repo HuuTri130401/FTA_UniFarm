@@ -47,7 +47,7 @@ public class StationService : IStationService
                 result.StatusCode = StatusCode.NotFound;
                 return Task.FromResult(result);
             }
-
+            
             result.Payload = _mapper.Map<IEnumerable<StationResponse>>(stations);
             result.StatusCode = StatusCode.Ok;
         }

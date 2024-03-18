@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
@@ -185,19 +186,31 @@ public class TransferService : ITransferService
     }
 
     public async Task<OperationResult<IEnumerable<TransferResponse>>> GetAll(
-        string? keyword, Guid? collectedId, Guid? stationId,
-        string? status, string? code,
-        Guid? createdBy, Guid? updatedBy,
-        DateTime? fromDate, DateTime? toDate,
         bool? isAscending,
-        string? orderBy,
-        int pageIndex = 1,
+        string? orderBy = null,
+        Expression<Func<Transfer, bool>>? filter = null,
+        string[]? includeProperties = null,
+        int pageIndex = 0,
         int pageSize = 10)
     {
         var result = new OperationResult<IEnumerable<TransferResponse>>();
         try
         {
-            var getTransfers = await _unitOfWork.TransferRepository.GetAllAsync();
+            var getTransfers = await _unitOfWork.TransferRepository.FilterAll(
+                isAscending: isAscending,
+                orderBy: orderBy,
+                predicate: filter,
+                includeProperties: includeProperties,
+                pageIndex: pageIndex,
+                pageSize: pageSize
+            ).ToListAsync();
+
+            if (getTransfers.Count == 0)
+            {
+                result.StatusCode = StatusCode.Ok;
+                result.Message = "There is no transfer found";
+                result.IsError = false;
+            }
 
             var transferResponses = new List<TransferResponse>();
             foreach (var transfer in getTransfers)
@@ -219,7 +232,8 @@ public class TransferService : ITransferService
                     null,
                     null);
 
-                var collected =  await _unitOfWork.CollectedHubRepository.FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
+                var collected = await _unitOfWork.CollectedHubRepository
+                    .FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
                 transferResponse.Collected = _mapper.Map<CollectedHubResponse>(collected);
                 var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId)
                     .FirstOrDefaultAsync();
@@ -227,15 +241,14 @@ public class TransferService : ITransferService
 
                 var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == transfer.Id)
                     .ToListAsync();
-                
+
                 transferResponses.Add(transferResponse);
                 result.Payload = transferResponses;
                 result.StatusCode = StatusCode.Ok;
                 result.Message = EnumConstants.TransferMessage.GET_ALL_TRANSFER_SUCCESS;
                 result.IsError = false;
             }
-
-
+            
             result.Payload = transferResponses;
             result.StatusCode = StatusCode.Ok;
             result.Message = EnumConstants.TransferMessage.GET_ALL_TRANSFER_SUCCESS;

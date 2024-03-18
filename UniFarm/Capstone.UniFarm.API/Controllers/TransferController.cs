@@ -63,11 +63,25 @@ public class TransferController : BaseController
         [FromQuery] DateTime? toDate,
         [FromQuery] bool? isAscending,
         [FromQuery] string? orderBy,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int page = 0,
+        [FromQuery] int pageSize = 10
+    )
     {
-        var result = await _transferService.GetAll(keyword, collectedId, stationId, status, code,
-            createdBy, updatedBy, fromDate, toDate, isAscending,  orderBy, page, pageSize);
+        var result = await _transferService.GetAll(
+            isAscending: isAscending,
+            filter: x => (!collectedId.HasValue || x.CollectedId == collectedId) &&
+                         (!stationId.HasValue || x.StationId == stationId) &&
+                         (!createdBy.HasValue || x.CreatedBy == createdBy) &&
+                         (!updatedBy.HasValue || x.UpdatedBy == updatedBy) &&
+                         (!fromDate.HasValue || x.CreatedAt >= fromDate) &&
+                         (!toDate.HasValue || x.CreatedAt <= toDate) &&
+                         (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) || x.Status!.Contains(keyword)) &&
+                         (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                         (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
+            orderBy: orderBy,
+            includeProperties: null,
+            pageIndex: page,
+            pageSize: pageSize);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
 }
