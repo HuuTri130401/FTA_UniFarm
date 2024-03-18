@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240317060707_AddNoteSendToTransfer")]
+    partial class AddNoteSendToTransfer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -328,7 +328,7 @@ public class OrderService : IOrderService
                 return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                 {
                     Message = EnumConstants.NotificationMessage.CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID,
-                    StatusCode = StatusCode.Ok,
+                    StatusCode = StatusCode.Created,
                     Payload = new OrderResponse.OrderResponseForCustomer(
                         orderResponse.Id,
                         orderResponse.FarmHubId,

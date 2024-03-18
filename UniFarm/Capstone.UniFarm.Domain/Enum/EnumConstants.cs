@@ -61,11 +61,38 @@ public abstract record EnumConstants
         public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Update cart order detail success";
         
         public static readonly string ADD_TO_CART_SUCCESS = "Add to cart success";
-        public static readonly string ADD_TO_CART_FAILURE = "Add to cart success";
+        public static readonly string ADD_TO_CART_FAILURE = "Add to cart failure";
         
         public static readonly string STATION_DOES_NOT_EXIST = "Station does not exist";
         public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
-        
-        
     }
+    
+    public abstract record TransferStatusEnum
+    {
+        public static readonly string PENDING = "Pending";
+        public static readonly string RECEIVED = "Received";
+    }
+    
+    
+    public abstract record OrderMessage
+    {
+        public static readonly string ORDER_NOT_FOUND = "Order not found";
+    }
+
+    public abstract record CollectedHubMessage
+    {
+        public static readonly string COLLECTED_NOT_FOUND = "Collected not found with id ";
+    }
+    
+    public abstract record StationMessage
+    {
+        public static readonly string STATION_NOT_FOUND = "Station not found with id ";
+    }
+    public abstract record TransferMessage
+    {
+        public static readonly string TRANSFER_NOT_FOUND = "Transfer not found with id ";
+        public static readonly string CREATE_TRANSFER_SUCCESS = "Create transfer success";
+        public static readonly string GET_ALL_TRANSFER_SUCCESS = "Get all transfer success";
+    }
+    
 }

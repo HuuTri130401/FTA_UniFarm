@@ -2,9 +2,6 @@
 
 public abstract record OrderResponse
 {
-
-    //create constructor with parameters
-    
     OrderResponse( Guid id, Guid farmHubId, Guid customerId, Guid? stationId, Guid? businessDayId, DateTime? createdAt, string? code, string? shipAddress, decimal? totalAmount, bool? isPaid)
     {
         Id = id;
@@ -60,6 +57,5 @@ public abstract record OrderResponse
         public StationResponse? StationResponse { get; set; }
         public OrderDetailResponseForCustomer?  OrderDetailResponse { get; set; }
     }
-    
     
 }

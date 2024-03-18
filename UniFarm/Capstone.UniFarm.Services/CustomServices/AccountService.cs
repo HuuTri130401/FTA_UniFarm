@@ -467,7 +467,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(accountRole.Payload.FarmHubId.Value);
                     if (farmHub != null)
                     {
-                        _mapper.Map(farmHub, accountResponse.FarmHub);
+                        accountResponse.FarmHub = _mapper.Map<FarmHubResponse>(farmHub);
                     }
                 }
 

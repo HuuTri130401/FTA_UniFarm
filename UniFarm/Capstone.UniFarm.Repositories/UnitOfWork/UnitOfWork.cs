@@ -30,6 +30,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IOrderRepository OrderRepository { get; }
         public IOrderDetailRepository OrderDetailRepository { get; }
         
+        public ITransferRepository TransferRepository { get; }
+        
         
         
         public IPaymentRepository PaymentRepository { get; }
@@ -51,7 +53,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IBusinessDayRepository businessDayRepository,
             IPaymentRepository paymentRepository,
             IOrderRepository orderRepository,
-            IOrderDetailRepository orderDetailRepository
+            IOrderDetailRepository orderDetailRepository,
+            ITransferRepository transferRepository
         )
         {
             _dbContext = dbContext;
@@ -73,6 +76,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             PaymentRepository = paymentRepository;
             OrderRepository = orderRepository;
             OrderDetailRepository = orderDetailRepository;
+            TransferRepository = transferRepository;
         }
 
         public void Dispose()

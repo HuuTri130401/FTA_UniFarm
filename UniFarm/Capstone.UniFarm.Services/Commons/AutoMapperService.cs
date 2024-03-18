@@ -102,7 +102,6 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<Station, StationResponse>()
                 .ForMember(dest => dest.Area, opt => opt.MapFrom(src => src.Area));
-            
 
             #endregion
 
@@ -131,11 +130,19 @@ namespace Capstone.UniFarm.Services.Commons
             #endregion
             
             
-            #region Order related Mapping
             CreateMap<ProductItem, ProductItemResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForCustomer>();
+
+
+
+            CreateMap<TransferRequestCreate, Transfer>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.TransferStatusEnum.PENDING));
             
-            #endregion
+            CreateMap<Transfer, TransferResponse>()
+                .ForMember(dest => dest.Collected, opt => opt.MapFrom(src => src.Collected))
+                .ForMember(dest => dest.Station, opt => opt.MapFrom(src => src.Station))
+                .ForMember(dest => dest.Orders, opt => opt.MapFrom(src => src.Orders));
 
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
             CreateMap<FarmHub, FarmHubRequestUpdate>().ReverseMap();

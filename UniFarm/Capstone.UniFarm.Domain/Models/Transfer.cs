@@ -22,6 +22,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ReceivedDate { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
+        public string? NoteSend { get; set; }
         public string? NoteReceived { get; set; }
         public string? Code { get; set; }
         [StringLength(100)]

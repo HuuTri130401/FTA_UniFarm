@@ -139,6 +139,7 @@ try
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+    builder.Services.AddScoped<ITransferRepository, TransferRepository>();
 
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -160,6 +161,7 @@ try
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+    builder.Services.AddScoped<ITransferService, TransferService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
