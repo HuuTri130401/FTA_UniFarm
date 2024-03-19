@@ -13,7 +13,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
     {
         Task<OperationResult<List<FarmHubResponse>>> GetAllFarmHubs();
         Task<OperationResult<FarmHubResponse>> GetFarmHubById(Guid farmhubId);
-        Task<OperationResult<bool>> CreateFarmHub(Guid farmHubAccountId, FarmHubRequest farmHubRequest);
+        Task<OperationResult<AccountAndFarmHubRequest>> CreateFarmHubShop(AccountAndFarmHubRequest accountAndFarmHubRequest);
         Task<OperationResult<FarmHubResponse>> GetFarmHubInforByFarmHubAccountId(Guid farmHubAccountId);
         Task<OperationResult<bool>> DeleteFarmHub(Guid farmhubId);
         Task<OperationResult<bool>> UpdateFarmHub(Guid farmhubId, FarmHubRequestUpdate farmHubRequestUpdate);

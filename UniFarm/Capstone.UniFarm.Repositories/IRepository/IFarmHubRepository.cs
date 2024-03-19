@@ -9,5 +9,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
 {
     public interface IFarmHubRepository : IGenericRepository<FarmHub>
     {
+        Task<bool> CheckFarmHubNameAsync(string farmHubName);
+        Task<bool> CheckFarmHubCodeAsync(string farmHubCode);
     }
 }

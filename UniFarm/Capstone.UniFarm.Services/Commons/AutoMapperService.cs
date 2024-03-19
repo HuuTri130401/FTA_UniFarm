@@ -16,6 +16,8 @@ namespace Capstone.UniFarm.Services.Commons
         {
             #region Account Mapping
 
+            CreateMap<Account, AccountAndFarmHubRequest>().ReverseMap();
+
             CreateMap<Account, AccountResponse>().ReverseMap();
             CreateMap<AccountRequestCreate, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
@@ -147,6 +149,12 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHub, FarmHubRequest>().ReverseMap();
             CreateMap<FarmHub, FarmHubRequestUpdate>().ReverseMap();
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
+            CreateMap<FarmHub, AccountAndFarmHubRequest>()
+                .ForMember(dest => dest.FarmHubName, act => act.MapFrom(src => src.Name))
+                .ForMember(dest => dest.FarmHubCode, act => act.MapFrom(src => src.Code))
+                .ForMember(dest => dest.FarmHubImage, act => act.MapFrom(src => src.Image))
+                .ForMember(dest => dest.FarmHubAddress, act => act.MapFrom(src => src.Address))
+                .ReverseMap();
 
             CreateMap<Product, ProductRequest>().ReverseMap();
             CreateMap<Product, ProductRequestUpdate>().ReverseMap();

@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.CustomServices;
+﻿using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -38,57 +39,42 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Profile of FarmHub - FarmHub Role - {Huu Tri}")]
-        [HttpGet("farm-hub/profile")]
-        [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> GetProfileFarmHub()
-        {
-            string authHeader = HttpContext.Request.Headers["Authorization"];
-            if (string.IsNullOrEmpty(authHeader))
-            {
-                return Unauthorized();
-            }
-            string token = authHeader.Replace("Bearer ", "");
+        //[SwaggerOperation(Summary = "Get Profile of FarmHub - FarmHub Role - {Huu Tri}")]
+        //[HttpGet("farm-hub/profile")]
+        //[Authorize(Roles = "FarmHub")]
+        //public async Task<IActionResult> GetProfileFarmHub()
+        //{
+        //    string authHeader = HttpContext.Request.Headers["Authorization"];
+        //    if (string.IsNullOrEmpty(authHeader))
+        //    {
+        //        return Unauthorized();
+        //    }
+        //    string token = authHeader.Replace("Bearer ", "");
 
-            var defineUser = _accountService.GetIdAndRoleFromToken(token);
-            if (defineUser.Payload == null)
-            {
-                return HandleErrorResponse(defineUser!.Errors);
-            }
-            var farmHubAccountId = defineUser.Payload.Id;
-            var response = await _farmHubService.GetFarmHubInforByFarmHubAccountId(farmHubAccountId);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-        }
+        //    var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        //    if (defineUser.Payload == null)
+        //    {
+        //        return HandleErrorResponse(defineUser!.Errors);
+        //    }
+        //    var farmHubAccountId = defineUser.Payload.Id;
+        //    var response = await _farmHubService.GetFarmHubInforByFarmHubAccountId(farmHubAccountId);
+        //    return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        //}
 
-        [SwaggerOperation(Summary = "Create FarmHub - Admin Role - {Huu Tri}")]
-        [HttpPost("farm-hub")]
-        [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> CreateFarmHub(FarmHubRequest farmHubRequest)
+        [SwaggerOperation(Summary = "Create FarmHub Shop - Admin Role - {Huu Tri}")]
+        [HttpPost("farm-hub/create-shop")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateFarmHub(AccountAndFarmHubRequest farmHubRequest)
         {
             if (ModelState.IsValid)
             {
-                string authHeader = HttpContext.Request.Headers["Authorization"];
-                if (string.IsNullOrEmpty(authHeader))
-                {
-                    return Unauthorized();
-                }
-
-                // The token is prefixed with "Bearer ", so we need to remove that prefix
-                string token = authHeader.Replace("Bearer ", "");
-
-                var defineUser = _accountService.GetIdAndRoleFromToken(token);
-                if (defineUser.Payload == null) {
-                    return HandleErrorResponse(defineUser!.Errors);
-                }
-                var farmHubAccountId = defineUser.Payload.Id;
-
-                var response = await _farmHubService.CreateFarmHub(farmHubAccountId, farmHubRequest);
+                var response = await _farmHubService.CreateFarmHubShop(farmHubRequest);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update FarmHub - Admin Role, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update FarmHub Shop - Admin Role, FarmHub Role - {Huu Tri}")]
         [HttpPut("farm-hub/{id}")]
         public async Task<IActionResult> UpdateFarmHub(Guid id, FarmHubRequestUpdate FarmHubRequestUpdate)
         {

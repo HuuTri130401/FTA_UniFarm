@@ -13,6 +13,17 @@ namespace Capstone.UniFarm.Repositories.Repository
     {
         public FarmHubRepository(FTAScript_V1Context context) : base(context)
         {
+
+        }
+        public async Task<bool> CheckFarmHubCodeAsync(string farmHubCode)
+        {
+            var existingFarmHub = _dbSet.FirstOrDefault(fh => fh.Code == farmHubCode);
+            return existingFarmHub != null;
+        }
+        public async Task<bool> CheckFarmHubNameAsync(string farmHubName)
+        {
+            var existingFarmHub = _dbSet.FirstOrDefault(fh => fh.Name == farmHubName);
+            return existingFarmHub != null;
         }
     }
 }
