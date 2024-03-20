@@ -2,12 +2,14 @@
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Capstone.UniFarm.Repositories.Repository
 {
@@ -21,7 +23,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                     .Where(pi => pi.FarmHubId == farmHubId)
-                    .ToListAsync(); 
+                    .ToListAsync();
         }
 
         public async Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId)
@@ -38,6 +40,19 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Include(pi => pi.ProductImages)
                 .Include(fr => fr.FarmHub)
                 .FirstOrDefaultAsync(pi => pi.Id == productId);
+        }
+
+        public async Task<List<ProductItem>> SearchProductItems(ProductItemParameters productItemParameters)
+        {
+            var productItems = await _dbSet
+                .SearchProductItems(productItemParameters.SearchTerm)
+                .Where(p => p.Status == "Selling")
+                .Include(pi => pi.ProductImages)
+                .Include(fr => fr.FarmHub)
+                .ToListAsync();
+            var count = _dbSet.Count();
+            return PagedList<ProductItem>
+                .ToPagedList(productItems, count, productItemParameters.PageNumber, productItemParameters.PageSize);
         }
     }
 }
