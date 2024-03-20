@@ -64,7 +64,7 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "Create FarmHub Shop - Admin Role - {Huu Tri}")]
         [HttpPost("farm-hub/create-shop")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateFarmHub(AccountAndFarmHubRequest farmHubRequest)
+        public async Task<IActionResult> CreateFarmHub([FromForm] AccountAndFarmHubRequest farmHubRequest)
         {
             if (ModelState.IsValid)
             {

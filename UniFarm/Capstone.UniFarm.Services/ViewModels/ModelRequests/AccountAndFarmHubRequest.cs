@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
         public string? Description { get; set; }
         [Required(ErrorMessage = "FarmHubImage is required")]
-        public string FarmHubImage { get; set; }
+        public IFormFile FarmHubImage { get; set; }
 
         [Required(ErrorMessage = "FarmHubAddress is required")]
         [StringLength(100, ErrorMessage = "FarmHubAddress length cannot exceed 100 characters")]

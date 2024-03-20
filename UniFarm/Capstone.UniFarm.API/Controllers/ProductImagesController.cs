@@ -36,7 +36,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Create Product Item Image For Product Item - FarmHub Role - {Huu Tri}")]
         [HttpPost("product-item/{id}/product-image")]
-        public async Task<IActionResult> CreateProductItemImageForProductItem(Guid id, ProductImageRequest productImageRequest)
+        public async Task<IActionResult> CreateProductItemImageForProductItem(Guid id, [FromForm] ProductImageRequest productImageRequest)
         {
             if (ModelState.IsValid)
             {
@@ -48,7 +48,7 @@ namespace Capstone.UniFarm.API.Controllers
 
         [SwaggerOperation(Summary = "Update Product Item Image - Admin, FarmHub Role - {Huu Tri}")]
         [HttpPut("product-image/{id}")]
-        public async Task<IActionResult> UpdateProductItemImage(Guid id, ProductImageRequestUpdate productImageRequestUpdate)
+        public async Task<IActionResult> UpdateProductItemImage(Guid id, [FromForm] ProductImageRequestUpdate productImageRequestUpdate)
         {
             if (ModelState.IsValid)
             {

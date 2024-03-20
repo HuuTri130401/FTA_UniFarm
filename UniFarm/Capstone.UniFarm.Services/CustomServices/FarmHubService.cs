@@ -25,19 +25,21 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly ILogger<FarmHubService> _logger;
         private readonly IMapper _mapper;
         private readonly IWalletService _walletService;
-
+        private readonly ICloudinaryService _cloudinaryService;
         public FarmHubService(
             UserManager<Account> userManager,
             IUnitOfWork unitOfWork,
             ILogger<FarmHubService> logger,
             IMapper mapper,
-            IWalletService walletService)
+            IWalletService walletService,
+            ICloudinaryService cloudinaryService)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
             _walletService = walletService;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<OperationResult<AccountAndFarmHubRequest>> CreateFarmHubShop(AccountAndFarmHubRequest accountAndFarmHubRequest)
@@ -93,7 +95,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 newAccount.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
                 newAccount.RoleName = EnumConstants.RoleEnumString.FARMHUB;
 
+                var imageFarmhub = _cloudinaryService.UploadImageAsync(accountAndFarmHubRequest.FarmHubImage);
                 var farmHub = _mapper.Map<FarmHub>(accountAndFarmHubRequest);
+                farmHub.Image = await imageFarmhub;
                 farmHub.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
                 farmHub.CreatedAt = DateTime.Now;
 

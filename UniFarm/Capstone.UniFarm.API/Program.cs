@@ -150,7 +150,7 @@ try
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
     builder.Services.AddScoped<ITransferService, TransferService>();
     builder.Services.AddScoped<IApartmentStationService, ApartmentStationService>();
-
+    builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
