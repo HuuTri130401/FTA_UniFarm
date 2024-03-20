@@ -35,7 +35,7 @@ public class TransferService : ITransferService
             foreach (var orderId in objectRequestCreate.OrderIds)
             {
                 var order = await _unitOfWork.OrderRepository.FilterByExpression(
-                    x => x.Id == Guid.Parse(orderId)
+                    x => x.Id == orderId
                     /*&& x.IsPaid == true*/
                 ).FirstOrDefaultAsync();
                 if (order == null)
@@ -91,7 +91,7 @@ public class TransferService : ITransferService
             foreach (var orderId in objectRequestCreate.OrderIds)
             {
                 var order = await _unitOfWork.OrderRepository.FilterByExpression(
-                    x => x.Id == Guid.Parse(orderId)
+                    x => x.Id == orderId
                     /*&& x.IsPaid == true*/
                 ).FirstOrDefaultAsync();
                 if (order != null)
@@ -120,6 +120,7 @@ public class TransferService : ITransferService
                 transfer.StationId,
                 transfer.CreatedAt,
                 transfer.UpdatedAt,
+                transfer.ExpectedReceiveDate,
                 transfer.ReceivedDate,
                 transfer.CreatedBy,
                 transfer.UpdatedBy,
@@ -128,7 +129,7 @@ public class TransferService : ITransferService
                 transfer.Code,
                 transfer.Status,
                 _mapper.Map<CollectedHubResponse>(checkCollected),
-                _mapper.Map<StationResponse>(checkStation),
+                null,
                 null);
 
 
@@ -136,7 +137,7 @@ public class TransferService : ITransferService
             foreach (var orderId in objectRequestCreate.OrderIds)
             {
                 var order = await _unitOfWork.OrderRepository.FilterByExpression(
-                    x => x.Id == Guid.Parse(orderId)
+                    x => x.Id == orderId
                     /*&& x.IsPaid == true*/
                 ).FirstOrDefaultAsync();
                 if (order != null)
@@ -185,7 +186,7 @@ public class TransferService : ITransferService
         return result;
     }
 
-    public async Task<OperationResult<IEnumerable<TransferResponse>>> GetAll(
+    public async Task<OperationResult<IEnumerable<TransferResponse>?>?> GetAll(
         bool? isAscending,
         string? orderBy = null,
         Expression<Func<Transfer, bool>>? filter = null,
@@ -193,7 +194,7 @@ public class TransferService : ITransferService
         int pageIndex = 0,
         int pageSize = 10)
     {
-        var result = new OperationResult<IEnumerable<TransferResponse>>();
+        var result = new OperationResult<IEnumerable<TransferResponse>?>();
         try
         {
             var getTransfers = await _unitOfWork.TransferRepository.FilterAll(
@@ -210,6 +211,8 @@ public class TransferService : ITransferService
                 result.StatusCode = StatusCode.Ok;
                 result.Message = "There is no transfer found";
                 result.IsError = false;
+                result.Payload = null;
+                return result;
             }
 
             var transferResponses = new List<TransferResponse>();
@@ -221,6 +224,7 @@ public class TransferService : ITransferService
                     transfer.StationId,
                     transfer.CreatedAt,
                     transfer.UpdatedAt,
+                    transfer.ExpectedReceiveDate,
                     transfer.ReceivedDate,
                     transfer.CreatedBy,
                     transfer.UpdatedBy,
@@ -237,7 +241,7 @@ public class TransferService : ITransferService
                 transferResponse.Collected = _mapper.Map<CollectedHubResponse>(collected);
                 var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId)
                     .FirstOrDefaultAsync();
-                transferResponse.Station = _mapper.Map<StationResponse>(station);
+                transferResponse.Station = _mapper.Map<StationResponse.StationResponseSimple>(station);
 
                 var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == transfer.Id)
                     .ToListAsync();
@@ -248,7 +252,7 @@ public class TransferService : ITransferService
                 result.Message = EnumConstants.TransferMessage.GET_ALL_TRANSFER_SUCCESS;
                 result.IsError = false;
             }
-            
+
             result.Payload = transferResponses;
             result.StatusCode = StatusCode.Ok;
             result.Message = EnumConstants.TransferMessage.GET_ALL_TRANSFER_SUCCESS;
@@ -262,6 +266,154 @@ public class TransferService : ITransferService
             throw;
         }
 
+        return result;
+    }
+
+    public async Task<OperationResult<TransferResponse?>> UpdateStatus(AboutMeResponse.AboutMeRoleAndID defineUser,
+        TransferRequestUpdate request)
+    {
+        var result = new OperationResult<TransferResponse?>();
+        var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == request.Id)
+                .FirstOrDefaultAsync();
+
+            if (transfer == null)
+            {
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = EnumConstants.TransferMessage.TRANSFER_NOT_FOUND + request.Id;
+                result.IsError = false;
+                result.Payload = null;
+                return result;
+            }
+
+            if (defineUser.AuthorizationDecision != transfer!.StationId.ToString())
+            {
+                result.StatusCode = StatusCode.UnAuthorize;
+                result.Message = "Only staffs in this station have permission to update this transfer";
+                result.IsError = true;
+                result.Payload = null;
+                return result;
+            }
+
+            if (transfer.Status == request.Status)
+            {
+                result.StatusCode = StatusCode.BadRequest;
+                result.Message = "Status of transfer is already " + request.Status;
+                result.IsError = true;
+                result.Payload = null;
+                return result;
+            }
+
+            transfer.UpdatedAt = DateTime.Now;
+            transfer.UpdatedBy = defineUser.Id;
+            transfer.Status = request.Status;
+            if (request.Status == EnumConstants.TransferStatusEnum.RECEIVED)
+            {
+                transfer.ReceivedDate = DateTime.Now;
+                transfer.NoteReceived = request.NoteReceived;
+            }
+
+            await _unitOfWork.TransferRepository.UpdateAsync(transfer);
+            var count = await _unitOfWork.SaveChangesAsync();
+
+            if (count == 0)
+            {
+                await transaction.RollbackAsync();
+                result.StatusCode = StatusCode.UnknownError;
+                result.Message = "Update transfer failed";
+                result.IsError = true;
+                result.Payload = null;
+                return result;
+            }
+
+            var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == request.Id)
+                .ToListAsync();
+            foreach (var order in orders)
+            {
+                if (request.Status == EnumConstants.TransferStatusEnum.RECEIVED)
+                {
+                    order.CustomerStatus = EnumConstants.OrderCustomerStatus.CHO_NHAN_HANG;
+                }
+                else
+                {
+                    order.CustomerStatus = EnumConstants.OrderCustomerStatus.DANG_VAN_CHUYEN;
+                }
+
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
+
+                var countUpdate = await _unitOfWork.SaveChangesAsync();
+                if (countUpdate == 0)
+                {
+                    await transaction.RollbackAsync();
+                    result.StatusCode = StatusCode.UnknownError;
+                    result.Message = "Update status for order " + order.Id + " failed";
+                    result.IsError = true;
+                    result.Payload = null;
+                    return result;
+                }
+            }
+
+            var collected = await _unitOfWork.CollectedHubRepository
+                .FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
+            var station = _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId).FirstOrDefaultAsync();
+            var collectedResponse = _mapper.Map<CollectedHubResponse>(collected);
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
+
+            foreach (var order in orders)
+            {
+                var orderResponse = new OrderResponse.OrderResponseForCustomer(
+                    order.Id,
+                    order.FarmHubId,
+                    order.CustomerId,
+                    order.StationId,
+                    order.BusinessDayId,
+                    order.CreatedAt,
+                    order.Code,
+                    order.ShipAddress,
+                    order.TotalAmount,
+                    order.IsPaid,
+                    null,
+                    null,
+                    null,
+                    null
+                );
+                
+                orderResponses.Add(orderResponse);
+            }
+
+
+            var transferResponse = new TransferResponse(
+                transfer.Id,
+                transfer.CollectedId,
+                transfer.StationId,
+                transfer.CreatedAt,
+                transfer.UpdatedAt,
+                transfer.ExpectedReceiveDate,
+                transfer.ReceivedDate,
+                transfer.CreatedBy,
+                transfer.UpdatedBy,
+                transfer.NoteSend,
+                transfer.NoteReceived,
+                transfer.Code,
+                transfer.Status,
+                collectedResponse,
+                null,
+                orderResponses);
+            result.Payload = transferResponse;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = EnumConstants.TransferMessage.UPDATE_TRANSFER_STATUS_SUCCESS;
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            result.AddUnknownError(e.Message);
+            result.IsError = true;
+            result.StatusCode = StatusCode.ServerError;
+            throw;
+        }
         return result;
     }
 }

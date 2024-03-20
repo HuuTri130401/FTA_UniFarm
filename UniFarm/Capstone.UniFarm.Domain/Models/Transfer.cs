@@ -19,6 +19,7 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid StationId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? ExpectedReceiveDate { get; set; }
         public DateTime? ReceivedDate { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }

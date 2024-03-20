@@ -46,6 +46,25 @@ namespace Capstone.UniFarm.Services.CustomServices
 
         public string GenerateJwtToken(Account user, byte[] key, string userRole)
         {
+            
+            var accountRole =  _accountRoleService.GetAccountRoleByExpression(x => x.AccountId == user.Id);
+            var workPlaceId = "CUSTOMER";
+            if(userRole == EnumConstants.RoleEnumString.FARMHUB && accountRole.Result.Payload!.FarmHubId != null)
+            {
+                workPlaceId = accountRole.Result.Payload.FarmHubId.ToString();
+            }
+            else if(userRole == EnumConstants.RoleEnumString.COLLECTEDSTAFF && accountRole.Result.Payload!.CollectedHubId != null)
+            {
+                workPlaceId = accountRole.Result.Payload.CollectedHubId.ToString();
+            }
+            else if(userRole == EnumConstants.RoleEnumString.STATIONSTAFF && accountRole.Result.Payload!.StationId != null)
+            {
+                workPlaceId = accountRole.Result.Payload.StationId.ToString();
+            } else if(userRole == EnumConstants.RoleEnumString.ADMIN)
+            {
+                workPlaceId = "ADMIN";
+            }
+            
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -53,7 +72,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, userRole)
+                    new Claim(ClaimTypes.Role, userRole),
+                    new Claim("AuthorizationDecision", workPlaceId)
                 }),
                 Audience = "FTAAudience",
                 Issuer = "FTAIssuer",
@@ -361,8 +381,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<AboutMeResponse.AboutMeRoleAndID>();
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
-            var nameClaim = jwtToken.Claims.First(claim => claim.Type == "name");
-            var roleClaim = jwtToken.Claims.First(claim => claim.Type == "role");
+            var nameClaim = jwtToken.Claims.First(claim => claim.Type.ToUpper() == "NAME");
+            var roleClaim = jwtToken.Claims.First(claim => claim.Type.ToUpper() == "ROLE");
+            var authorizationDecision = jwtToken.Claims.First(claim => claim.Type.ToUpper() == "AUTHORIZATIONDECISION");
             if (roleClaim == null || nameClaim == null)
             {
                 result.AddError(StatusCode.UnAuthorize, "Token is invalid");
@@ -373,7 +394,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             result.Payload = new AboutMeResponse.AboutMeRoleAndID
             {
                 Id = Guid.Parse(nameClaim.Value),
-                Role = roleClaim.Value
+                Role = roleClaim.Value,
+                AuthorizationDecision = authorizationDecision.Value
             };
             return result;
         }

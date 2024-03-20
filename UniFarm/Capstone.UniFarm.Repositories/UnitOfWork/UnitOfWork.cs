@@ -31,8 +31,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IOrderDetailRepository OrderDetailRepository { get; }
         
         public ITransferRepository TransferRepository { get; }
-        
-        
+        public IApartmentStationRepository ApartmentStationRepository { get; }
         
         public IPaymentRepository PaymentRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
@@ -54,7 +53,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IPaymentRepository paymentRepository,
             IOrderRepository orderRepository,
             IOrderDetailRepository orderDetailRepository,
-            ITransferRepository transferRepository
+            ITransferRepository transferRepository,
+            IApartmentStationRepository apartmentStationRepository
         )
         {
             _dbContext = dbContext;
@@ -77,8 +77,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             OrderRepository = orderRepository;
             OrderDetailRepository = orderDetailRepository;
             TransferRepository = transferRepository;
+            ApartmentStationRepository = apartmentStationRepository;
         }
-
+        
         public void Dispose()
         {
             Dispose(true);
@@ -105,6 +106,12 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _dbContext.Database.BeginTransactionAsync();
+        }
+        
+        public async Task<IDbContextTransaction> EndTransactionAsync(IDbContextTransaction transaction)
+        {
+            await transaction.CommitAsync();
+            return transaction;
         }
     }
 }

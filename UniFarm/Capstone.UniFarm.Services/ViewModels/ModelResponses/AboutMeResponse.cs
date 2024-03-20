@@ -9,6 +9,8 @@ public abstract record AboutMeResponse
     {
         public Guid Id { get; set; }
         public string Role { get; set; }
+        
+        public string AuthorizationDecision { get; set; }
     }
     
     public record AboutCustomerResponse

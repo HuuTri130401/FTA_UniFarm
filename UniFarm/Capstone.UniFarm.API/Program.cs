@@ -19,9 +19,6 @@ using NLog.Web;
 using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
-using Microsoft.AspNetCore.OData;
-using Microsoft.OData.Edm;
-using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -105,17 +102,6 @@ try
             options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         });
 
-    //============ Config Odata =============//
-    /*builder.Services.AddControllers()
-        .AddOData(options => options
-            .AddRouteComponents("odata", GetEdmModel())
-            .Count()
-            .Filter()
-            .Expand()
-            .Select()
-            .OrderBy()
-            .SetMaxTop(null));*/
-
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
 
@@ -140,6 +126,7 @@ try
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
     builder.Services.AddScoped<ITransferRepository, TransferRepository>();
+    builder.Services.AddScoped<IApartmentStationRepository, ApartmentStationRepository>();
 
     
     builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -162,6 +149,7 @@ try
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
     builder.Services.AddScoped<ITransferService, TransferService>();
+    builder.Services.AddScoped<IApartmentStationService, ApartmentStationService>();
 
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection

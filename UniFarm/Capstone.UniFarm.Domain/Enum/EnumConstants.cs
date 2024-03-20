@@ -59,10 +59,8 @@ public abstract record EnumConstants
         public static readonly string CREATE_CART_ORDER_DETAIL_SUCCESS = "Create cart order detail success";
         public static readonly string CREATE_CART_ORDER_DETAIL_FAILURE = "Create cart order detail failure";
         public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Update cart order detail success";
-        
         public static readonly string ADD_TO_CART_SUCCESS = "Add to cart success";
         public static readonly string ADD_TO_CART_FAILURE = "Add to cart failure";
-        
         public static readonly string STATION_DOES_NOT_EXIST = "Station does not exist";
         public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
     }
@@ -71,6 +69,8 @@ public abstract record EnumConstants
     {
         public static readonly string PENDING = "Pending";
         public static readonly string RECEIVED = "Received";
+        public static readonly string NOT_RECEIVED = "NotReceived";
+        public static readonly string EXPIRED = "Expired";
     }
     
     
@@ -93,6 +93,29 @@ public abstract record EnumConstants
         public static readonly string TRANSFER_NOT_FOUND = "Transfer not found with id ";
         public static readonly string CREATE_TRANSFER_SUCCESS = "Create transfer success";
         public static readonly string GET_ALL_TRANSFER_SUCCESS = "Get all transfer success";
+        public static readonly string UPDATE_TRANSFER_STATUS_SUCCESS = "Update transfer status success";
     }
+    
+    public abstract record OrderCustomerStatus
+    {
+        public static readonly string DANG_DONG_GOI = "Đang đóng gói";
+        public static readonly string CHO_VAN_CHUYEN = "Chờ vận chuyển";
+        public static readonly string DANG_VAN_CHUYEN = "Đang vận chuyển";
+        public static readonly string CHO_NHAN_HANG = "Chờ nhận hàng";
+        public static readonly string DA_NHAN_HANG = "Đã nhận hàng";
+        public static readonly string HUY_NHAN_HANG = "Hủy nhận hàng";
+    }
+    
+    public abstract record OrderDeliveryStatus
+    {
+        public static readonly string DANG_DONG_GOI = "Đang đóng gói";
+        public static readonly string CHO_VAN_CHUYEN = "Chờ vận chuyển";
+        public static readonly string DANG_VAN_CHUYEN_DEN_KHO = "Đang vận chuyển đến kho";
+        public static readonly string KHO_DA_NHAN_HANG = "Kho đã nhận hàng";
+        public static readonly string DANG_VAN_CHUYEN_DEN_TRAM = "Đang vận chuyển đến trạm";
+        public static readonly string TRAM_DA_NHAN_HANG = "Trạm đã nhận hàng";
+    }
+    
+    
     
 }

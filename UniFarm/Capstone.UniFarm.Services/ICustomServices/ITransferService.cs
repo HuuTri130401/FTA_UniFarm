@@ -10,7 +10,9 @@ public interface ITransferService
 {
     Task<OperationResult<TransferResponse>> Create(Guid createdBy, TransferRequestCreate objectRequestCreate);
 
-    Task<OperationResult<IEnumerable<TransferResponse>>> GetAll(bool? isAscending, string? orderBy = null,
+    Task<OperationResult<IEnumerable<TransferResponse>?>?> GetAll(bool? isAscending, string? orderBy = null,
         Expression<Func<Transfer, bool>>? filter = null, string[]? includeProperties = null, int pageIndex = 0,
         int pageSize = 10);
+
+    Task<OperationResult<TransferResponse?>> UpdateStatus(AboutMeResponse.AboutMeRoleAndID defineUser, TransferRequestUpdate request);
 }

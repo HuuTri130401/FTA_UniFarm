@@ -20,9 +20,7 @@ public class TransferController : BaseController
     }
 
     [HttpPost("transfer/create")]
-    /*
     [Authorize(Roles = "CollectedStaff")]
-    */
     [SwaggerOperation(Summary = "Create transfer request - CollectedStaff - Done {Tien}")]
     public async Task<IActionResult> Create([FromBody] TransferRequestCreate request)
     {
@@ -84,4 +82,32 @@ public class TransferController : BaseController
             pageSize: pageSize);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
+    
+    
+    // API Update status transfer for station staff
+    
+    [HttpPut("transfer/update")]
+    [Authorize(Roles = "StationStaff")]
+    [SwaggerOperation(Summary = "Update transfer - StationStaff - Done {Tien}")]
+    public async Task<IActionResult> UpdateStatus([FromBody] TransferRequestUpdate request)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        if (defineUser.Payload.Role != EnumConstants.RoleEnumString.STATIONSTAFF)
+        {
+            return Unauthorized("You are not allowed to access this resource");
+        }
+
+        var result = await _transferService.UpdateStatus(defineUser.Payload, request);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+    }
+    
 }
