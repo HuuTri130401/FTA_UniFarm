@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public Guid? ProductId { get; set; }
         [StringLength(50, ErrorMessage = "Caption length cannot exceed 50 characters")]
         public string? Caption { get; set; }
-        public string? ImageUrl { get; set; }
+        public IFormFile? ImageUrl { get; set; }
 
         [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
         public int? DisplayIndex { get; set; }

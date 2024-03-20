@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [MinLength(3, ErrorMessage = "Caption length must be at least 3 characters")]
         public string Caption { get; set; }
         [Required(ErrorMessage = "Image URL is required")]
-        public string ImageUrl { get; set; }
+        public IFormFile ImageUrl { get; set; }
         [Required(ErrorMessage = "DisplayIndex is required")]
         [Range(1, 5, ErrorMessage = "DisplayIndex must be between 1 and 5")]
         public int DisplayIndex { get; set; }

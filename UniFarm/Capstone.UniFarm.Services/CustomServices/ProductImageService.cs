@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -19,12 +20,14 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ProductImageService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductImageService(IUnitOfWork unitOfWork, ILogger<ProductImageService> logger, IMapper mapper)
+        public ProductImageService(IUnitOfWork unitOfWork, ILogger<ProductImageService> logger, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<OperationResult<bool>> CreateProductImage(Guid productItemId, ProductImageRequest productImageRequest)
@@ -35,7 +38,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
                 if (existingProductItem != null)
                 {
+                    var imageUrl = await _cloudinaryService.UploadImageAsync(productImageRequest.ImageUrl);
                     var productImage = _mapper.Map<ProductImage>(productImageRequest);
+                    productImage.ImageUrl = imageUrl;
                     productImage.ProductItemId = productItemId;
                     productImage.Status = "Active";
                     await _unitOfWork.ProductImageRepository.AddAsync(productImage);
@@ -46,12 +51,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); 
                     }
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); ;
+                    result.AddError(StatusCode.BadRequest, "Add Image for ProductItem Failed!"); 
                 }
                 return result;
             }
@@ -78,7 +83,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Delete Product Image Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Delete Product Image Failed!"); 
                     }
                 }
                 else
@@ -160,7 +165,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     if (productImageRequestUpdate.ImageUrl != null)
                     {
-                        existingProductImage.ImageUrl = productImageRequestUpdate.ImageUrl;
+                        var imageUrl = await _cloudinaryService.UploadImageAsync(productImageRequestUpdate.ImageUrl);
+                        existingProductImage.ImageUrl = imageUrl;
                     }
                     if (productImageRequestUpdate.ProductId != null)
                     {
