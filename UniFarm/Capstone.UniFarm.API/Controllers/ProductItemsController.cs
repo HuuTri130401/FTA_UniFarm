@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.CustomServices;
+﻿using Capstone.UniFarm.Repositories.RequestFeatures;
+using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +26,14 @@ namespace Capstone.UniFarm.API.Controllers
         public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
         {
             var response = await _productItemService.GetAllProductItemsByProductId(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "Search ProductItems - {Huu Tri}")]
+        [HttpGet("product-items/search")]
+        public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemParameters productItemParameters)
+        {
+            var response = await _productItemService.SearchProductItems(productItemParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
