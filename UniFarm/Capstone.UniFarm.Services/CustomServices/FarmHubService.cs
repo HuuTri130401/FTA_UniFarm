@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,44 +20,125 @@ namespace Capstone.UniFarm.Services.CustomServices
 {
     public class FarmHubService : IFarmHubService
     {
+        private readonly UserManager<Account> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<FarmHubService> _logger;
         private readonly IMapper _mapper;
+        private readonly IWalletService _walletService;
 
-        public FarmHubService(IUnitOfWork unitOfWork, ILogger<FarmHubService> logger, IMapper mapper)
+        public FarmHubService(
+            UserManager<Account> userManager,
+            IUnitOfWork unitOfWork,
+            ILogger<FarmHubService> logger,
+            IMapper mapper,
+            IWalletService walletService)
         {
+            _userManager = userManager;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _walletService = walletService;
         }
 
-        public async Task<OperationResult<bool>> CreateFarmHub(Guid farmHubAccountId, FarmHubRequest farmHubRequest)
+        public async Task<OperationResult<AccountAndFarmHubRequest>> CreateFarmHubShop(AccountAndFarmHubRequest accountAndFarmHubRequest)
         {
-            var result = new OperationResult<bool>();
+            var result = new OperationResult<AccountAndFarmHubRequest>();
             try
             {
-                var accountRole = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
-                if (accountRole != null && accountRole.FarmHubId == null)
+                var checkEmail = await _userManager.FindByEmailAsync(accountAndFarmHubRequest.Email);
+                if (checkEmail != null)
                 {
-                    var farmHub = _mapper.Map<FarmHub>(farmHubRequest);
-                    farmHub.Status = "Active";
-                    farmHub.CreatedAt = DateTime.Now;
-                    await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
-                    var checkFarmHubResult = _unitOfWork.Save();
-                    if (checkFarmHubResult > 0)
+                    result.AddError(StatusCode.BadRequest, "Email already exists");
+                    result.IsError = true;
+                    return result;
+                }
+
+                var checkPhone =
+                    await _unitOfWork.AccountRepository.FindSingleAsync(
+                        x => x.Phone == accountAndFarmHubRequest.PhoneNumber);
+                if (checkPhone != null)
+                {
+                    result.AddError(StatusCode.BadRequest, "Phone already exists");
+                    result.IsError = true;
+                    return result;
+                }
+
+                var existingUserName = await _userManager.FindByNameAsync(accountAndFarmHubRequest.UserName);
+                if (existingUserName != null)
+                {
+                    result.AddError(StatusCode.BadRequest, "UserName already exists!");
+                    result.IsError = true;
+                    return result;
+                }
+
+                bool checkFarmHubName = await _unitOfWork.FarmHubRepository.CheckFarmHubNameAsync(accountAndFarmHubRequest.FarmHubName);
+                if (checkFarmHubName)
+                {
+                    result.AddError(StatusCode.BadRequest, "FarmHubName already exists!");
+                    result.IsError = true;
+                    return result;
+                }
+
+                bool checkFarmHubCode = await _unitOfWork.FarmHubRepository.CheckFarmHubCodeAsync(accountAndFarmHubRequest.FarmHubCode);
+                if (checkFarmHubCode)
+                {
+                    result.AddError(StatusCode.BadRequest, "FarmHubCode already exists!");
+                    result.IsError = true;
+                    return result;
+                }
+
+                var newAccount = _mapper.Map<Account>(accountAndFarmHubRequest);
+                newAccount.CreatedAt = DateTime.Now;
+                newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, accountAndFarmHubRequest.Password);
+                newAccount.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
+                newAccount.RoleName = EnumConstants.RoleEnumString.FARMHUB;
+
+                var farmHub = _mapper.Map<FarmHub>(accountAndFarmHubRequest);
+                farmHub.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
+                farmHub.CreatedAt = DateTime.Now;
+
+                await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
+
+                var response = await _userManager.CreateAsync(newAccount);
+                if (response.Succeeded)
+                {
+                    var wallet = new WalletRequest
                     {
-                        accountRole.FarmHubId = farmHub.Id;
-                        _unitOfWork.AccountRoleRepository.Update(accountRole);
-                        var checkResult = _unitOfWork.Save();
-                        if (checkResult > 0)
-                        {
-                            result.AddResponseStatusCode(StatusCode.Created, "Add FarmHub Success!", true);
-                        }
+                        AccountId = newAccount.Id,
+                    };
+
+                    var walletResult = await _walletService.Create(wallet);
+                    if (walletResult.IsError)
+                    {
+                        result.AddError(StatusCode.BadRequest,
+                            "Create wallet error " + walletResult.Errors.FirstOrDefault()?.Message);
+                        result.IsError = true;
+                        return result;
                     }
+
+                    var accountRole = new AccountRole
+                    {
+                        Id = Guid.NewGuid(),
+                        AccountId = newAccount.Id,
+                        Account = newAccount,
+                        FarmHubId = farmHub.Id,
+                        Status = EnumConstants.ActiveInactiveEnum.ACTIVE
+                    };
+                    newAccount.AccountRoles = accountRole;
+   
+                    await _unitOfWork.AccountRoleRepository.AddAsync(accountRole);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Created, "Add Account and Setup FarmHub Shop Success!", accountAndFarmHubRequest);
+                    }
+                    await _userManager.AddToRoleAsync(newAccount, EnumConstants.RoleEnumString.FARMHUB);
+                    result.Payload = accountAndFarmHubRequest;
+                    result.IsError = false;
                 }
                 else
                 {
-                    result.AddError(StatusCode.BadRequest, "Only users with the FarmHub role can create a FarmHub!"); ;
+                    result.AddError(StatusCode.BadRequest, "Add Account and Setup FarmHub Shop Failed!");
                 }
                 return result;
             }
@@ -82,7 +165,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Delete FarmHub Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Delete FarmHub Failed!");
                     }
                 }
                 else

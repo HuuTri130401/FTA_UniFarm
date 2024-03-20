@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
@@ -298,6 +299,29 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception)
             {
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters)
+        {
+            var result = new OperationResult<List<ProductItemResponse>>();
+            try
+            {
+                var listProductItems = await _unitOfWork.ProductItemRepository.SearchProductItems(productItemParameters);
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
+
+                if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", listProductItemsResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in SearchAllProductItems Service Method");
                 throw;
             }
         }
