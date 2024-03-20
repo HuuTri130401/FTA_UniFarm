@@ -26,7 +26,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string Code { get; set; }
 
         [Required(ErrorMessage = "DisplayIndex is required")]
-        [Range(0, int.MaxValue, ErrorMessage = "DisplayIndex must be a non-negative number.")]
+        [Range(1, int.MaxValue, ErrorMessage = "DisplayIndex must be greater than 0.")]
         public int DisplayIndex { get; set; }
 
         [Required(ErrorMessage = "SystemPrice is required")]
