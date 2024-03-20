@@ -6,6 +6,7 @@ using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
-                var listCategoriesResponse = _mapper.Map<List<CategoryResponse>>(listCategories);
+                var listCategoriesResponse = _mapper.Map<List<CategoryResponse>>(listCategories.OrderBy(c => c.DisplayIndex));
 
                 if (listCategoriesResponse == null || !listCategoriesResponse.Any())
                 {
@@ -57,7 +58,10 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listCategories = await _unitOfWork.CategoryRepository.GetAllAsync();
-                var activeCategories = listCategories.Where(c => c.Status == "Active").ToList();
+                var activeCategories = listCategories
+                    .Where(c => c.Status == "Active")
+                    .OrderBy(c => c.DisplayIndex)
+                    .ToList();
                 var listCategoriesResponse = _mapper.Map<List<CategoryResponseForCustomer>>(activeCategories);
 
                 if (listCategoriesResponse == null || !listCategoriesResponse.Any())
@@ -152,6 +156,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var category = _mapper.Map<Category>(categoryRequest);
                 category.Status = "Active";
                 category.CreatedAt = DateTime.UtcNow;
+                int newDisplayIndex = await AdjustDisplayIndexAsync(Guid.Empty, categoryRequest.DisplayIndex);
+                category.DisplayIndex = newDisplayIndex;
                 await _unitOfWork.CategoryRepository.AddAsync(category);
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
@@ -201,7 +207,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     if (categoryRequestUpdate.DisplayIndex != null)
                     {
-                        existingCategory.DisplayIndex = categoryRequestUpdate.DisplayIndex;
+                        int newDisplayIndex = await AdjustDisplayIndexAsync(categoryId, (int)categoryRequestUpdate.DisplayIndex);
+                        existingCategory.DisplayIndex = newDisplayIndex;
                         isAnyFieldUpdated = true;
                     }
                     if (categoryRequestUpdate.SystemPrice != null)
@@ -252,6 +259,57 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 throw;
             }
+        }
+
+        public async Task<int> AdjustDisplayIndexAsync(Guid categoryId, int newDisplayIndex)
+        {
+            var categories = await _unitOfWork.CategoryRepository.GetAllAsync();
+
+            // Declare maxDisplayIndex
+            int maxDisplayIndex = (int)(categories.Any() ? categories.Max(c => c.DisplayIndex) : 0);
+
+            // Decrese if newDisplayIndex > maxDisplayIndex => new = max + 1
+            if (newDisplayIndex > maxDisplayIndex)
+            {
+                newDisplayIndex = Math.Min(newDisplayIndex, maxDisplayIndex + 1);
+                return newDisplayIndex;
+            }
+
+            // Change Display Index from MAX -> MIN
+            var categoriesToAdjust = categories.Where(c => c.Id != categoryId && c.DisplayIndex >= newDisplayIndex)
+                                               .OrderByDescending(c => c.DisplayIndex)
+                                               .ToList();
+
+            Category categoryToUpdate = null;
+            if (categoryId != Guid.Empty)
+            {
+                categoryToUpdate = categories.FirstOrDefault(c => c.Id == categoryId);
+                if (categoryToUpdate == null) throw new Exception("Category not found");
+
+                // No change displayIndex
+                if (newDisplayIndex == categoryToUpdate.DisplayIndex) return newDisplayIndex;
+
+                foreach (var cat in categoriesToAdjust)
+                {
+                    if (cat.DisplayIndex == maxDisplayIndex)
+                    {
+                        return newDisplayIndex;
+                    }
+                    cat.DisplayIndex++;
+                    _unitOfWork.CategoryRepository.Update(cat);
+                }
+            }
+            else
+            {
+                foreach (var cat in categoriesToAdjust)
+                {
+                    cat.DisplayIndex++;
+                    _unitOfWork.CategoryRepository.Update(cat);
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
+
+            return newDisplayIndex;
         }
     }
 }
