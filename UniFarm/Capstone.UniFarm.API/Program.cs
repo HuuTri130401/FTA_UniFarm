@@ -146,7 +146,7 @@ try
     builder.Services.AddScoped<IManageUsersService, ManageUsersService>();
     builder.Services.AddScoped<IBusinessDayService, BusinessDayService>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
-    builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<ICartService, CartService>();
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
     builder.Services.AddScoped<ITransferService, TransferService>();
     builder.Services.AddScoped<IApartmentStationService, ApartmentStationService>();

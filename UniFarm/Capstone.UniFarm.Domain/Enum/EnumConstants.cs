@@ -63,6 +63,8 @@ public abstract record EnumConstants
         public static readonly string ADD_TO_CART_FAILURE = "Add to cart failure";
         public static readonly string STATION_DOES_NOT_EXIST = "Station does not exist";
         public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
+        public static readonly string NOT_FOUND_ANY_ITEM_IN_CART = "Not found any item in cart";
+        public static readonly string GET_CART_SUCCESS = "Get cart success";
     }
     
     public abstract record TransferStatusEnum

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
@@ -10,12 +11,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
-public class OrderService : IOrderService
+public class CartService : ICartService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+    public CartService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -125,7 +126,7 @@ public class OrderService : IOrderService
                 && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE*/
             ).FirstOrDefaultAsync().Result;
 
-            var stationResponse = _mapper.Map<StationResponse>(station);
+            var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
             var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
             var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
             var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
@@ -220,10 +221,10 @@ public class OrderService : IOrderService
             };
         }
 
-        var station = _unitOfWork.StationRepository.FilterByExpression(x => 
-                x.Id == request.StationId
+        var station = _unitOfWork.StationRepository.FilterByExpression(x =>
+                    x.Id == request.StationId
                 /*&& x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE*/
-                ).FirstOrDefaultAsync()
+            ).FirstOrDefaultAsync()
             .Result;
         if (station == null)
         {
@@ -257,7 +258,8 @@ public class OrderService : IOrderService
         {
             if (result.Message ==
                 EnumConstants.NotificationMessage
-                    .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID)
+                    .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID
+                || result.Message == EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST)
             {
                 var order = new Order
                 {
@@ -320,14 +322,14 @@ public class OrderService : IOrderService
                 var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
                 var farmHub = _unitOfWork.FarmHubRepository.GetByIdAsync(request.FarmHubId).Result;
                 var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
-                var stationResponse = _mapper.Map<StationResponse>(station);
+                var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
                 var orderDetailResponseForCustomer = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                 orderDetailResponseForCustomer.ProductItemResponse = productItemResponse;
                 await transaction.CommitAsync();
                 return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                 {
-                    Message = EnumConstants.NotificationMessage.CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID,
+                    Message = EnumConstants.NotificationMessage.ADD_TO_CART_SUCCESS,
                     StatusCode = StatusCode.Created,
                     Payload = new OrderResponse.OrderResponseForCustomer(
                         orderResponse.Id,
@@ -412,7 +414,6 @@ public class OrderService : IOrderService
                 var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
                 var farmHub = _unitOfWork.FarmHubRepository.GetByIdAsync(request.FarmHubId).Result;
                 var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
-                var stationResponse = _mapper.Map<StationResponse>(station);
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
                 var orderDetailResponseForCustomer = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                 orderDetailResponseForCustomer.ProductItemResponse = productItemResponse;
@@ -434,7 +435,7 @@ public class OrderService : IOrderService
                         order.IsPaid,
                         farmHubResponse,
                         businessDayResponse,
-                        stationResponse,
+                        null,
                         orderDetailResponseForCustomer
                     ),
                 };
@@ -450,6 +451,87 @@ public class OrderService : IOrderService
                 Payload = null,
                 IsError = true
             };
+        }
+
+        return result;
+    }
+
+
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> GetCart(
+        Expression<Func<Order, bool>>? filter,
+        string? orderBy,
+        bool? isDesc,
+        int pageIndex,
+        int pageSize)
+    {
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>>();
+        try
+        {
+            var orders = await _unitOfWork.OrderRepository.FilterAll(
+                isAscending: isDesc,
+                orderBy: orderBy,
+                predicate: filter,
+                null,
+                pageIndex: pageIndex,
+                pageSize: pageSize
+            ).ToListAsync();
+            if (!orders.Any())
+            {
+                result.Message = EnumConstants.NotificationMessage.NOT_FOUND_ANY_ITEM_IN_CART;
+                result.StatusCode = StatusCode.NotFound;
+                result.Payload = null;
+                result.IsError = true;
+                return result;
+            }
+
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer?>();
+            foreach (var order in orders)
+            {
+                var farmHub = await _unitOfWork.FarmHubRepository.FilterByExpression(x => x.Id == order.FarmHubId).FirstOrDefaultAsync();
+                var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+                var station = await _unitOfWork.StationRepository.GetByIdAsync(order.StationId.GetValueOrDefault());
+                var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+                var businessDay = _unitOfWork.BusinessDayRepository
+                    .GetByIdAsync(order.BusinessDayId.GetValueOrDefault()).Result;
+                var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
+                order.OrderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
+                    x => x.OrderId == order.Id).ToListAsync();
+                foreach (var orderDetail in order.OrderDetails)
+                {
+                    var productItem = _unitOfWork.ProductItemRepository.GetByIdAsync(orderDetail.ProductItemId).Result;
+                    var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
+                    orderDetailResponse.ProductItemResponse = productItemResponse;
+                    var orderResponse = new OrderResponse.OrderResponseForCustomer(
+                        order.Id,
+                        order.FarmHubId,
+                        order.CustomerId,
+                        order.StationId,
+                        order.BusinessDayId,
+                        order.CreatedAt,
+                        order.Code,
+                        order.ShipAddress,
+                        order.TotalAmount,
+                        order.IsPaid,
+                        farmHubResponse,
+                        businessDayResponse,
+                        stationResponse,
+                        orderDetailResponse
+                    );
+                    orderResponses.Add(orderResponse);
+                }
+            }
+
+            result.Message = EnumConstants.NotificationMessage.GET_CART_SUCCESS;
+            result.StatusCode = StatusCode.Ok;
+            result.Payload = orderResponses;
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Message = e.Message;
+            result.StatusCode = StatusCode.ServerError;
+            result.Payload = null;
         }
 
         return result;

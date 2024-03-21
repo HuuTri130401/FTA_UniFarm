@@ -14,7 +14,6 @@ public interface IAccountRoleService
     Task<OperationResult<bool>> DeleteByAccountId(Guid accountId);
     Task<OperationResult<AccountRole>> Update(Guid accountId, AccountRoleRequestUpdate objectRequestUpdate);
     Task<OperationResult<AccountRole>> GetAccountRoleByExpression(Expression<Func<AccountRole, bool>> predicate, string[]? includeProperties = null);
-    
     Task<OperationResult<IEnumerable<AccountRole>>> GetAllWithoutPaging(bool? isAscending, string? orderBy = null, Expression<Func<AccountRole, bool>>? filter = null, string[]? includeProperties = null);
 
 }

@@ -155,13 +155,13 @@ public class TransferService : ITransferService
                         order.IsPaid,
                         _mapper.Map<FarmHubResponse>(order.FarmHub),
                         _mapper.Map<BusinessDayResponse>(order.BusinessDay),
-                        _mapper.Map<StationResponse>(checkStation),
+                        _mapper.Map<StationResponse.StationResponseSimple>(checkStation),
                         null
                     );
 
                     var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
                         .FirstOrDefaultAsync();
-                    orderResponse.StationResponse = _mapper.Map<StationResponse>(station);
+                    orderResponse.StationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
                     orderResponse.FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub);
                     orderResponse.BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay);
                     transferResponse.Orders.Add(orderResponse);
