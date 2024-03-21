@@ -37,6 +37,14 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Get All ProductItems for Customer - {Huu Tri}")]
+        [HttpGet("product-items/all")]
+        public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemParameters productItemParameters)
+        {
+            var response = await _productItemService.SearchProductItems(productItemParameters);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
         [SwaggerOperation(Summary = "Get All Product Items In FarmHub - FarmHub Role - {Huu Tri}")]
         [HttpGet("product-items")]
         [Authorize(Roles = "FarmHub")]

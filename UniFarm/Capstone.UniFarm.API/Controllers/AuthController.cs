@@ -49,18 +49,18 @@ namespace Capstone.UniFarm.API.Controllers
         }
         #endregion
         #region API Register Account Farmhub
-        [HttpPost("register-farmhub")]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [SwaggerOperation(Summary = "Register account for FarmHub - Done {Huu Tri}")]
-        public async Task<IActionResult> RegisterFarmHub([FromBody] FarmHubRegisterRequest model)
-        {
-            model.Role = EnumConstants.RoleEnumString.FARMHUB;
-            var response = await _accountService.CreateFarmhubAccount(model);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/login", response.Payload);
-        }
+        //[HttpPost("register-farmhub")]
+        //[Consumes("application/json")]
+        //[Produces("application/json")]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[SwaggerOperation(Summary = "Register account for FarmHub - Done {Huu Tri}")]
+        //public async Task<IActionResult> RegisterFarmHub([FromBody] FarmHubRegisterRequest model)
+        //{
+        //    model.Role = EnumConstants.RoleEnumString.FARMHUB;
+        //    var response = await _accountService.CreateFarmhubAccount(model);
+        //    return response.IsError ? HandleErrorResponse(response.Errors) : Created("/api/login", response.Payload);
+        //}
         #endregion
 
         #region API Login
