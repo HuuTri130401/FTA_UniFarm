@@ -127,7 +127,21 @@ namespace Capstone.UniFarm.Services.CustomServices
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
                     {
-                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Menu have Id: {menuId} Success.", true);
+                        var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
+                        foreach (var productItemInMenu in productItemsInMenu)
+                        {
+                            var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
+                            if (productItem != null)
+                            {
+                                productItem.Status = "Registered";
+                                _unitOfWork.ProductItemRepository.Update(productItem);
+                                var checkSaveStatusProductItem = _unitOfWork.Save();
+                                if (checkSaveStatusProductItem > 0)
+                                {
+                                    result.AddResponseStatusCode(StatusCode.Ok, $"Delete Menu have Id: {menuId} Success.", true);
+                                }
+                            }
+                        }
                     }
                     else
                     {
