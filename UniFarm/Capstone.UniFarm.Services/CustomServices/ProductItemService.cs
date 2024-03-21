@@ -325,5 +325,28 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
+        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters)
+        {
+            var result = new OperationResult<List<ProductItemResponse>>();
+            try
+            {
+                var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItems(productItemParameters);
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
+
+                if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", listProductItemsResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetAllProductItems Service Method");
+                throw;
+            }
+        }
     }
 }

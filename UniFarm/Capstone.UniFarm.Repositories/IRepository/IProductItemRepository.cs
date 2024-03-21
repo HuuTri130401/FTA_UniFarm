@@ -11,6 +11,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
     public interface IProductItemRepository : IGenericRepository<ProductItem>
     {
         Task<List<ProductItem>> SearchProductItems(ProductItemParameters productItemParameters);
+        Task<List<ProductItem>> GetAllProductItems(ProductItemParameters productItemParameters);
         Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId);
         Task<List<ProductItem>> GetAllProductItemByFarmHubId(Guid farmHubId);
         Task<ProductItem> GetProductItemByIdAsync(Guid productId);

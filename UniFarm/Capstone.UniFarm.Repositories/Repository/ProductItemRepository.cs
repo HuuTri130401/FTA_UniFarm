@@ -34,6 +34,19 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<ProductItem>> GetAllProductItems(ProductItemParameters productItemParameters)
+        {
+            var productItems = await _dbSet
+                .SearchProductItems(productItemParameters.SearchTerm)
+                .Where(p => p.Status == "Selling")
+                .Include(pi => pi.ProductImages)
+                //.Include(fr => fr.FarmHub)
+                .ToListAsync();
+            var count = _dbSet.Count();
+            return PagedList<ProductItem>
+                .ToPagedList(productItems, count, productItemParameters.PageNumber, productItemParameters.PageSize);
+        }
+
         public async Task<ProductItem> GetProductItemByIdAsync(Guid productId)
         {
             return await _dbSet
@@ -48,7 +61,7 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .SearchProductItems(productItemParameters.SearchTerm)
                 .Where(p => p.Status == "Selling")
                 .Include(pi => pi.ProductImages)
-                .Include(fr => fr.FarmHub)
+                //.Include(fr => fr.FarmHub)
                 .ToListAsync();
             var count = _dbSet.Count();
             return PagedList<ProductItem>
