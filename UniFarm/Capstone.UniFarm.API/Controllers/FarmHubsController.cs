@@ -23,7 +23,7 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All FarmHubs - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All FarmHubs - ADMIN - {Huu Tri}")]
         [HttpGet("farm-hubs")]
         public async Task<IActionResult> GetAllFarmHubs()
         {
@@ -31,7 +31,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get FarmHub By Id - Admin Role, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get FarmHub By Id - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpGet("farm-hub/{id}")]
         public async Task<IActionResult> GetFarmHubById(Guid id)
         {
@@ -61,7 +61,7 @@ namespace Capstone.UniFarm.API.Controllers
         //    return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         //}
 
-        [SwaggerOperation(Summary = "Create FarmHub Shop - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create FarmHub Shop - ADMIN - {Huu Tri}")]
         [HttpPost("farm-hub/create-shop")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateFarmHub([FromForm] AccountAndFarmHubRequest farmHubRequest)
@@ -74,7 +74,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update FarmHub Shop - Admin Role, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update FarmHub Shop - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpPut("farm-hub/{id}")]
         public async Task<IActionResult> UpdateFarmHub(Guid id, FarmHubRequestUpdate FarmHubRequestUpdate)
         {
@@ -86,7 +86,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Delete FarmHub - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Delete FarmHub - ADMIN - {Huu Tri}")]
         [HttpDelete("farm-hub/{id}")]
         public async Task<IActionResult> DeleteFarmHub(Guid id)
         {

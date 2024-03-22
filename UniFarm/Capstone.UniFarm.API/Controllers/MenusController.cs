@@ -21,7 +21,7 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All Menus In FarmHub - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Menus In FarmHub - FARMHUB - {Huu Tri}")]
         [HttpGet("menus")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> GetAllMenusInFarmHubId()
@@ -46,7 +46,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Menu By Id - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Menu By Id - FARMHUB - {Huu Tri}")]
         [HttpGet("menu/{id}")]
         public async Task<IActionResult> GetMenuById(Guid id)
         {
@@ -54,7 +54,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Create Menu For FarmHub - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Menu For FarmHub - FARMHUB - {Huu Tri}")]
         [HttpPost("menu")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> CreateMenuForFarmHub(MenuRequest menuRequest)
@@ -82,7 +82,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Assign Menu to BusinessDay - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Assign Menu to BusinessDay - FARMHUB - {Huu Tri}")]
         [HttpPost("business-day/{businessDayId}/menu/{menuId}")]
         public async Task<IActionResult> AssignMenuToBusinessDay(Guid businessDayId, Guid menuId)
         {
@@ -94,7 +94,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Menu - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update Menu - FARMHUB - {Huu Tri}")]
         [HttpPut("menu/{id}")]
         public async Task<IActionResult> UpdateMenu(Guid id, MenuRequestUpdate menuRequestUpdate)
         {
@@ -106,7 +106,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Menu - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "InActive Menu - FARMHUB - {Huu Tri}")]
         [HttpDelete("menu/{id}")]
         public async Task<IActionResult> DeleteMenu(Guid id)
         {

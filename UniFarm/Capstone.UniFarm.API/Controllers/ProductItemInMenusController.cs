@@ -17,7 +17,7 @@ namespace Capstone.UniFarm.API.Controllers
             _productItemInMenuService = productItemInMenuService;
         }
 
-        [SwaggerOperation(Summary = "Create Product Item For Menu - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Product Item For Menu - FARMHUB - {Huu Tri}")]
         [HttpPost("menu/{id}/product-item")]
         public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemInMenuRequest productItemInMenuRequest)
         {
@@ -29,7 +29,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems By Menu Id - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItems By Menu Id - FARMHUB - {Huu Tri}")]
         [HttpGet("menu/{id}/product-items")]
         public async Task<IActionResult> GetAllProductItemsInMenuByMenuId(Guid id)
         {
@@ -37,7 +37,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Delete Product Item from Menu - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Inactive Product Item from Menu - FARMHUB - {Huu Tri}")]
         [HttpDelete("product-item-in-menu/{id}")]
         public async Task<IActionResult> DeleteProductItemInMenu(Guid id)
         {

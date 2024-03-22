@@ -18,7 +18,7 @@ namespace Capstone.UniFarm.API.Controllers
             _productImageService = productImageService;
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItem Images By Product Item Id - Admin, FarmHub, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItem Images By Product Item Id - ADMIN, FARMHUB, CUSTOMER - {Huu Tri}")]
         [HttpGet("product-item/{id}/product-images")]
         public async Task<IActionResult> GetAllProductItemImagesByProductItemId(Guid id)
         {
@@ -26,7 +26,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get ProductItem Images By Id - Admin, FarmHub, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get ProductItem Images By Id - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpGet("product-image/{id}")]
         public async Task<IActionResult> GetProductItemImagesById(Guid id)
         {
@@ -34,7 +34,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Create Product Item Image For Product Item - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Product Item Image For Product Item - FARMHUB - {Huu Tri}")]
         [HttpPost("product-item/{id}/product-image")]
         public async Task<IActionResult> CreateProductItemImageForProductItem(Guid id, [FromForm] ProductImageRequest productImageRequest)
         {
@@ -46,7 +46,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Product Item Image - Admin, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update Product Item Image - FARMHUB - {Huu Tri}")]
         [HttpPut("product-image/{id}")]
         public async Task<IActionResult> UpdateProductItemImage(Guid id, [FromForm] ProductImageRequestUpdate productImageRequestUpdate)
         {
@@ -58,7 +58,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Delete Product Item Image - Admin, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Inactive Product Item Image - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpDelete("product-image/{id}")]
         public async Task<IActionResult> DeleteProductItemImage(Guid id)
         {

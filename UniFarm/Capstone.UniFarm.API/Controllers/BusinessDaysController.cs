@@ -18,7 +18,7 @@ namespace Capstone.UniFarm.API.Controllers
             _businessDayService = businessDayService;
         }
 
-        [SwaggerOperation(Summary = "Get All BusinessDays - Admin, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Business Days - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpGet("business-days")]
         public async Task<IActionResult> GetAllBusinessDays()
         {
@@ -26,7 +26,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Business Day By Id - Admin Role & FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Business Day By Id - ADMIN - {Huu Tri}")]
         [HttpGet("business-day/{id}")]
         public async Task<IActionResult> GetBusinessDayById(Guid id)
         {
@@ -34,7 +34,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Create Business Day - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Business Day - ADMIN - {Huu Tri}")]
         [HttpPost("business-day")]
         public async Task<IActionResult> CreateBusinessDay(BusinessDayRequest businessDayRequest)
         {
@@ -46,7 +46,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "InActive BusinessDay - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "InActive BusinessDay - ADMIN - {Huu Tri}")]
         [HttpDelete("business-day/{id}")]
         public async Task<IActionResult> DeleteBusinessDay(Guid id)
         {
