@@ -21,7 +21,7 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - Admin, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - ADMIN, CUSTOMER - {Huu Tri}")]
         [HttpGet("product/{id}/product-items")]
         public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
         {
@@ -29,7 +29,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Search ProductItems - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Search ProductItems - CUSTOMER - {Huu Tri}")]
         [HttpGet("product-items/search")]
         public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemParameters productItemParameters)
         {
@@ -37,15 +37,15 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems for Customer - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All ProductItems - CUSTOMER - {Huu Tri}")]
         [HttpGet("product-items/all")]
         public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemParameters productItemParameters)
         {
-            var response = await _productItemService.SearchProductItems(productItemParameters);
+            var response = await _productItemService.GetAllProductItems(productItemParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get All Product Items In FarmHub - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Product Items In FarmHub - FARMHUB - {Huu Tri}")]
         [HttpGet("product-items")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> GetAllProductItemsInFarmHub()
@@ -69,7 +69,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Product Item By Id - FarmHub, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Product Item By Id - FARMHUB, CUSTOMER - {Huu Tri}")]
         [HttpGet("product-item/{id}")]
         public async Task<IActionResult> GetProductItemById(Guid id)
         {
@@ -77,7 +77,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Create Product Item For Product - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Product Item For Product - FARMHUB - {Huu Tri}")]
         [HttpPost("product/{id}/product-item")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemRequest productItemRequest)
@@ -105,7 +105,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Product Item - FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update Product Item - FARMHUB - {Huu Tri}")]
         [HttpPut("product-item/{id}")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> UpdateProductItem(Guid id, ProductItemRequestUpdate productItemRequestUpdate)
@@ -118,7 +118,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Delete Product Item - Admin Role, FarmHub Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Inactive Product Item - ADMIN, FARMHUB - {Huu Tri}")]
         [HttpDelete("product-item/{id}")]
         [Authorize(Roles = "FarmHub, Admin")]
         public async Task<IActionResult> DeleteProductItem(Guid id)

@@ -19,6 +19,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         public async Task<List<BusinessDay>> GetAllBusinessDay()
         {
             return await _dbSet
+                .OrderByDescending(op => op.OpenDay)
                 //.Include(m => m.Menus)
                 .ToListAsync();
         }

@@ -17,7 +17,7 @@ namespace Capstone.UniFarm.API.Controllers
             _productService = productService;
         }
 
-        [SwaggerOperation(Summary = "Get All Products - Admin, FarmHub, Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Products - ADMIN, FARMHB, CUSTOMER - {Huu Tri}")]
         [HttpGet("products")]
         public async Task<IActionResult> GetAllProducts()
         {
@@ -25,7 +25,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Products By CategoryId - Customer Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Products By CategoryId - ADMIN, FARMHB, CUSTOMER - {Huu Tri}")]
         [HttpGet("category/{id}/products")]
         public async Task<IActionResult> GetAllProductsByCategoryId(Guid id)
         {
@@ -33,7 +33,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Get Product By Id - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get Product By Id - ADMIN - {Huu Tri}")]
         [HttpGet("product/{id}")]
         public async Task<IActionResult> GetProductById(Guid id)
         {
@@ -41,7 +41,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "Create Product - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Create Product - ADMIN - {Huu Tri}")]
         [HttpPost("product")]
         public async Task<IActionResult> CreateProduct(ProductRequest productRequest)
         {
@@ -53,7 +53,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Update Product - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Update Product - ADMIN - {Huu Tri}")]
         [HttpPut("product/{id}")]
         public async Task<IActionResult> UpdateProduct(Guid id, ProductRequestUpdate productRequestUpdate)
         {
@@ -65,7 +65,7 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "Delete Product - Admin Role - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Inactive Product - ADMIN - {Huu Tri}")]
         [HttpDelete("product/{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
