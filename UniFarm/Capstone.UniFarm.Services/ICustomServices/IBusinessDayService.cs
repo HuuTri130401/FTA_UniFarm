@@ -14,7 +14,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<List<BusinessDayResponse>>> GetAllBusinessDays();
         Task<OperationResult<BusinessDayResponse>> GetBusinessDayById(Guid businessDayId);
         Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest);
-        bool IsValidBusinessDay(BusinessDayRequest businessDayRequest);
+        //bool IsValidBusinessDay(BusinessDayRequest businessDayRequest);
         Task<OperationResult<bool>> DeleteBusinessDay(Guid businessDayId);
         Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId, BusinessDayRequestUpdate businessDayRequestUpdate);
     }

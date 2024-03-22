@@ -22,7 +22,7 @@ namespace Capstone.UniFarm.Domain.Models
         public string? Name { get; set; }
         public DateTime? RegiterDay { get; set; }
         public DateTime? EndOfRegister { get; set; }
-        public DateTime? OpenDay { get; set; }
+        public DateTime OpenDay { get; set; }
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
         public DateTime? EndOfDay { get; set; }

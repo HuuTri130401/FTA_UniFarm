@@ -13,9 +13,9 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [StringLength(50, ErrorMessage = "Name length cannot exceed 50 characters")]
         [MinLength(3, ErrorMessage = "Name length must be at least 3 characters")]
         public string Name { get; set; }
-        public DateTime RegiterDay { get; set; }
-        public DateTime EndOfRegister { get; set; }
         public DateTime OpenDay { get; set; }
+        //public DateTime RegiterDay { get; set; }
+        //public DateTime EndOfRegister { get; set; }
         //public TimeSpan StartTime { get; set; }
         //public TimeSpan EndTime { get; set; }
         //public DateTime EndOfDay { get; set; }
