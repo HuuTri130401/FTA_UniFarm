@@ -47,6 +47,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
+                DateTime currentDate = DateTime.UtcNow.AddHours(7);
+                
+                // Check currentDate beetween [RegiterDay - EndOfRegister] 
+                if (currentDate < businessDay.RegiterDay || currentDate > businessDay.EndOfRegister)
+                {
+                    result.AddError(StatusCode.BadRequest, "Menu cannot be assigned to BusinessDay outside the registration period.");
+                    return result;
+                }
+
                 menu.BusinessDayId = businessDayId;
                 menu.Status = "Active";
                 _unitOfWork.MenuRepository.Update(menu);

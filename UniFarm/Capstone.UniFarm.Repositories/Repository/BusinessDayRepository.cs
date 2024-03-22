@@ -30,6 +30,11 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .FirstOrDefaultAsync(bd => bd.Id == businessDayId);
         }
 
+        public async Task<bool> IsUniqueOpenDay(DateTime openDay)
+        {
+            return !await _dbSet.AnyAsync(b => b.OpenDay.Date == openDay.Date);
+        }
+
         public async Task UpdateBusinessDayStatus(Guid businessDayId, string status)
         {
             var businessDay = await _dbSet.FirstOrDefaultAsync(bd => bd.Id == businessDayId);

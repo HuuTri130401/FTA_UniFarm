@@ -33,29 +33,40 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<bool>();
             try
             {
-                if (!IsValidBusinessDay(businessDayRequest))
+                DateTime endOfRegister = businessDayRequest.OpenDay
+                    .Date.AddDays(-1)
+                    .AddHours(23).AddMinutes(59);
+                DateTime regiterDay = businessDayRequest.OpenDay
+                    .AddDays(-3).Date;
+
+                var businessDay = new BusinessDay
                 {
-                    result.AddError(StatusCode.BadRequest, "Invalid BusinessDay configuration! " +
-                       "\r\nEndOfRegister = RegisterDay + 2 days " +
-                       "\r\nOpenDay = EndOfRegister + 1 day!");
+                    Name = businessDayRequest.Name,
+                    RegiterDay = regiterDay,
+                    EndOfRegister = endOfRegister,
+                    OpenDay = businessDayRequest.OpenDay.Date,
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow.AddHours(7)
+                };
+
+                bool isUnique = await _unitOfWork.BusinessDayRepository.IsUniqueOpenDay(businessDay.OpenDay);
+                if (!isUnique)
+                {
+                    result.AddError(StatusCode.BadRequest, "BusinessDay with this OpenDay already exists!");
+                    return result;
+                }
+
+                await _unitOfWork.BusinessDayRepository.AddAsync(businessDay);
+                var checkResult = _unitOfWork.Save();
+                if (checkResult > 0)
+                {
+                    result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
                 }
                 else
                 {
-                    var businessDay = _mapper.Map<BusinessDay>(businessDayRequest);
-                    businessDay.Status = "Active";
-                    //businessDay.Status = "Pending";
-                    businessDay.CreatedAt = DateTime.Now;
-                    await _unitOfWork.BusinessDayRepository.AddAsync(businessDay);
-                    var checkResult = _unitOfWork.Save();
-                    if (checkResult > 0)
-                    {
-                        result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
-                    }
-                    else
-                    {
-                        result.AddError(StatusCode.BadRequest, "Add BusinessDay Failed!"); ;
-                    }
+                    result.AddError(StatusCode.BadRequest, "Add BusinessDay Failed!");
                 }
+
                 return result;
             }
             catch (Exception)
@@ -63,6 +74,43 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
+
+        //public async Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest)
+        //{
+        //    var result = new OperationResult<bool>();
+        //    try
+        //    {
+        //        if (!IsValidBusinessDay(businessDayRequest))
+        //        {
+        //            result.AddError(StatusCode.BadRequest, "Invalid BusinessDay configuration! " +
+        //               "\r\nEndOfRegister = RegisterDay + 2 days " +
+        //               "\r\nOpenDay = EndOfRegister + 1 day!");
+        //        }
+        //        else
+        //        {
+        //            var businessDay = _mapper.Map<BusinessDay>(businessDayRequest);
+        //            businessDay.Status = "Active";
+        //            //businessDay.Status = "Pending";
+        //            businessDay.CreatedAt = DateTime.Now;
+        //            await _unitOfWork.BusinessDayRepository.AddAsync(businessDay);
+        //            var checkResult = _unitOfWork.Save();
+        //            if (checkResult > 0)
+        //            {
+        //                result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
+        //            }
+        //            else
+        //            {
+        //                result.AddError(StatusCode.BadRequest, "Add BusinessDay Failed!"); ;
+        //            }
+        //        }
+        //        return result;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+        //}
 
         //private async void UpdateBusinessDayStatus(object state)
         //{
@@ -87,13 +135,13 @@ namespace Capstone.UniFarm.Services.CustomServices
         //    }
         //}
 
-        public bool IsValidBusinessDay(BusinessDayRequest businessDayRequest)
-        {
-            if (businessDayRequest.EndOfRegister <= businessDayRequest.RegiterDay.AddDays(2) 
-                && businessDayRequest.OpenDay == businessDayRequest.EndOfRegister.AddDays(1))
-                return true;
-            return false;
-        }
+        //public bool IsValidBusinessDay(BusinessDayRequest businessDayRequest)
+        //{
+        //    if (businessDayRequest.EndOfRegister <= businessDayRequest.RegiterDay.AddDays(2) 
+        //        && businessDayRequest.OpenDay == businessDayRequest.EndOfRegister.AddDays(1))
+        //        return true;
+        //    return false;
+        //}
 
         public async Task<OperationResult<bool>> DeleteBusinessDay(Guid businessDayId)
         {
