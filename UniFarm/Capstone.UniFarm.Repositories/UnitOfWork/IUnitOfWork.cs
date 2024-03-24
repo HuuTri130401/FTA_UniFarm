@@ -31,7 +31,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         IOrderDetailRepository OrderDetailRepository { get; }
         ITransferRepository TransferRepository { get; }
         IApartmentStationRepository ApartmentStationRepository { get; }
-        
+        IBatchRepository BatchesRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<IDbContextTransaction> EndTransactionAsync(IDbContextTransaction transaction);
         

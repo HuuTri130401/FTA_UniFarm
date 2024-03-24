@@ -348,5 +348,28 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
+        public async Task<OperationResult<List<ProductItemResponse>>> FarmHubGetAllProductItemsByProductId(Guid farmHubId, Guid productId)
+        {
+            var result = new OperationResult<List<ProductItemResponse>>();
+            try
+            {
+                var listProductItems = await _unitOfWork.ProductItemRepository.FarmHubGetAllProductItemByProductId(farmHubId, productId);
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
+
+                if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items with Product Id {productId} is Empty!", listProductItemsResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByProductId Service Method");
+                throw;
+            }
+        }
     }
 }
