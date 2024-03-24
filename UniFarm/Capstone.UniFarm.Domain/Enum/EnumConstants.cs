@@ -15,6 +15,19 @@ public abstract record EnumConstants
     /// <summary>
     /// Account status, Account Role Status, Area Status, Apartment Status, Station status
     /// </summary>
+    /// 
+    public enum CustomerStatus
+    {
+        Pending,
+        Confirmed,
+    }
+
+    public enum DeliveryStatus
+    {
+        Pending,
+        ShippedToCollectedHub
+    }
+
     public abstract record ActiveInactiveEnum
     {
         public static readonly string ACTIVE = "Active";

@@ -19,6 +19,15 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
         }
 
+        public async Task<List<ProductItem>> FarmHubGetAllProductItemByProductId(Guid farmHubId, Guid productId)
+        {
+            return await _dbSet
+                .Where(p => p.ProductId == productId && p.FarmHubId == farmHubId)
+                .Where(pr => pr.Status != "Inactive")
+                .Include(pi => pi.ProductImages)
+                .ToListAsync();
+        }
+
         public async Task<List<ProductItem>> GetAllProductItemByFarmHubId(Guid farmHubId)
         {
             return await _dbSet

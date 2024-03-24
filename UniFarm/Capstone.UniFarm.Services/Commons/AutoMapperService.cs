@@ -39,7 +39,6 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Account, AboutMeResponse.StaffResponse>();
             #endregion
 
-
             #region Role Mapping
 
             CreateMap<AccountRoleRequest, AccountRole>()
@@ -125,7 +124,6 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<CollectedHub, CollectedHubResponseContainStaffs>();
             #endregion
 
-
             #region Payment Mapping
             CreateMap<PaymentRequestCreate, Payment>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
@@ -140,9 +138,6 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<TransferRequestCreate, Transfer>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.TransferStatusEnum.PENDING));
-            
-            
-            
             
             CreateMap<Transfer, TransferResponse>()
                 .ForMember(dest => dest.Collected, opt => opt.MapFrom(src => src.Collected))
@@ -179,7 +174,16 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<ProductItemInMenu, ProductItemInMenuResponse>().ReverseMap();
 
             CreateMap<BusinessDay, BusinessDayRequest>().ReverseMap();
-            CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
+            CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();            
+            
+            CreateMap<Batch, BatchRequest>().ReverseMap();
+            CreateMap<Batch, BatchResponse>().ReverseMap();
+
+            //CreateMap<Order, OrderResponseForFarmHub>().ReverseMap();
+            CreateMap<Order, OrderResponseForFarmHub>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.UserName : null))
+                .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ReverseMap();
         }
     }
 }

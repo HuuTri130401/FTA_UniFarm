@@ -4,5 +4,6 @@ namespace Capstone.UniFarm.Repositories.IRepository;
 
 public interface IOrderRepository : IGenericRepository<Order>
 {
-    
+    Task<List<Order>> FarmHubGetAllOrderToProcess(Guid farmhubId);
+    Task<List<Order>> FarmHubGetAllOrderToCreateBatch(Guid farmhubId, Guid businessDayId);
 }

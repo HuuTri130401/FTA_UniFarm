@@ -29,11 +29,11 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IBusinessDayRepository BusinessDayRepository { get; }
         public IOrderRepository OrderRepository { get; }
         public IOrderDetailRepository OrderDetailRepository { get; }
-        
         public ITransferRepository TransferRepository { get; }
         public IApartmentStationRepository ApartmentStationRepository { get; }
-        
         public IPaymentRepository PaymentRepository { get; }
+        public IBatchRepository BatchesRepository { get; }
+
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
             IAreaRepository areaRepo,
@@ -54,7 +54,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IOrderRepository orderRepository,
             IOrderDetailRepository orderDetailRepository,
             ITransferRepository transferRepository,
-            IApartmentStationRepository apartmentStationRepository
+            IApartmentStationRepository apartmentStationRepository,
+            IBatchRepository batchRepository
         )
         {
             _dbContext = dbContext;
@@ -78,6 +79,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             OrderDetailRepository = orderDetailRepository;
             TransferRepository = transferRepository;
             ApartmentStationRepository = apartmentStationRepository;
+            BatchesRepository = batchRepository;
         }
         
         public void Dispose()
@@ -93,6 +95,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
                 _dbContext.Dispose();
             }
         }
+
         public int Save()
         {
             return _dbContext.SaveChanges();
