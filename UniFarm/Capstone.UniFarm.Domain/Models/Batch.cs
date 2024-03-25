@@ -14,7 +14,8 @@ namespace Capstone.UniFarm.Domain.Models
             Orders = new HashSet<Order>();
         }
 
-        [Key] public Guid Id { get; set; }
+        [Key] 
+        public Guid Id { get; set; }
         public Guid CollectedId { get; set; }
         public Guid FarmHubId { get; set; }
         public Guid BusinessDayId { get; set; }

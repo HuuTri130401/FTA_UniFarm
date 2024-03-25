@@ -40,17 +40,17 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        //[SwaggerOperation(Summary = "Create Batch - FARMHUB - {Huu Tri}")]
-        //[HttpPost("batch/create")]
-        //[Authorize(Roles = "FarmHub")]
-        //public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemRequest productItemRequest)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var response = await _batchService.CreateProductItemForProduct(id, productItemRequest);
-        //        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-        //    }
-        //    return BadRequest("Model is invalid");
-        //}
+        [SwaggerOperation(Summary = "Create Batch - FARMHUB - {Huu Tri}")]
+        [HttpPost("batch")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> CreateProductItemForProduct(Guid farmHubId, BatchRequest batchRequest)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _batchService.CreateBatch(farmHubId, batchRequest);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
     }
 }
