@@ -25,6 +25,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public DateTime UpdatedAt { get; set; }
         public decimal Price { get; set; }
         public double Quantity { get; set; }
+        public double Sold { get; set; }
         public double MinOrder { get; set; }
         public string Unit { get; set; }
         public string Status { get; set; }

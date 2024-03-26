@@ -133,6 +133,7 @@ namespace Capstone.UniFarm.Services.Commons
             
             CreateMap<ProductItem, ProductItemResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForCustomer>();
+            CreateMap<OrderDetail, OrderDetailResponseForFarmHub>().ReverseMap();
             
 
             CreateMap<TransferRequestCreate, Transfer>()
@@ -168,7 +169,9 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
             CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
-            CreateMap<ProductItem, ProductItemResponse>().ReverseMap();
+            CreateMap<ProductItem, ProductItemResponse>()
+                 .ForMember(dest => dest.Sold, opt => opt.MapFrom(src => src.ProductItemInMenus.Sum(item => item.Sold)))
+                 .ReverseMap();
 
             CreateMap<ProductItemInMenu, ProductItemInMenuRequest>().ReverseMap();
             CreateMap<ProductItemInMenu, ProductItemInMenuResponse>().ReverseMap();
@@ -179,10 +182,10 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Batch, BatchRequest>().ReverseMap();
             CreateMap<Batch, BatchResponse>().ReverseMap();
 
-            //CreateMap<Order, OrderResponseForFarmHub>().ReverseMap();
             CreateMap<Order, OrderResponseForFarmHub>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.UserName : null))
                 .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
                 .ReverseMap();
         }
     }

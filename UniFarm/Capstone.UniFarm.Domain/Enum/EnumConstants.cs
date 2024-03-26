@@ -18,14 +18,22 @@ public abstract record EnumConstants
     /// 
     public enum CustomerStatus
     {
-        Pending,
-        Confirmed,
+        Pending, // Đơn hàng đang chờ xử lý
+        Confirmed, // Đơn hàng đã được xác nhận
+        OnTheWayToCollectedHub, // Đang giao tới collected hub
+        AtCollectedHub, // Đã đến collected hub
+        OnTheWayToStation, // Đang giao tới station
+        ReadyForPickup // Sẵn sàng để khách hàng đến nhận
     }
+
 
     public enum DeliveryStatus
     {
         Pending,
-        ShippedToCollectedHub
+        OnTheWayToCollectedHub, // Đang giao tới collected hub
+        AtCollectedHub, // Đã đến collected hub
+        OnTheWayToStation, // Đang giao tới station
+        ReadyForPickup // Sẵn sàng để khách hàng đến nhận
     }
 
     public abstract record ActiveInactiveEnum
@@ -79,7 +87,7 @@ public abstract record EnumConstants
         public static readonly string NOT_FOUND_ANY_ITEM_IN_CART = "Not found any item in cart";
         public static readonly string GET_CART_SUCCESS = "Get cart success";
     }
-    
+
     public abstract record TransferStatusEnum
     {
         public static readonly string PENDING = "Pending";
@@ -87,8 +95,8 @@ public abstract record EnumConstants
         public static readonly string NOT_RECEIVED = "NotReceived";
         public static readonly string EXPIRED = "Expired";
     }
-    
-    
+
+
     public abstract record OrderMessage
     {
         public static readonly string ORDER_NOT_FOUND = "Order not found";
@@ -98,7 +106,7 @@ public abstract record EnumConstants
     {
         public static readonly string COLLECTED_NOT_FOUND = "Collected not found with id ";
     }
-    
+
     public abstract record StationMessage
     {
         public static readonly string STATION_NOT_FOUND = "Station not found with id ";
@@ -110,7 +118,7 @@ public abstract record EnumConstants
         public static readonly string GET_ALL_TRANSFER_SUCCESS = "Get all transfer success";
         public static readonly string UPDATE_TRANSFER_STATUS_SUCCESS = "Update transfer status success";
     }
-    
+
     public abstract record OrderCustomerStatus
     {
         public static readonly string DANG_DONG_GOI = "Đang đóng gói";
@@ -120,7 +128,7 @@ public abstract record EnumConstants
         public static readonly string DA_NHAN_HANG = "Đã nhận hàng";
         public static readonly string HUY_NHAN_HANG = "Hủy nhận hàng";
     }
-    
+
     public abstract record OrderDeliveryStatus
     {
         public static readonly string DANG_DONG_GOI = "Đang đóng gói";
@@ -130,7 +138,7 @@ public abstract record EnumConstants
         public static readonly string DANG_VAN_CHUYEN_DEN_TRAM = "Đang vận chuyển đến trạm";
         public static readonly string TRAM_DA_NHAN_HANG = "Trạm đã nhận hàng";
     }
-    
-    
-    
+
+
+
 }

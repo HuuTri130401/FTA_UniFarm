@@ -17,6 +17,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(fr => fr.FarmHub)
             .Include(o => o.Customer)
             .Include(o => o.BusinessDay)
+            .Include(od => od.OrderDetails)
             .Where(fr => fr.FarmHubId == farmhubId)
             .Where(ord => ord.CustomerStatus == "Pending" || ord.CustomerStatus == "Confirmed")
             .Where(ipay => ipay.IsPaid == true)
@@ -31,7 +32,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Where(bd => bd.BusinessDayId == businessDayId)
             .Where(ord => ord.CustomerStatus != "Pending")
             .Where(ipay => ipay.IsPaid == true)
-            .OrderByDescending(st => st.CreatedAt)
+            //.OrderByDescending(st => st.CreatedAt)
             .ToListAsync();
     }
 }

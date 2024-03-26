@@ -12,8 +12,9 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IBatchService
     {
-        Task<OperationResult<List<OrderResponseForFarmHub>>> FarmHubGetAllOrderToProcess(Guid farmhubId);
+        Task<OperationResult<List<OrderResponseForFarmHub>>> FarmHubGetAllOrderToProcess(Guid farmHubId);
         Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId);
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
+        Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
     }
 }
