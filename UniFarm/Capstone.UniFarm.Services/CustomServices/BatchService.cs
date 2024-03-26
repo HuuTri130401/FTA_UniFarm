@@ -144,5 +144,26 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
+        public async Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId)
+        {
+            var result = new OperationResult<List<BatchResponse>>();
+            try
+            {
+                var listBatches = await _unitOfWork.BatchesRepository.GetAllBatchesByFarmHubId(farmHubId);
+                var listBatchesResponse = _mapper.Map<List<BatchResponse>>(listBatches);
+                if(listBatchesResponse == null || !listBatchesResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Batches with FarmHubId: {farmHubId} is Empty!", listBatchesResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Batches Done.", listBatchesResponse);
+                return result;
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in FarmHubGetAllBatch Service!");
+                throw;
+            }
+        }
     }
 }

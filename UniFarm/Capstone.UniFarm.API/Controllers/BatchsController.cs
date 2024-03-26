@@ -27,6 +27,15 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "FarmHub Get All Batches - FARMHUB - {Huu Tri}")]
+        [HttpGet("batches/{farmHubId}")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> FarmHubGetAllBatches(Guid farmHubId)
+        {
+            var response = await _batchService.FarmHubGetAllBatches(farmHubId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
         [SwaggerOperation(Summary = "FarmHub Confirm Order for Customer - FARMHUB - {Huu Tri}")]
         [HttpPut("batch/confirmed-order/{orderId}")]
         [Authorize(Roles = "FarmHub")]
