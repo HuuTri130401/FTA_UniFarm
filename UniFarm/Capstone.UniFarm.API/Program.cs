@@ -104,6 +104,7 @@ try
 
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
+    builder.Services.AddSingleton<VNPayConfig>();
 
     //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
