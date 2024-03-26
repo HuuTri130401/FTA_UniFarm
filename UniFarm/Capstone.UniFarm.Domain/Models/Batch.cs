@@ -19,6 +19,7 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid CollectedId { get; set; }
         public Guid FarmHubId { get; set; }
         public Guid BusinessDayId { get; set; }
+        public Guid CollectedStaffProcessId { get; set; }
         public DateTime? FarmShipDate { get; set; }
         public DateTime? CollectedHubReceiveDate { get; set; }
         public string? ReceivedDescription { get; set; }

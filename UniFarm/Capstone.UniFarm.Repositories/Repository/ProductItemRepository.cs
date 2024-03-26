@@ -39,6 +39,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Where(p => p.ProductId == productId)
+                .Include(pim => pim.ProductItemInMenus)
                 .Include(pi => pi.ProductImages)
                 .ToListAsync();
         }

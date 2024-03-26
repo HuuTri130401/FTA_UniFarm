@@ -1,6 +1,7 @@
 ﻿using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,14 @@ namespace Capstone.UniFarm.Repositories.Repository
     {
         public BatchRepository(FTAScript_V1Context context) : base(context)
         {
+        }
+
+        public async Task<List<Batch>> GetAllBatchesByFarmHubId(Guid farmhubId)
+        {
+            return await _dbSet
+                .Where(fr => fr.FarmHubId == farmhubId)
+                .OrderByDescending(fs => fs.FarmShipDate)
+                .ToListAsync();
         }
     }
 }

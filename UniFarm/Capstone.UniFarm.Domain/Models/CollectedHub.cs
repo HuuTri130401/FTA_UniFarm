@@ -26,8 +26,6 @@ namespace Capstone.UniFarm.Domain.Models
         public string? Image { get; set; }
         [StringLength(1000)]
         public string? Address { get; set; }
-        [StringLength(255)]
-        public string? CollectedHubAddress { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime? CreatedAt { get; set; }
