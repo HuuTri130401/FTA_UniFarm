@@ -11,5 +11,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
     {
         Task<List<Batch>> GetAllBatchesByFarmHubId(Guid farmhubId);
         Task<List<Batch>> GetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId);
+        Task<List<Batch>> GetAllOrdersInBatch(Guid batchId);
     }
 }

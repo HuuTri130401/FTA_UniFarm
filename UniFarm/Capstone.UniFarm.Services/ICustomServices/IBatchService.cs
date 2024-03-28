@@ -7,16 +7,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IBatchService
     {
         Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmHubId);
-        Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId);
+        Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, ConfirmStatus confirmStatus);
+        Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, ApproveStatus approveStatus);
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
         Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId);
-        Task<OperationResult<List<OrderResponseToProcess>>> CollectedHubGetAllOrdersByBatchId(Guid batchId);
+        Task<OperationResult<List<BatchDetailResponse>>> GetAllOrdersInBatch(Guid batchId);
     }
 }

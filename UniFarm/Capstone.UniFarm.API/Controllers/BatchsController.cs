@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.API.Controllers
 {
@@ -27,12 +28,12 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "CollectedHub Get Batch and All Orders in Batches To Process - COLLECTED_HUB - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Get All Orders Batch - FARMHUB - COLLECTED_HUB - {Huu Tri}")]
         [HttpGet("batch/{batchId}/orders")]
-        //[Authorize(Roles = "CollectedStaff")]
-        public async Task<IActionResult> CollectedHubGetAllOrdersInBatch(Guid batchId)
+        //[Authorize(Roles = "CollectedStaff, FarmHub")]
+        public async Task<IActionResult> GetAllOrdersInBatch(Guid batchId)
         {
-            var response = await _batchService.CollectedHubGetAllOrdersByBatchId(batchId);
+            var response = await _batchService.GetAllOrdersInBatch(batchId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -57,11 +58,24 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "FarmHub Confirm Order for Customer - FARMHUB - {Huu Tri}")]
         [HttpPut("batch/confirmed-order/{orderId}")]
         [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> ConfirmedOrder(Guid orderId)
+        public async Task<IActionResult> ConfirmedOrder(Guid orderId, ConfirmStatus confirmStatus)
         {
             if (ModelState.IsValid)
             {
-                var response = await _batchService.FarmHubConfirmOrderOfCustomer(orderId);
+                var response = await _batchService.FarmHubConfirmOrderOfCustomer(orderId, confirmStatus);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
+
+        [SwaggerOperation(Summary = "CollectedHub Approved Order for Customer - COLLECTED_HUB - {Huu Tri}")]
+        [HttpPut("batch/approved-order/{orderId}")]
+        //[Authorize(Roles = "CollectedHubStaff")]
+        public async Task<IActionResult> ApprovedOrder(Guid orderId, ApproveStatus approveStatus)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _batchService.CollectedHubApprovedOrderOfCustomer(orderId, approveStatus);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");

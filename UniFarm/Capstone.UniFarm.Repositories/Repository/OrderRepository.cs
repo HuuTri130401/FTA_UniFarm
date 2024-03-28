@@ -36,11 +36,11 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .ToListAsync();
     }
 
-    public async Task<List<Order>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
-    {
-        return await _dbSet
-            .Where(bt => bt.BatchId == batchId)
-            .OrderBy(sd => sd.ShippedDate)
-            .ToListAsync();
-    }
+    //public async Task<List<Order>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
+    //{
+    //    return await _dbSet
+    //        .Where(bt => bt.BatchId == batchId)
+    //        .OrderBy(sd => sd.ShippedDate)
+    //        .ToListAsync();
+    //}
 }

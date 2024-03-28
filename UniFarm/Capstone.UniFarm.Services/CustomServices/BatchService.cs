@@ -52,48 +52,79 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<OrderResponseToProcess>>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
+        public async Task<OperationResult<List<BatchDetailResponse>>> GetAllOrdersInBatch(Guid batchId)
         {
-            var result = new OperationResult<List<OrderResponseToProcess>>();
+            var result = new OperationResult<List<BatchDetailResponse>>();
             try
             {
-                var listOrderProcesss = await _unitOfWork.OrderRepository.CollectedHubGetAllOrdersByBatchId(batchId);
-                var listOrderProcesssResponse = _mapper.Map<List<OrderResponseToProcess>>(listOrderProcesss);
+                var listOrdersInBatch = await _unitOfWork.BatchesRepository.GetAllOrdersInBatch(batchId);
+                var listOrdersInBatchResponse = _mapper.Map<List<BatchDetailResponse>>(listOrdersInBatch);
 
-                if (listOrderProcesssResponse == null || !listOrderProcesssResponse.Any())
+                if (listOrdersInBatchResponse == null || !listOrdersInBatchResponse.Any())
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, $"List Orders with Batch Id {batchId} is Empty!", listOrderProcesssResponse);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Orders with Batch Id {batchId} is Empty!", listOrdersInBatchResponse);
                     return result;
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Orders Done.", listOrderProcesssResponse);
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Orders Done.", listOrdersInBatchResponse);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in CollectedHubGetAllOrderByBatchId Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllOrdersInBatch Service Method");
                 throw;
             }
         }
 
-        public async Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId)
+        public async Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, ConfirmStatus confirmStatus)
         {
             var result = new OperationResult<bool>();
             try
             {
                 var existingOrder = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
-                if (existingOrder == null || existingOrder.CustomerStatus == CustomerStatus.Confirmed.ToString())
+                if (existingOrder == null)
                 {
-                    result.AddError(StatusCode.BadRequest, $"Can not find order with OrderId: : {orderId} or Order has been confirmed!");
+                    result.AddError(StatusCode.BadRequest, $"Can not find order with OrderId: {orderId}!");
                     return result;
                 }
-                existingOrder.CustomerStatus = CustomerStatus.Confirmed.ToString();
+                existingOrder.CustomerStatus = confirmStatus.ToString();
 
                 _unitOfWork.OrderRepository.Update(existingOrder);
 
                 var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
                 {
-                    var orderResponseForFarmHub = _mapper.Map<OrderResponseToProcess>(existingOrder);
+                    result.AddResponseStatusCode(StatusCode.NoContent, $"Confirmed Order have Id: {orderId} Success.", true);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, $"Confirmed Order have Id: {orderId} Failed!");
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, ApproveStatus approveStatus)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingOrder = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+                if (existingOrder == null)
+                {
+                    result.AddError(StatusCode.BadRequest, $"Can not find order with OrderId: {orderId}!");
+                    return result;
+                }
+                existingOrder.CustomerStatus = approveStatus.ToString();
+
+                _unitOfWork.OrderRepository.Update(existingOrder);
+
+                var checkResult = _unitOfWork.Save();
+                if (checkResult > 0)
+                {
                     result.AddResponseStatusCode(StatusCode.NoContent, $"Confirmed Order have Id: {orderId} Success.", true);
                 }
                 else
@@ -145,7 +176,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 batch.Id = Guid.NewGuid();
                 batch.FarmShipDate = DateTime.UtcNow.AddHours(7);
                 batch.FarmHubId = farmHubId;
-                batch.Status = DeliveryStatus.Pending.ToString();
+                batch.Status = BatchStatus.Pending.ToString();
 
                 await _unitOfWork.BatchesRepository.AddAsync(batch);
 
