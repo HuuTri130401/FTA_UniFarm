@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Repositories.Repository;
 
@@ -30,9 +31,16 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
         return await _dbSet
             .Where(fr => fr.FarmHubId == farmhubId)
             .Where(bd => bd.BusinessDayId == businessDayId)
-            .Where(ord => ord.CustomerStatus != "Pending")
+            .Where(ord => ord.CustomerStatus == CustomerStatus.Confirmed.ToString())
             .Where(ipay => ipay.IsPaid == true)
-            //.OrderByDescending(st => st.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<Order>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
+    {
+        return await _dbSet
+            .Where(bt => bt.BatchId == batchId)
+            .OrderBy(sd => sd.ShippedDate)
             .ToListAsync();
     }
 }

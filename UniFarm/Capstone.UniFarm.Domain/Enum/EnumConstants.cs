@@ -20,12 +20,12 @@ public abstract record EnumConstants
     {
         Pending, // Đơn hàng đang chờ xử lý
         Confirmed, // Đơn hàng đã được xác nhận
+        Cancelled, // Đơn hàng đã bị hủy
         OnTheWayToCollectedHub, // Đang giao tới collected hub
         AtCollectedHub, // Đã đến collected hub
         OnTheWayToStation, // Đang giao tới station
         ReadyForPickup // Sẵn sàng để khách hàng đến nhận
     }
-
 
     public enum DeliveryStatus
     {

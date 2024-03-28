@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
-    public class OrderResponseForFarmHub
+    public class OrderResponseToProcess
     {
         public Guid Id { get; set; }
         public Guid CustomerId { get; set; }

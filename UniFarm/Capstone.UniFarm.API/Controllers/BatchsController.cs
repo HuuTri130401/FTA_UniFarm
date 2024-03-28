@@ -27,12 +27,30 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "CollectedHub Get Batch and All Orders in Batches To Process - COLLECTED_HUB - {Huu Tri}")]
+        [HttpGet("batch/{batchId}/orders")]
+        //[Authorize(Roles = "CollectedStaff")]
+        public async Task<IActionResult> CollectedHubGetAllOrdersInBatch(Guid batchId)
+        {
+            var response = await _batchService.CollectedHubGetAllOrdersByBatchId(batchId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
         [SwaggerOperation(Summary = "FarmHub Get All Batches - FARMHUB - {Huu Tri}")]
         [HttpGet("batches/{farmHubId}")]
         [Authorize(Roles = "FarmHub")]
         public async Task<IActionResult> FarmHubGetAllBatches(Guid farmHubId)
         {
             var response = await _batchService.FarmHubGetAllBatches(farmHubId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "CollectedHub Get All Batches - COLLECTED_HUB - {Huu Tri}")]
+        [HttpGet("batches/collected-hub/{collectedHubId}/business-day/{businessDayId}")]
+        //[Authorize(Roles = "CollectedStaff")]
+        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId)
+        {
+            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

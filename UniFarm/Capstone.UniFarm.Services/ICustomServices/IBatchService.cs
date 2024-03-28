@@ -12,9 +12,11 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IBatchService
     {
-        Task<OperationResult<List<OrderResponseForFarmHub>>> FarmHubGetAllOrderToProcess(Guid farmHubId);
+        Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmHubId);
         Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId);
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
+        Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId);
+        Task<OperationResult<List<OrderResponseToProcess>>> CollectedHubGetAllOrdersByBatchId(Guid batchId);
     }
 }

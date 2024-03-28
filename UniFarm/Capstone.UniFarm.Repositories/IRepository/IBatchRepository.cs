@@ -10,5 +10,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
     public interface IBatchRepository : IGenericRepository<Batch>
     {
         Task<List<Batch>> GetAllBatchesByFarmHubId(Guid farmhubId);
+        Task<List<Batch>> GetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId);
     }
 }
