@@ -129,8 +129,8 @@ try
     builder.Services.AddScoped<ITransferRepository, TransferRepository>();
     builder.Services.AddScoped<IApartmentStationRepository, ApartmentStationRepository>();
     builder.Services.AddScoped<IBatchRepository, BatchRepository>();
+    builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
-    
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
@@ -154,6 +154,7 @@ try
     builder.Services.AddScoped<IApartmentStationService, ApartmentStationService>();
     builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
     builder.Services.AddScoped<IBatchService, BatchService>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();

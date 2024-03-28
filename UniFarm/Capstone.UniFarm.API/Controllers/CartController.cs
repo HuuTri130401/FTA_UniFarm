@@ -17,7 +17,7 @@ public class CartController : BaseController
         _accountService = accountService;
     }
 
-    [HttpPost("carts/check-exist-cart")]
+    /*[HttpPost("carts/check-exist-cart")]
     [SwaggerOperation(Summary =
         "Kiểm tra đã tồn tại giỏ hàng được tạo ra cùng ngày với cùng 1 farmHubId và isPaid = false hay chưa ")]
     public async Task<IActionResult> CheckExistCart([FromBody] AddToCartRequest.CheckExistCartRequest request)
@@ -32,7 +32,7 @@ public class CartController : BaseController
     [SwaggerOperation(Summary = "Thêm sản phẩm vào giỏ hoặc cập nhật sản phẩm trong giỏ hàng")]
     /*
     [Authorize(Roles = "Customer")]
-    */
+    #1#
     public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest request)
     {
         /*string authHeader = HttpContext.Request.Headers["Authorization"];
@@ -42,7 +42,7 @@ public class CartController : BaseController
         }
         string token = authHeader.Replace("Bearer ", "");
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
-        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);*/
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);#1#
         var response = await _cartService.UpsertToCart(request.CustomerId, request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
@@ -52,7 +52,7 @@ public class CartController : BaseController
     [SwaggerOperation(Summary = "Lấy thông tin giỏ hàng của khách hàng")]
     /*
     [Authorize(Roles = "Customer")]
-    */
+    #1#
     public async Task<IActionResult> GetCart(
         [FromQuery] string? searchWord,
         [FromQuery] string? orderBy,
@@ -79,5 +79,5 @@ public class CartController : BaseController
             pageSize: pageSize);
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }
+    }*/
 }

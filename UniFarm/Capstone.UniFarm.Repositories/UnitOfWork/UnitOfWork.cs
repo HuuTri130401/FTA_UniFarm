@@ -33,6 +33,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IApartmentStationRepository ApartmentStationRepository { get; }
         public IPaymentRepository PaymentRepository { get; }
         public IBatchRepository BatchesRepository { get; }
+        public ITransactionRepository TransactionRepository { get; }
 
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
@@ -55,7 +56,8 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             IOrderDetailRepository orderDetailRepository,
             ITransferRepository transferRepository,
             IApartmentStationRepository apartmentStationRepository,
-            IBatchRepository batchRepository
+            IBatchRepository batchRepository,
+            ITransactionRepository transactionRepository
         )
         {
             _dbContext = dbContext;
@@ -80,6 +82,7 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             TransferRepository = transferRepository;
             ApartmentStationRepository = apartmentStationRepository;
             BatchesRepository = batchRepository;
+            TransactionRepository = transactionRepository;
         }
         
         public void Dispose()

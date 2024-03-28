@@ -25,4 +25,15 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public virtual FarmHubResponse FarmHub { get; set; } = null!;
         public virtual ICollection<OrderResponse> Orders { get; set; }
     }
+
+
+    public record BatchResponseSimple
+    {
+        public Guid Id { get; set; }
+        public DateTime? FarmShipDate { get; set; }
+        public DateTime? CollectedHubReceiveDate { get; set; }
+        public string? ReceivedDescription { get; set; }
+        public string? FeedBackImage { get; set; }
+        public string? Status { get; set; }
+    }
 }

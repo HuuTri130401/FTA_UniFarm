@@ -78,4 +78,26 @@ public abstract record OrderResponse
         public StationResponse.StationResponseSimple? StationResponse { get; set; }
         public OrderDetailResponseForCustomer? OrderDetailResponse { get; set; }
     }
+    
+    public record OrderResponseForStaff
+    {
+        public Guid Id { get; set; }
+        public Guid FarmHubId { get; set; }
+        public Guid CustomerId { get; set; }
+        public Guid? StationId { get; set; }
+        public Guid? BusinessDayId { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ExpectedReceiveDate { get; set; }
+        public string? Code { get; set; }
+        public string? ShipAddress { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? DeliveryStatus { get; set; }
+        public string? CustomerStatus { get; set; }
+        public FarmHubResponse? FarmHubResponse { get; set; }
+        public BusinessDayResponse? BusinessDayResponse { get; set; }
+        public StationResponse.StationResponseSimple? StationResponse { get; set; }
+        public List<OrderDetailResponse>? OrderDetailResponse { get; set; }
+        public BatchResponseSimple? BatchResponse { get; set; }
+        public TransferResponse.TransferResponseSimple? TransferResponse { get; set; }
+    }
 }

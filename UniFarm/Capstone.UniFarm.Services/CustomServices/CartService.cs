@@ -8,6 +8,7 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
+using OrderDetail = Capstone.UniFarm.Domain.Models.OrderDetail;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
@@ -294,7 +295,7 @@ public class CartService : ICartService
                     };
                 }
 
-                var orderDetail = new OrderDetail
+                var orderDetail = new OrderDetail()
                 {
                     OrderId = orderResponse.Id,
                     ProductItemId = request.ProductItemId,
