@@ -16,11 +16,33 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
         }
 
+        public async Task<List<Batch>> GetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId)
+        {
+            return await _dbSet
+                .Include(b => b.BusinessDay)
+                .Where(bd => bd.BusinessDayId == businessDayId)
+                .Where(ch => ch.CollectedId == collectedHubId)
+                .OrderByDescending(fs => fs.FarmShipDate)
+                .ToListAsync();
+        }
+
         public async Task<List<Batch>> GetAllBatchesByFarmHubId(Guid farmhubId)
         {
             return await _dbSet
+                .Include(b => b.BusinessDay)
                 .Where(fr => fr.FarmHubId == farmhubId)
                 .OrderByDescending(fs => fs.FarmShipDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<Batch>> GetAllOrdersInBatch(Guid batchId)
+        {
+            return await _dbSet
+                .Include(cl => cl.Collected)
+                .Include(fr => fr.FarmHub)
+                .Include(bs => bs.BusinessDay)
+                .Include(od => od.Orders)
+                .Where(bt => bt.Id == batchId)
                 .ToListAsync();
         }
     }
