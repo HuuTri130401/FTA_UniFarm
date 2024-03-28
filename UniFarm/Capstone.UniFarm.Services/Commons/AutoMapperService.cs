@@ -129,17 +129,17 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.PaymentDay, opt => opt.MapFrom(src => DateTime.Now));
             #endregion
-            
-            
+
+
             CreateMap<ProductItem, ProductItemResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForFarmHub>().ReverseMap();
-            
+
 
             CreateMap<TransferRequestCreate, Transfer>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.TransferStatusEnum.PENDING));
-            
+
             CreateMap<Transfer, TransferResponse>()
                 .ForMember(dest => dest.Collected, opt => opt.MapFrom(src => src.Collected))
                 .ForMember(dest => dest.Station, opt => opt.MapFrom(src => src.Station))
@@ -177,15 +177,26 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<ProductItemInMenu, ProductItemInMenuResponse>().ReverseMap();
 
             CreateMap<BusinessDay, BusinessDayRequest>().ReverseMap();
-            CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();            
-            
+            CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
+
             CreateMap<Batch, BatchRequest>().ReverseMap();
             CreateMap<Batch, BatchResponse>().ReverseMap();
+            CreateMap<Batch, BatchDetailResponse>()
+                .ForMember(dest => dest.FarmHubName, opt => opt.MapFrom(src => src.FarmHub != null ? src.FarmHub.Name : null))
+                .ForMember(dest => dest.CollectedHubName, opt => opt.MapFrom(src => src.Collected != null ? src.Collected.Name : null))
+                .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
+                .ReverseMap();
 
-            CreateMap<Order, OrderResponseForFarmHub>()
+            CreateMap<Order, OrderResponseToProcess>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.UserName : null))
                 .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
                 .ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
+                .ReverseMap();
+            CreateMap<Order, OrdersInBatchResponse>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.UserName : null))
+                //.ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                //.ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
                 .ReverseMap();
         }
     }

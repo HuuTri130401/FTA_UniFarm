@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Capstone.UniFarm.Domain.Enum;
 
@@ -16,17 +17,40 @@ public abstract record EnumConstants
     /// Account status, Account Role Status, Area Status, Apartment Status, Station status
     /// </summary>
     /// 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum CustomerStatus
     {
         Pending, // Đơn hàng đang chờ xử lý
         Confirmed, // Đơn hàng đã được xác nhận
+        Cancelled, // Đơn hàng đã bị hủy
         OnTheWayToCollectedHub, // Đang giao tới collected hub
         AtCollectedHub, // Đã đến collected hub
         OnTheWayToStation, // Đang giao tới station
         ReadyForPickup // Sẵn sàng để khách hàng đến nhận
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum BatchStatus
+    {
+        Pending,
+        Processed
+    }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum ConfirmStatus
+    {
+        Confirmed,
+        Cancelled
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum ApproveStatus
+    {
+        Approved,
+        Cancelled
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeliveryStatus
     {
         Pending,
