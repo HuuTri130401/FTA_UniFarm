@@ -33,6 +33,8 @@ public abstract record EnumConstants
     public enum BatchStatus
     {
         Pending,
+        Received,
+        NotReceived,
         Processed
     }
 

@@ -12,13 +12,14 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
     }
 
-    public async Task<List<Order>> FarmHubGetAllOrderToProcess(Guid farmhubId)
+    public async Task<List<Order>> FarmHubGetAllOrderToProcess(Guid farmhubId, Guid businessDayId)
     {
         return await _dbSet
             .Include(fr => fr.FarmHub)
             .Include(o => o.Customer)
             .Include(o => o.BusinessDay)
             .Include(od => od.OrderDetails)
+            .Where(bd => bd.BusinessDayId == businessDayId)
             .Where(fr => fr.FarmHubId == farmhubId)
             .Where(ord => ord.CustomerStatus == "Pending" || ord.CustomerStatus == "Confirmed")
             .Where(ipay => ipay.IsPaid == true)

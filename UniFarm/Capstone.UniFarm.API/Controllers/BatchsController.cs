@@ -20,11 +20,11 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "FarmHub Get All Orders To Process - FARMHUB - {Huu Tri}")]
-        [HttpGet("batch/orders-in-businessday/{farmHubId}")]
+        [HttpGet("batch/orders-in-businessday/{businessDayId}/farm-hub/{farmHubId}")]
         [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> FarmHubGetAllOrderToProcess(Guid farmHubId)
+        public async Task<IActionResult> FarmHubGetAllOrderToProcess(Guid businessDayId, Guid farmHubId)
         {
-            var response = await _batchService.FarmHubGetAllOrderToProcess(farmHubId);
+            var response = await _batchService.FarmHubGetAllOrderToProcess(farmHubId, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

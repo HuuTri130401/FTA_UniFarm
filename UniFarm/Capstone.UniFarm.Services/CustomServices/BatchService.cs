@@ -29,12 +29,12 @@ namespace Capstone.UniFarm.Services.CustomServices
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmhubId)
+        public async Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmhubId, Guid businessDayId)
         {
             var result = new OperationResult<List<OrderResponseToProcess>>();
             try
             {
-                var listOrderProcesss = await _unitOfWork.OrderRepository.FarmHubGetAllOrderToProcess(farmhubId);
+                var listOrderProcesss = await _unitOfWork.OrderRepository.FarmHubGetAllOrderToProcess(farmhubId, businessDayId);
                 var listOrderProcesssResponse = _mapper.Map<List<OrderResponseToProcess>>(listOrderProcesss);
 
                 if (listOrderProcesssResponse == null || !listOrderProcesssResponse.Any())
@@ -159,9 +159,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 var listOrderConfirmed = await _unitOfWork.OrderRepository.FarmHubGetAllOrderToCreateBatch(farmHubId, batchRequest.BusinessDayId);
-                if (listOrderConfirmed == null)
+                if (listOrderConfirmed == null || !listOrderConfirmed.Any())
                 {
-                    result.AddError(StatusCode.BadRequest, $"Before Create Batch You Need Confirmed Order In BusinessDay with Id: {batchRequest.BusinessDayId}");
+                    result.AddError(StatusCode.BadRequest, $"Can not Create Batch Because not Have Any Order In BusinessDay with Id: {batchRequest.BusinessDayId}");
                     return result;
                 }
 

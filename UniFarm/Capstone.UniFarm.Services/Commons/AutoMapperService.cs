@@ -180,7 +180,10 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
 
             CreateMap<Batch, BatchRequest>().ReverseMap();
-            CreateMap<Batch, BatchResponse>().ReverseMap();
+            CreateMap<Batch, BatchResponse>()
+                .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
+                .ReverseMap();
             CreateMap<Batch, BatchDetailResponse>()
                 .ForMember(dest => dest.FarmHubName, opt => opt.MapFrom(src => src.FarmHub != null ? src.FarmHub.Name : null))
                 .ForMember(dest => dest.CollectedHubName, opt => opt.MapFrom(src => src.Collected != null ? src.Collected.Name : null))
