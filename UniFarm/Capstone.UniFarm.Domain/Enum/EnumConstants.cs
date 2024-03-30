@@ -22,44 +22,57 @@ public abstract record EnumConstants
     {
         Pending, // Đơn hàng đang chờ xử lý
         Confirmed, // Đơn hàng đã được xác nhận
-        Cancelled, // Đơn hàng đã bị hủy
-        OnTheWayToCollectedHub, // Đang giao tới collected hub
-        AtCollectedHub, // Đã đến collected hub
-        OnTheWayToStation, // Đang giao tới station
+        CanceledByFarmHub, // Đơn hàng đã bị hủy bởi farmhub
+        OnDelivery, // Đang vận chuyển
+        AtCollectedHub, // Đơn hàng đã được vận chuyển tới kho phân loại
+        CanceledByCollectedHub, // Đơn hàng bị hủy bởi hệ thống
         ReadyForPickup // Sẵn sàng để khách hàng đến nhận
-    }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum BatchStatus
-    {
-        Pending,
-        Received,
-        NotReceived,
-        Processed
-    }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ConfirmStatus
-    {
-        Confirmed,
-        Cancelled
-    }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ApproveStatus
-    {
-        Approved,
-        Cancelled
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeliveryStatus
     {
-        Pending,
-        OnTheWayToCollectedHub, // Đang giao tới collected hub
+        Pending, // Đơn hàng đang chờ xử lý
+        CanceledByFarmHub, // Đơn hàng đã bị hủy bởi farmhub
+        OnTheWayToCollectedHub, // Đang giao đơn hàng tới collected hub
         AtCollectedHub, // Đã đến collected hub
-        OnTheWayToStation, // Đang giao tới station
-        ReadyForPickup // Sẵn sàng để khách hàng đến nhận
+        CollectedHubNotReceived, // CollectedHub không nhận được đơn hàng
+        CanceledByCollectedHub, // Đơn hàng bị hủy bởi hệ thống
+        OnTheWayToStation, // Đơn hàng đang giao tới Station
+        AtStation, // Đơn hàng đã đến Station
+        StationNotReceived, // Station không nhận được đơn hàng
+        ReadyForPickup // Đơn hàng sẵn sàng để khách hàng đến nhận
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum BatchStatus
+    {
+        Pending, // FarmHub đã tạo Batch, Chờ xử lý
+        Received, // CollectedHub đã nhận Batch từ FarmHub
+        NotReceived, // CollectedHub không nhận được Batch từ FarmHub
+        Processed // CollectedHub đã xử lý tất cả đơn hàng trong Batch
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FarHubProcessOrder
+    {
+        Confirmed, // FarmHub xác nhận đơn hàng
+        Canceled // FarmHub hủy bỏ đơn hàng
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum CollectedHubProcessOrder
+    {
+        Received, // FarmHub xác nhận đơn hàng đã có
+        NotReceived, // CollectedHub không nhận được đơn hàng
+        Canceled, // CollectedHub hủy bỏ đơn hàng
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum CollectedHubUpdateBatch
+    {
+        Received, // CollectedHub đã nhận Batch từ FarmHub
+        NotReceived, // CollectedHub không nhận được Batch từ FarmHub
     }
 
     public abstract record ActiveInactiveEnum

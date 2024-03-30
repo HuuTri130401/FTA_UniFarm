@@ -13,10 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Enum\" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="FirebaseAuthentication" Version="1.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />

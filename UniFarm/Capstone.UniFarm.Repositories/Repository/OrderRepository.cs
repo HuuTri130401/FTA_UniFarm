@@ -21,7 +21,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(od => od.OrderDetails)
             .Where(bd => bd.BusinessDayId == businessDayId)
             .Where(fr => fr.FarmHubId == farmhubId)
-            .Where(ord => ord.CustomerStatus == "Pending" || ord.CustomerStatus == "Confirmed")
+            //.Where(ord => ord.CustomerStatus == "Pending" || ord.CustomerStatus == "Confirmed")
             .Where(ipay => ipay.IsPaid == true)
             .OrderByDescending(st => st.CreatedAt)
             .ToListAsync();
@@ -37,11 +37,10 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .ToListAsync();
     }
 
-    //public async Task<List<Order>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
-    //{
-    //    return await _dbSet
-    //        .Where(bt => bt.BatchId == batchId)
-    //        .OrderBy(sd => sd.ShippedDate)
-    //        .ToListAsync();
-    //}
+    public async Task<List<Order>> CollectedHubGetAllOrdersByBatchId(Guid batchId)
+    {
+        return await _dbSet
+            .Where(bt => bt.BatchId == batchId)
+            .ToListAsync();
+    }
 }
