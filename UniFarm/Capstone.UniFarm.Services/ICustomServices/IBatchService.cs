@@ -14,8 +14,9 @@ namespace Capstone.UniFarm.Services.ICustomServices
     public interface IBatchService
     {
         Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmHubId, Guid businessDayId);
-        Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, ConfirmStatus confirmStatus);
-        Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, ApproveStatus approveStatus);
+        Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, FarHubProcessOrder confirmStatus);
+        Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, CollectedHubProcessOrder approveStatus);
+        Task<OperationResult<bool>> CollectedHubProcessBatch(Guid collectedStaffId, Guid batchId, BatchRequestUpdate batchRequestUpdate);
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
         Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId);

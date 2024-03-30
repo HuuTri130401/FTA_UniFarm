@@ -10,6 +10,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface ICloudinaryService
     {
-        Task<string> UploadImageAsync(IFormFile imageFile);
+        Task<string> UploadImageAsync(IFormFile? imageFile);
     }
 }

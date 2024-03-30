@@ -21,12 +21,14 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<BatchService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public BatchService(IUnitOfWork unitOfWork, ILogger<BatchService> logger, IMapper mapper)
+        public BatchService(IUnitOfWork unitOfWork, ILogger<BatchService> logger, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<OperationResult<List<OrderResponseToProcess>>> FarmHubGetAllOrderToProcess(Guid farmhubId, Guid businessDayId)
@@ -75,7 +77,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, ConfirmStatus confirmStatus)
+        public async Task<OperationResult<bool>> FarmHubConfirmOrderOfCustomer(Guid orderId, FarHubProcessOrder farHubProcessOrder)
         {
             var result = new OperationResult<bool>();
             try
@@ -86,7 +88,16 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.BadRequest, $"Can not find order with OrderId: {orderId}!");
                     return result;
                 }
-                existingOrder.CustomerStatus = confirmStatus.ToString();
+
+                if (farHubProcessOrder == FarHubProcessOrder.Confirmed)
+                {
+                    existingOrder.CustomerStatus = farHubProcessOrder.ToString();
+                }
+                else if (farHubProcessOrder == FarHubProcessOrder.Canceled)
+                {
+                    existingOrder.CustomerStatus = CustomerStatus.CanceledByFarmHub.ToString();
+                    existingOrder.DeliveryStatus = DeliveryStatus.CanceledByFarmHub.ToString();
+                }
 
                 _unitOfWork.OrderRepository.Update(existingOrder);
 
@@ -107,7 +118,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, ApproveStatus approveStatus)
+        public async Task<OperationResult<bool>> CollectedHubApprovedOrderOfCustomer(Guid orderId, CollectedHubProcessOrder collectedHubProcessOrder)
         {
             var result = new OperationResult<bool>();
             try
@@ -118,7 +129,22 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.BadRequest, $"Can not find order with OrderId: {orderId}!");
                     return result;
                 }
-                existingOrder.CustomerStatus = approveStatus.ToString();
+
+                if (collectedHubProcessOrder == CollectedHubProcessOrder.Received)
+                {
+                    existingOrder.CustomerStatus = CustomerStatus.AtCollectedHub.ToString();
+                    existingOrder.DeliveryStatus = DeliveryStatus.AtCollectedHub.ToString();
+                }
+                else if (collectedHubProcessOrder == CollectedHubProcessOrder.Canceled)
+                {
+                    existingOrder.CustomerStatus = CustomerStatus.CanceledByCollectedHub.ToString();
+                    existingOrder.DeliveryStatus = DeliveryStatus.CanceledByCollectedHub.ToString();
+                }
+                else if(collectedHubProcessOrder == CollectedHubProcessOrder.NotReceived)
+                {
+                    existingOrder.CustomerStatus = CustomerStatus.CanceledByFarmHub.ToString();
+                    existingOrder.DeliveryStatus = DeliveryStatus.CollectedHubNotReceived.ToString();
+                }
 
                 _unitOfWork.OrderRepository.Update(existingOrder);
 
@@ -184,8 +210,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     order.BatchId = batch.Id; // Update Batch For Each Order
                     order.CollectedHubId = CollectedHub.Id; // Update CollecedId For FarmHub Ship 
-                    order.CustomerStatus = CustomerStatus.OnTheWayToCollectedHub.ToString();
-                    order.DeliveryStatus = DeliveryStatus.OnTheWayToCollectedHub.ToString() + $" {CollectedHub.Name}";
+                    order.CustomerStatus = CustomerStatus.OnDelivery.ToString();
+                    order.DeliveryStatus = DeliveryStatus.OnTheWayToCollectedHub.ToString();
                     _unitOfWork.OrderRepository.Update(order);
                 }
 
@@ -246,6 +272,59 @@ namespace Capstone.UniFarm.Services.CustomServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred in CollectedHubGetAllBatches Service!");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<bool>> CollectedHubProcessBatch(Guid collectedStaffId, Guid batchId, BatchRequestUpdate batchRequestUpdate)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingBatch = await _unitOfWork.BatchesRepository.GetByIdAsync(batchId);
+                if (existingBatch == null)
+                {
+                    result.AddError(StatusCode.BadRequest, $"Can not find Batch with BatchId: {batchId}!");
+                    return result;
+                }
+                if (batchRequestUpdate.Status == CollectedHubUpdateBatch.Received)
+                {
+                    existingBatch.Status = CollectedHubUpdateBatch.Received.ToString();
+                }
+                else if(batchRequestUpdate.Status == CollectedHubUpdateBatch.NotReceived)
+                {
+                    var listOrdersInBatch = await _unitOfWork.OrderRepository.CollectedHubGetAllOrdersByBatchId(batchId);
+
+                    foreach (var order in listOrdersInBatch)
+                    {
+                        order.CustomerStatus = CustomerStatus.CanceledByFarmHub.ToString();
+                        order.DeliveryStatus = DeliveryStatus.CollectedHubNotReceived.ToString();
+                        _unitOfWork.OrderRepository.Update(order);
+                    }
+                    existingBatch.Status = CollectedHubUpdateBatch.NotReceived.ToString();
+                }
+
+                var feedBackImage = _cloudinaryService.UploadImageAsync(batchRequestUpdate.FeedBackImage);
+                existingBatch.FeedBackImage = await feedBackImage;
+                existingBatch.ReceivedDescription = batchRequestUpdate.ReceivedDescription;
+                existingBatch.CollectedHubReceiveDate = DateTime.UtcNow.AddHours(7);
+                existingBatch.CollectedStaffProcessId = collectedStaffId;
+
+                _unitOfWork.BatchesRepository.Update(existingBatch);
+
+                var checkResult = _unitOfWork.Save();
+                if (checkResult > 0)
+                {
+                    result.AddResponseStatusCode(StatusCode.NoContent, $"Confirmed Batch have Id: {batchId} Success.", true);
+                }
+                else
+                {
+                    result.AddError(StatusCode.BadRequest, $"Confirmed Batch have Id: {batchId} Failed!");
+                }
+                return result;
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }

@@ -13,10 +13,12 @@ namespace Capstone.UniFarm.API.Controllers
     public class BatchsController : BaseController
     {
         private readonly IBatchService _batchService;
+        private readonly IAccountService _accountService;
 
-        public BatchsController(IBatchService batchService)
+        public BatchsController(IBatchService batchService, IAccountService accountService)
         {
             _batchService = batchService;
+            _accountService = accountService;
         }
 
         [SwaggerOperation(Summary = "FarmHub Get All Orders To Process - FARMHUB - {Huu Tri}")]
@@ -58,7 +60,7 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "FarmHub Confirm Order for Customer - FARMHUB - {Huu Tri}")]
         [HttpPut("batch/confirmed-order/{orderId}")]
         [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> ConfirmedOrder(Guid orderId, ConfirmStatus confirmStatus)
+        public async Task<IActionResult> ConfirmedOrder(Guid orderId, FarHubProcessOrder confirmStatus)
         {
             if (ModelState.IsValid)
             {
@@ -68,10 +70,36 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
-        [SwaggerOperation(Summary = "CollectedHub Approved Order for Customer - COLLECTED_HUB - {Huu Tri}")]
-        [HttpPut("batch/approved-order/{orderId}")]
+        [SwaggerOperation(Summary = "CollectedHub Update Received Batch - COLLECTED_HUB - {Huu Tri}")]
+        [HttpPut("batch/{batchId}")]
         //[Authorize(Roles = "CollectedHubStaff")]
-        public async Task<IActionResult> ApprovedOrder(Guid orderId, ApproveStatus approveStatus)
+        public async Task<IActionResult> UpdateBatch(Guid batchId, [FromForm] BatchRequestUpdate batchRequestUpdate)
+        {
+            if (ModelState.IsValid)
+            {
+                string authHeader = HttpContext.Request.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader))
+                {
+                    return Unauthorized();
+                }
+                string token = authHeader.Replace("Bearer ", "");
+
+                var defineUser = _accountService.GetIdAndRoleFromToken(token);
+                if (defineUser.Payload == null)
+                {
+                    return HandleErrorResponse(defineUser!.Errors);
+                }
+                var collectedStaffId = defineUser.Payload.Id;
+                var response = await _batchService.CollectedHubProcessBatch(collectedStaffId, batchId, batchRequestUpdate);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
+
+        [SwaggerOperation(Summary = "CollectedHub Approved Order for Customer - COLLECTED_HUB - {Huu Tri}")]
+        [HttpPut("batch/process-order/{orderId}")]
+        //[Authorize(Roles = "CollectedHubStaff")]
+        public async Task<IActionResult> ApprovedOrder(Guid orderId, CollectedHubProcessOrder approveStatus)
         {
             if (ModelState.IsValid)
             {

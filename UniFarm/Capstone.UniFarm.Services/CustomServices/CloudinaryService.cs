@@ -27,13 +27,14 @@ namespace Capstone.UniFarm.Services.CustomServices
             _cloudinary = new Cloudinary(account);
         }
 
-        public async Task<string> UploadImageAsync(IFormFile imageFile)
+        public async Task<string?> UploadImageAsync(IFormFile? imageFile)
         {
             try
             {
                 if (imageFile == null || imageFile.Length == 0)
                 {
-                    throw new ArgumentException("Image file is required.");
+                    //throw new ArgumentException("Image file is required.");
+                    return null;
                 }
 
                 var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
