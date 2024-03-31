@@ -20,7 +20,7 @@ public class CollectedHubsController : BaseController
 
     [HttpGet("admin/collected-hubs/")]
     [SwaggerOperation(Summary = "Get all collected hubs - Admin ")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? keyword,
         [FromQuery] Guid? id,
