@@ -43,4 +43,27 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Where(bt => bt.BatchId == batchId)
             .ToListAsync();
     }
+
+    public async Task<bool> CheckAllOrderProcessedByCollectedHub(Guid batchId)
+    {
+        var listOrders = await _dbSet
+                        .Where(bt => bt.BatchId == batchId)
+                        .Where(de => de.DeliveryStatus == DeliveryStatus.Pending.ToString())
+                        .ToListAsync();
+        if(listOrders == null || !listOrders.Any())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //public async Task<List<Order>> CheckAllOrderProcessedByCollectedHub(Guid batchId)
+    //{
+    //    return await _dbSet
+    //        .Where(bt => bt.BatchId == batchId)
+    //        .Where(de => de.DeliveryStatus == DeliveryStatus.AtCollectedHub.ToString()
+    //            || de.DeliveryStatus == DeliveryStatus.CanceledByCollectedHub.ToString()
+    //            || de.DeliveryStatus == DeliveryStatus.CollectedHubNotReceived.ToString())
+    //        .ToListAsync();
+    //}
 }

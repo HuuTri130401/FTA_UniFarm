@@ -140,17 +140,25 @@ namespace Capstone.UniFarm.Services.CustomServices
                     existingOrder.CustomerStatus = CustomerStatus.CanceledByCollectedHub.ToString();
                     existingOrder.DeliveryStatus = DeliveryStatus.CanceledByCollectedHub.ToString();
                 }
-                else if(collectedHubProcessOrder == CollectedHubProcessOrder.NotReceived)
+                else if (collectedHubProcessOrder == CollectedHubProcessOrder.NotReceived)
                 {
                     existingOrder.CustomerStatus = CustomerStatus.CanceledByFarmHub.ToString();
                     existingOrder.DeliveryStatus = DeliveryStatus.CollectedHubNotReceived.ToString();
                 }
 
                 _unitOfWork.OrderRepository.Update(existingOrder);
+                var checkUpdateOrderResult = _unitOfWork.Save();
 
-                var checkResult = _unitOfWork.Save();
-                if (checkResult > 0)
+                if (checkUpdateOrderResult > 0)
                 {
+                    var checkListOrdersProcessed = await _unitOfWork.OrderRepository.CheckAllOrderProcessedByCollectedHub((Guid)existingOrder.BatchId);
+                    if (checkListOrdersProcessed)
+                    {
+                        var existingBatch = await _unitOfWork.BatchesRepository.GetByIdAsync((Guid)existingOrder.BatchId);
+                        existingBatch.Status = BatchStatus.Processed.ToString();
+                        _unitOfWork.BatchesRepository.Update(existingBatch);
+                        _unitOfWork.Save();
+                    }
                     result.AddResponseStatusCode(StatusCode.NoContent, $"Confirmed Order have Id: {orderId} Success.", true);
                 }
                 else
@@ -239,7 +247,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 var listBatches = await _unitOfWork.BatchesRepository.GetAllBatchesByFarmHubId(farmHubId);
                 var listBatchesResponse = _mapper.Map<List<BatchResponse>>(listBatches);
-                if(listBatchesResponse == null || !listBatchesResponse.Any())
+                if (listBatchesResponse == null || !listBatchesResponse.Any())
                 {
                     result.AddResponseStatusCode(StatusCode.Ok, $"List Batches with FarmHubId: {farmHubId} is Empty!", listBatchesResponse);
                     return result;
@@ -291,7 +299,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     existingBatch.Status = CollectedHubUpdateBatch.Received.ToString();
                 }
-                else if(batchRequestUpdate.Status == CollectedHubUpdateBatch.NotReceived)
+                else if (batchRequestUpdate.Status == CollectedHubUpdateBatch.NotReceived)
                 {
                     var listOrdersInBatch = await _unitOfWork.OrderRepository.CollectedHubGetAllOrdersByBatchId(batchId);
 
