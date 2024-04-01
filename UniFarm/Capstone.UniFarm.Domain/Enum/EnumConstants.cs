@@ -5,13 +5,7 @@ namespace Capstone.UniFarm.Domain.Enum;
 
 public abstract record EnumConstants
 {
-    /*public enum RoleEnum
-    {
-        [Description("FarmHub")] FarmHub = 0,
-        [Description("Customer")] Customer = 1,
-        [Description("CollectedStaff")] CollectedStaff = 2,
-        [Description("StationStaff")] StationStaff = 3,
-    }*/
+
 
     /// <summary>
     /// Account status, Account Role Status, Area Status, Apartment Status, Station status
@@ -26,13 +20,17 @@ public abstract record EnumConstants
         OnDelivery, // Đang vận chuyển
         AtCollectedHub, // Đơn hàng đã được vận chuyển tới kho phân loại
         CanceledByCollectedHub, // Đơn hàng bị hủy bởi hệ thống
-        ReadyForPickup // Sẵn sàng để khách hàng đến nhận
+        ReadyForPickup, // Sẵn sàng để khách hàng đến nhận
+        CanceledByCustomer, // Đơn hàng bị hủy bởi khách hàng
+        PickedUp, // Đã được khách hàng nhận
+        Expired // Đơn hàng đã hết hạn
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeliveryStatus
     {
         Pending, // Đơn hàng đang chờ xử lý
+        CanceledByCustomer, // Đơn hàng bị hủy bởi khách hàng
         CanceledByFarmHub, // Đơn hàng đã bị hủy bởi farmhub
         OnTheWayToCollectedHub, // Đang giao đơn hàng tới collected hub
         AtCollectedHub, // Đã đến collected hub
@@ -41,7 +39,9 @@ public abstract record EnumConstants
         OnTheWayToStation, // Đơn hàng đang giao tới Station
         AtStation, // Đơn hàng đã đến Station
         StationNotReceived, // Station không nhận được đơn hàng
-        ReadyForPickup // Đơn hàng sẵn sàng để khách hàng đến nhận
+        ReadyForPickup, // Đơn hàng sẵn sàng để khách hàng đến nhận
+        PickedUp, // Đơn hàng đã được khách hàng nhận
+        Expired // Đơn hàng đã hết hạn
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -73,6 +73,22 @@ public abstract record EnumConstants
     {
         Received, // CollectedHub đã nhận Batch từ FarmHub
         NotReceived, // CollectedHub không nhận được Batch từ FarmHub
+    }
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum StationUpdateTransfer
+    {
+        Pending,
+        Received, // Station đã nhận Transfer từ CollectedHub
+        NotReceived, // Station không nhận được Transfer từ CollectedHub
+    }
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum StationStaffUpdateOrderStatus
+    {
+        AtStation, // Đã tới trạm nhận hàng
+        StationNotReceived, // Trạm không nhận được hàng
+        PickedUp, // Đã nhận hàng
     }
 
     public abstract record ActiveInactiveEnum
@@ -126,16 +142,7 @@ public abstract record EnumConstants
         public static readonly string NOT_FOUND_ANY_ITEM_IN_CART = "Not found any item in cart";
         public static readonly string GET_CART_SUCCESS = "Get cart success";
     }
-
-    public abstract record TransferStatusEnum
-    {
-        public static readonly string PENDING = "Pending";
-        public static readonly string RECEIVED = "Received";
-        public static readonly string NOT_RECEIVED = "NotReceived";
-        public static readonly string EXPIRED = "Expired";
-    }
-
-
+    
     public abstract record OrderMessage
     {
         public static readonly string ORDER_NOT_FOUND = "Order not found";
@@ -160,24 +167,7 @@ public abstract record EnumConstants
 
     public abstract record OrderCustomerStatus
     {
-        public static readonly string DANG_DONG_GOI = "Đang đóng gói";
-        public static readonly string CHO_VAN_CHUYEN = "Chờ vận chuyển";
         public static readonly string DANG_VAN_CHUYEN = "Đang vận chuyển";
         public static readonly string CHO_NHAN_HANG = "Chờ nhận hàng";
-        public static readonly string DA_NHAN_HANG = "Đã nhận hàng";
-        public static readonly string HUY_NHAN_HANG = "Hủy nhận hàng";
     }
-
-    public abstract record OrderDeliveryStatus
-    {
-        public static readonly string DANG_DONG_GOI = "Đang đóng gói";
-        public static readonly string CHO_VAN_CHUYEN = "Chờ vận chuyển";
-        public static readonly string DANG_VAN_CHUYEN_DEN_KHO = "Đang vận chuyển đến kho";
-        public static readonly string KHO_DA_NHAN_HANG = "Kho đã nhận hàng";
-        public static readonly string DANG_VAN_CHUYEN_DEN_TRAM = "Đang vận chuyển đến trạm";
-        public static readonly string TRAM_DA_NHAN_HANG = "Trạm đã nhận hàng";
-    }
-
-
-
 }

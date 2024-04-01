@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using AutoMapper;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
@@ -60,6 +61,18 @@ public class OrderService : IOrderService
             return result;
         }
 
+        var adminWallet = await _unitOfWork.WalletRepository
+            .FilterByExpression(x => x.AccountId == Guid.Parse("4A846001-C2C0-4EBA-8FCF-F36A8106813F"))
+            .FirstOrDefaultAsync();
+        if (adminWallet == null)
+        {
+            result.StatusCode = StatusCode.NotFound;
+            result.Message = "Không tìm thấy ví của admin!";
+            result.IsError = true;
+            orderRequestCreate.paymentStatus = "Failure";
+            return result;
+        }
+
         var transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
@@ -107,7 +120,7 @@ public class OrderService : IOrderService
                     return result;
                 }
 
-
+                var totalRevenue = item.totalFarmHubPrice;
                 // 3. Create order => Create order fail return
                 var order = new Order
                 {
@@ -202,7 +215,6 @@ public class OrderService : IOrderService
 
 
                     // 8. Cập nhật số tiền trong ví => Fail rollback + return
-
                     if (wallet.Balance < orderDetail.TotalPrice)
                     {
                         await transaction.RollbackAsync();
@@ -254,13 +266,18 @@ public class OrderService : IOrderService
                     await _unitOfWork.SaveChangesAsync();
                     listNewOrder.Add(order);
                 }
+
+                // 10. Cập nhật số tiền trong ví admin
+                adminWallet.Balance += totalRevenue;
+                await _unitOfWork.WalletRepository.UpdateAsync(adminWallet);
+                await _unitOfWork.SaveChangesAsync();
             }
 
-            result.Message = "Tạp đơn hàng thành công!";
+            result.Message = "Tạo đơn hàng thành công!";
             result.StatusCode = StatusCode.Created;
             result.IsError = false;
             orderRequestCreate.paymentStatus = "Success";
-            orderRequestCreate.paymentAmount = orderRequestCreate.totalMoney;
+            orderRequestCreate.paymentAmount = orderRequestCreate.totalAmount;
             result.Payload = orderRequestCreate;
             await transaction.CommitAsync();
         }
@@ -268,14 +285,14 @@ public class OrderService : IOrderService
         {
             await transaction.RollbackAsync();
             result.AddError(StatusCode.ServerError, e.Message);
-            result.Message = "Tạo order thất bại!";
+            result.Message = "Tạo đơn hàng thất bại!";
             result.IsError = true;
         }
 
         return result;
     }
 
-    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff>>> GetAllOrdersOfACollectedHub(
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff>>> GetAllOrdersOfStaff(
         bool? isAscending, string? orderBy, Expression<Func<Order, bool>>? filter = null, int pageIndex = 0,
         int pageSize = 10)
     {
@@ -295,10 +312,10 @@ public class OrderService : IOrderService
             var orderResponses = new List<OrderResponse.OrderResponseForStaff>();
             foreach (var order in orders)
             {
-                
                 var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
                 var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
-                var businessDay = await _unitOfWork.BusinessDayRepository.FilterByExpression(x => x.Id == order.BusinessDayId)
+                var businessDay = await _unitOfWork.BusinessDayRepository
+                    .FilterByExpression(x => x.Id == order.BusinessDayId)
                     .FirstOrDefaultAsync();
                 var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
                     .FirstOrDefaultAsync();
@@ -315,11 +332,11 @@ public class OrderService : IOrderService
                     stationResponse.UpdatedAt = station.UpdatedAt;
                     stationResponse.Status = station.Status;
                 }
-                
+
                 var orderDetails = await _unitOfWork.OrderDetailRepository
                     .FilterByExpression(x => x.OrderId == order.Id)
                     .ToListAsync();
-                
+
                 var orderDetailResponses = new List<OrderDetailResponse>();
 
                 foreach (var item in orderDetails)
@@ -338,20 +355,30 @@ public class OrderService : IOrderService
                 }
 
                 var batchReponse = new BatchResponseSimple();
-                if(order.BatchId != null)
+                if (order.BatchId != null)
                 {
-                    var batch = await _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId).FirstOrDefaultAsync();
+                    var batch = await _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId)
+                        .FirstOrDefaultAsync();
                     batchReponse.Id = batch.Id;
                     batchReponse.FarmShipDate = batch.FarmShipDate;
                     batchReponse.CollectedHubReceiveDate = batch.CollectedHubReceiveDate;
                     batchReponse.Status = batch.Status;
                 }
-                
+
                 var transferResponse = new TransferResponse.TransferResponseSimple();
+                
+                var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
+                
+                var customerResponse = new AboutMeResponse.CustomerResponseSimple();
+                if (customer != null)
+                {
+                    customerResponse= _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                }
 
                 if (order.TransferId != null)
                 {
-                    var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == order.TransferId).FirstOrDefaultAsync();
+                    var transfer = await _unitOfWork.TransferRepository
+                        .FilterByExpression(x => x.Id == order.TransferId).FirstOrDefaultAsync();
                     transferResponse.Id = transfer.Id;
                     transferResponse.CollectedId = transfer.CollectedId;
                     transferResponse.StationId = transfer.StationId;
@@ -366,7 +393,7 @@ public class OrderService : IOrderService
                     transferResponse.Code = transfer.Code;
                     transferResponse.Status = transfer.Status;
                 }
-                
+
                 var orderResponse = new OrderResponse.OrderResponseForStaff()
                 {
                     Id = order.Id,
@@ -386,13 +413,14 @@ public class OrderService : IOrderService
                     StationResponse = stationResponse,
                     OrderDetailResponse = orderDetailResponses,
                     BatchResponse = batchReponse,
-                    TransferResponse = transferResponse
+                    TransferResponse = transferResponse,
+                    CustomerResponse = customerResponse
                 };
                 orderResponses.Add(orderResponse);
             }
-            
+
             result.Message = "Lấy danh sách đơn hàng thành công!";
-            result.StatusCode =StatusCode.Ok;
+            result.StatusCode = StatusCode.Ok;
             result.IsError = false;
             result.Payload = orderResponses;
         }
@@ -404,6 +432,177 @@ public class OrderService : IOrderService
             throw;
         }
 
+        return result;
+    }
+
+    // Update order status by station staff
+    public async Task<OperationResult<OrderResponse.OrderResponseForStaff?>> UpdateOrderStatusByStationStaff(
+        UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
+    {
+        var result = new OperationResult<OrderResponse.OrderResponseForStaff?>();
+
+        try
+        {
+            var order = await _unitOfWork.OrderRepository
+                .FilterByExpression(x => x.Id == request.OrderId && x.TransferId == request.TransferId && x.StationId == request.StationId)
+                .FirstOrDefaultAsync();
+            if (order == null)
+            {
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không tìm thấy đơn hàng!";
+                result.IsError = true;
+                return result;
+            }
+            
+            if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
+            {
+                order.DeliveryStatus = EnumConstants.DeliveryStatus.AtStation.ToString();
+                order.CustomerStatus = EnumConstants.CustomerStatus.ReadyForPickup.ToString();
+                order.ExpiredDayInStation = DateTime.Now + TimeSpan.FromDays(2);
+                order.UpdatedAt = DateTime.Now;
+            }
+            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived && order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
+            {
+                order.DeliveryStatus = EnumConstants.DeliveryStatus.StationNotReceived.ToString();
+                order.UpdatedAt = DateTime.Now;
+            }
+            else if(request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
+            {
+                order.DeliveryStatus = EnumConstants.DeliveryStatus.PickedUp.ToString();
+                order.CustomerStatus = EnumConstants.CustomerStatus.PickedUp.ToString();
+                order.UpdatedAt = DateTime.Now;
+                order.ShipByStationStaffId = defineUserPayload.Id;
+            }
+            else
+            {
+                result.StatusCode = StatusCode.BadRequest;
+                result.Message = "Trạng thái không hợp lệ!";
+                result.IsError = true;
+                return result;
+            }
+
+            await _unitOfWork.OrderRepository.UpdateAsync(order);
+            var count = await _unitOfWork.SaveChangesAsync();
+            if (count == 0)
+            {
+                result.StatusCode = StatusCode.BadRequest;
+                result.Message = "Cập nhật trạng thái đơn hàng không thành công!";
+                result.IsError = true;
+                return result;
+            }
+
+            var orderDetails = await _unitOfWork.OrderDetailRepository
+                .FilterByExpression(x => x.OrderId == order.Id)
+                .ToListAsync();
+            var orderDetailResponses = new List<OrderDetailResponse>();
+
+            foreach (var item in orderDetails)
+            {
+                var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                var orderDetailResponse = new OrderDetailResponse()
+                {
+                    ProductItemId = item.ProductItemId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    Unit = item.Unit,
+                    TotalPrice = item.TotalPrice,
+                    Title = productItem.Title
+                };
+                orderDetailResponses.Add(orderDetailResponse);
+            }
+
+            var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+            var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+            var businessDay = await _unitOfWork.BusinessDayRepository
+                .FilterByExpression(x => x.Id == order.BusinessDayId)
+                .FirstOrDefaultAsync();
+            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId).FirstOrDefaultAsync();
+            var stationResponse = new StationResponse.StationResponseSimple();
+            if (station != null)
+            {
+                stationResponse.Id = station.Id;
+                stationResponse.Name = station.Name;
+                stationResponse.Address = station.Address;
+                stationResponse.Description = station.Description;
+                stationResponse.Image = station.Image;
+                stationResponse.CreatedAt = station.CreatedAt;
+                stationResponse.UpdatedAt = station.UpdatedAt;
+                stationResponse.Status = station.Status;
+            }
+
+            var batchResponse = new BatchResponseSimple();
+            if (order.BatchId != null)
+            {
+                var batch = await _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId)
+                    .FirstOrDefaultAsync();
+                batchResponse.Id = batch.Id;
+                batchResponse.FarmShipDate = batch.FarmShipDate;
+                batchResponse.CollectedHubReceiveDate = batch.CollectedHubReceiveDate;
+                batchResponse.Status = batch.Status;
+            }
+
+            var transferResponse = new TransferResponse.TransferResponseSimple();
+            if (order.TransferId != null)
+            {
+                var transfer = await _unitOfWork.TransferRepository
+                    .FilterByExpression(x => x.Id == order.TransferId).FirstOrDefaultAsync();
+                transferResponse.Id = transfer.Id;
+                transferResponse.CollectedId = transfer.CollectedId;
+                transferResponse.StationId = transfer.StationId;
+                transferResponse.CreatedAt = transfer.CreatedAt;
+                transferResponse.UpdatedAt = transfer.UpdatedAt;
+                transferResponse.ExpectedReceiveDate = transfer.ExpectedReceiveDate;
+                transferResponse.ReceivedDate = transfer.ReceivedDate;
+                transferResponse.CreatedBy = transfer.CreatedBy;
+                transferResponse.UpdatedBy = transfer.UpdatedBy;
+                transferResponse.NoteSend = transfer.NoteSend;
+                transferResponse.NoteReceived = transfer.NoteReceived;
+                transferResponse.Code = transfer.Code;
+                transferResponse.Status = transfer.Status;
+            }
+            
+            var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
+            var customerResponse = new AboutMeResponse.CustomerResponseSimple();
+            if (customer != null)
+            {
+                customerResponse= _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+            }
+
+            var orderResponse = new OrderResponse.OrderResponseForStaff()
+            {
+                Id = order.Id,
+                Code = order.Code,
+                CustomerId = order.CustomerId,
+                FarmHubId = order.FarmHubId,
+                StationId = order.StationId,
+                BusinessDayId = order.BusinessDayId,
+                TotalAmount = order.TotalAmount,
+                CreatedAt = order.CreatedAt,
+                ExpectedReceiveDate = order.ExpectedReceiveDate,
+                ShipAddress = order.ShipAddress,
+                DeliveryStatus = order.DeliveryStatus,
+                CustomerStatus = order.CustomerStatus,
+                FarmHubResponse = farmHubResponse,
+                BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
+                StationResponse = stationResponse,
+                OrderDetailResponse = orderDetailResponses,
+                BatchResponse = batchResponse,
+                TransferResponse = transferResponse,
+                CustomerResponse = customerResponse
+            };
+
+            result.Message = "Cập nhật trạng thái đơn hàng thành công!";
+            result.StatusCode = StatusCode.Ok;
+            result.IsError = false;
+            result.Payload = orderResponse;
+        }
+        catch (Exception e)
+        {
+            result.AddError(StatusCode.ServerError, e.Message);
+            result.Message = "Cập nhật trạng thái đơn hàng thất bại!";
+            result.IsError = true;
+            throw;
+        }
         return result;
     }
 }

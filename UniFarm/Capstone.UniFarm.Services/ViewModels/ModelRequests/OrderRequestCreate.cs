@@ -6,19 +6,19 @@ public record OrderRequestCreate
     public Guid stationId { get; set; }
     public Guid apartmentId { get; set; }
     public List<FamHubAndProduct> FamHubAndProduct { get; set; }
-    public decimal totalMoney { get; set; }
+    public decimal totalAmount { get; set; }
     public string paymentStatus { get; set; }
     public decimal paymentAmount { get; set; }
     
     public string? shipNote { get; set; }
     
-    public OrderRequestCreate(Guid businessDayId, Guid stationId, Guid apartmentId, List<FamHubAndProduct> FamHubAndProduct, decimal totalMoney, string paymentStatus, decimal paymentAmount, string? shipNote)
+    public OrderRequestCreate(Guid businessDayId, Guid stationId, Guid apartmentId, List<FamHubAndProduct> FamHubAndProduct, decimal TotalAmount, string paymentStatus, decimal paymentAmount, string? shipNote)
     {
         this.businessDayId = businessDayId;
         this.stationId = stationId;
         this.apartmentId = apartmentId;
         this.FamHubAndProduct = FamHubAndProduct;
-        this.totalMoney = totalMoney;
+        this.totalAmount = TotalAmount;
         this.paymentStatus = paymentStatus;
         this.paymentAmount = paymentAmount;
         this.shipNote = shipNote;
@@ -36,8 +36,20 @@ public record FamHubAndProduct
     }
     public Guid farmHubId { get; set; }
     public List<OrderDetailRequestCreate> orderDetail { get; set; }
-    
-    public decimal totalFarmHubPrice { get; set; }
+
+    public decimal totalFarmHubPrice
+    {
+        get
+        {
+            decimal total = 0;
+            foreach (var item in orderDetail)
+            {
+                total += item.TotalPrice;
+            }
+            return total;
+        }
+        init { }
+    }
 }
     
     

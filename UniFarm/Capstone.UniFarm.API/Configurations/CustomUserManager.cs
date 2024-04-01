@@ -11,9 +11,4 @@ public class CustomUserManager : UserManager<Account>
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
     {
     }
-    
-    //public override Task<Account> FindByNameAsync(string userName)
-    //{
-    //    return Task.FromResult<Account>(null);
-    //}
 }

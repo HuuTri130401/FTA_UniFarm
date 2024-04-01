@@ -13,12 +13,15 @@ public interface IOrderService
     Task<OperationResult<OrderRequestCreate>> CreateOrder(OrderRequestCreate orderRequestCreate, Guid createdBy);
     
     
-    // ColelectedStaff
     Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff>>> 
-        GetAllOrdersOfACollectedHub(
+        GetAllOrdersOfStaff(
             bool? isAscending, 
             string? orderBy, 
             Expression<Func<Order, bool>>? filter = null,
             int pageIndex = 0, 
             int pageSize = 10);
+
+    Task<OperationResult<OrderResponse.OrderResponseForStaff?>> UpdateOrderStatusByStationStaff(UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload);
+    
+    
 }

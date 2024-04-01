@@ -99,5 +99,6 @@ public abstract record OrderResponse
         public List<OrderDetailResponse>? OrderDetailResponse { get; set; }
         public BatchResponseSimple? BatchResponse { get; set; }
         public TransferResponse.TransferResponseSimple? TransferResponse { get; set; }
+        public AboutMeResponse.CustomerResponseSimple? CustomerResponse { get; set; }
     }
 }

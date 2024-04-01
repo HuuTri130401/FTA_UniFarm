@@ -111,7 +111,7 @@ public class TransferService : ITransferService
                 }
             }
 
-            transfer.Status = EnumConstants.TransferStatusEnum.PENDING;
+            transfer.Status = EnumConstants.StationUpdateTransfer.Pending.ToString();
             var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
 
             var transferResponse = new TransferResponse(
@@ -297,7 +297,7 @@ public class TransferService : ITransferService
                 return result;
             }
 
-            if (transfer.Status == request.Status)
+            if (transfer.Status == request.Status.ToString())
             {
                 result.StatusCode = StatusCode.BadRequest;
                 result.Message = "Status of transfer is already " + request.Status;
@@ -308,13 +308,12 @@ public class TransferService : ITransferService
 
             transfer.UpdatedAt = DateTime.Now;
             transfer.UpdatedBy = defineUser.Id;
-            transfer.Status = request.Status;
-            if (request.Status == EnumConstants.TransferStatusEnum.RECEIVED)
+            transfer.Status = request.Status.ToString();
+            if (request.Status.ToString() == EnumConstants.StationUpdateTransfer.Received.ToString())
             {
                 transfer.ReceivedDate = DateTime.Now;
                 transfer.NoteReceived = request.NoteReceived;
             }
-
             await _unitOfWork.TransferRepository.UpdateAsync(transfer);
             var count = await _unitOfWork.SaveChangesAsync();
 
@@ -330,34 +329,11 @@ public class TransferService : ITransferService
 
             var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == request.Id)
                 .ToListAsync();
-            foreach (var order in orders)
-            {
-                if (request.Status == EnumConstants.TransferStatusEnum.RECEIVED)
-                {
-                    order.CustomerStatus = EnumConstants.OrderCustomerStatus.CHO_NHAN_HANG;
-                }
-                else
-                {
-                    order.CustomerStatus = EnumConstants.OrderCustomerStatus.DANG_VAN_CHUYEN;
-                }
-
-                await _unitOfWork.OrderRepository.UpdateAsync(order);
-
-                var countUpdate = await _unitOfWork.SaveChangesAsync();
-                if (countUpdate == 0)
-                {
-                    await transaction.RollbackAsync();
-                    result.StatusCode = StatusCode.UnknownError;
-                    result.Message = "Update status for order " + order.Id + " failed";
-                    result.IsError = true;
-                    result.Payload = null;
-                    return result;
-                }
-            }
-
+            
             var collected = await _unitOfWork.CollectedHubRepository
                 .FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
             var station = _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId).FirstOrDefaultAsync();
+            var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
             var collectedResponse = _mapper.Map<CollectedHubResponse>(collected);
             var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
 
@@ -399,7 +375,7 @@ public class TransferService : ITransferService
                 transfer.Code,
                 transfer.Status,
                 collectedResponse,
-                null,
+                stationResponse,
                 orderResponses);
             result.Payload = transferResponse;
             result.StatusCode = StatusCode.Ok;

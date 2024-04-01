@@ -46,9 +46,7 @@ public class TransferController : BaseController
 
     [HttpGet("transfers/getall")]
     [SwaggerOperation(Summary = "Get all transfer request - Admin, CollectedStaff, StationStaff - Done {Tien}")]
-    /*
     [Authorize(Roles = "Admin,CollectedStaff,StationStaff")]
-    */
     public async Task<IActionResult> GetAll(
         [FromQuery] string? keyword,
         [FromQuery] Guid? collectedId,
@@ -65,27 +63,83 @@ public class TransferController : BaseController
         [FromQuery] int pageSize = 10
     )
     {
-        var result = await _transferService.GetAll(
-            isAscending: isAscending,
-            filter: x => (!collectedId.HasValue || x.CollectedId == collectedId) &&
-                         (!stationId.HasValue || x.StationId == stationId) &&
-                         (!createdBy.HasValue || x.CreatedBy == createdBy) &&
-                         (!updatedBy.HasValue || x.UpdatedBy == updatedBy) &&
-                         (!fromDate.HasValue || x.CreatedAt >= fromDate) &&
-                         (!toDate.HasValue || x.CreatedAt <= toDate) &&
-                         (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) || x.Status!.Contains(keyword)) &&
-                         (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
-                         (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
-            orderBy: orderBy,
-            includeProperties: null,
-            pageIndex: page,
-            pageSize: pageSize);
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        if(defineUser.Payload.AuthorizationDecision == "CUSTOMER") return Unauthorized("You are not allowed to access this resource");
+        if (defineUser.Payload.Role == "Admin")
+        {
+            var result = await _transferService.GetAll(
+                isAscending: isAscending,
+                filter: x => (!collectedId.HasValue || x.CollectedId == collectedId) &&
+                             (!stationId.HasValue || x.StationId == stationId) &&
+                             (!createdBy.HasValue || x.CreatedBy == createdBy) &&
+                             (!updatedBy.HasValue || x.UpdatedBy == updatedBy) &&
+                             (!fromDate.HasValue || x.CreatedAt >= fromDate) &&
+                             (!toDate.HasValue || x.CreatedAt <= toDate) &&
+                             (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
+                              x.Status!.Contains(keyword)) &&
+                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
+                orderBy: orderBy,
+                includeProperties: null,
+                pageIndex: page,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        }
+        else if (defineUser.Payload.Role == "CollectedStaff")
+        {
+            var result = await _transferService.GetAll(
+                isAscending: isAscending,
+                filter: x => x.CollectedId.ToString() == defineUser.Payload.AuthorizationDecision &&
+                             (!stationId.HasValue || x.StationId == stationId) &&
+                             (!createdBy.HasValue || x.CreatedBy == createdBy) &&
+                             (!updatedBy.HasValue || x.UpdatedBy == updatedBy) &&
+                             (!fromDate.HasValue || x.CreatedAt >= fromDate) &&
+                             (!toDate.HasValue || x.CreatedAt <= toDate) &&
+                             (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
+                              x.Status!.Contains(keyword)) &&
+                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
+                orderBy: orderBy,
+                includeProperties: null,
+                pageIndex: page,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        }
+        else if (defineUser.Payload.Role == "StationStaff")
+        {
+            var result = await _transferService.GetAll(
+                isAscending: isAscending,
+                filter: x => x.StationId.ToString() == defineUser.Payload.AuthorizationDecision &&
+                             (!collectedId.HasValue || x.CollectedId == collectedId) &&
+                             (!createdBy.HasValue || x.CreatedBy == createdBy) &&
+                             (!updatedBy.HasValue || x.UpdatedBy == updatedBy) &&
+                             (!fromDate.HasValue || x.CreatedAt >= fromDate) &&
+                             (!toDate.HasValue || x.CreatedAt <= toDate) &&
+                             (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
+                              x.Status!.Contains(keyword)) &&
+                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
+                orderBy: orderBy,
+                includeProperties: null,
+                pageIndex: page,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        }
+
+        return Unauthorized("You are not allowed to access this resource");
     }
-    
-    
+
+
     // API Update status transfer for station staff
-    
+
     [HttpPut("transfer/update")]
     [Authorize(Roles = "StationStaff")]
     [SwaggerOperation(Summary = "Update transfer - StationStaff - Done {Tien}")]
@@ -109,5 +163,4 @@ public class TransferController : BaseController
         var result = await _transferService.UpdateStatus(defineUser.Payload, request);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
-    
 }

@@ -37,6 +37,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Account, AboutMeResponse.AboutStationStaffResponse>();
             CreateMap<Account, AboutMeResponse.AboutAdminResponse>();
             CreateMap<Account, AboutMeResponse.StaffResponse>();
+            CreateMap<Account, AboutMeResponse.CustomerResponseSimple>();
             #endregion
 
             #region Role Mapping
@@ -138,7 +139,7 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<TransferRequestCreate, Transfer>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.TransferStatusEnum.PENDING));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.StationUpdateTransfer.Pending));
 
             CreateMap<Transfer, TransferResponse>()
                 .ForMember(dest => dest.Collected, opt => opt.MapFrom(src => src.Collected))
