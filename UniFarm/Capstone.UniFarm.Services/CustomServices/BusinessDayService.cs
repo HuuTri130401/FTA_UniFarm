@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -229,6 +230,40 @@ namespace Capstone.UniFarm.Services.CustomServices
         public Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId, BusinessDayRequestUpdate businessDayRequestUpdate)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task UpdateEndOfDayForAllBusinessDays()
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+
+                var businessDays = await _unitOfWork.BusinessDayRepository.GetAllBusinessDayNotEndOfDayYet(ed => ed.EndOfDay == null);
+
+                foreach (var existingBusinessDay in businessDays)
+                {
+                    bool islistOrdersCompleted = await _unitOfWork.OrderRepository.AreAllOrdersCompletedForBusinessDay(existingBusinessDay.Id);
+
+                    // Kiểm tra xem tất cả Orders đã hoàn thành chưa
+                    if (islistOrdersCompleted)
+                    {
+                        // Tất cả Orders đã hoàn thành, cập nhật EndOfDay cho BusinessDay
+                        existingBusinessDay.EndOfDay = DateTime.UtcNow.AddHours(7);
+                        existingBusinessDay.Status = CommonEnumStatus.Completed.ToString();
+                        _unitOfWork.BusinessDayRepository.Update(existingBusinessDay);
+                        var checkResult = _unitOfWork.Save();
+                        if (checkResult > 0)
+                        {
+                            _logger.LogInformation($"End Of Day: ! {existingBusinessDay.EndOfDay} | Status: {existingBusinessDay.Status}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in UpdateEndOfDayForAllBusinessDays Service Method!");
+                throw;
+            }
         }
     }
 }

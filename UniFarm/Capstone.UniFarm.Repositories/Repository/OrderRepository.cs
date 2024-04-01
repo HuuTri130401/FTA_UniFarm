@@ -57,6 +57,41 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
         return false;
     }
 
+
+    public async Task<List<Order>> GetAllOrderToUpdateEndOfDay(Guid businessDayId)
+    {
+        return await _dbSet
+            .Where(bd => bd.BusinessDayId == businessDayId)
+            .Where(ord => ord.CustomerStatus == CustomerStatus.Confirmed.ToString())
+            .Where(ipay => ipay.IsPaid == true)
+            .ToListAsync();
+    }
+
+    private readonly HashSet<OrderStatusCompleted> _completedStatuses = new HashSet<OrderStatusCompleted>
+    {
+        OrderStatusCompleted.CanceledByCustomer,
+        OrderStatusCompleted.CanceledByFarmHub,
+        OrderStatusCompleted.CanceledByCollectedHub,
+        OrderStatusCompleted.Expired,
+        OrderStatusCompleted.PickedUp
+    };
+
+    public async Task<bool> AreAllOrdersCompletedForBusinessDay(Guid businessDayId)
+    {
+        var listOrdersCompleted = await _dbSet
+            .Where(bd => bd.BusinessDayId == businessDayId)
+            .ToListAsync();
+
+        if (listOrdersCompleted == null || !listOrdersCompleted.Any())
+        {
+            return false;
+        }
+        //eturn listOrdersCompleted.All(order => _completedStatuses.Contains(Enum.Parse<OrderStatusCompleted>(order.CustomerStatus)));
+        return listOrdersCompleted.All(order =>
+            Enum.TryParse<OrderStatusCompleted>(order.CustomerStatus, out var status) &&
+            _completedStatuses.Contains(status));
+    }
+
     //public async Task<List<Order>> CheckAllOrderProcessedByCollectedHub(Guid batchId)
     //{
     //    return await _dbSet
