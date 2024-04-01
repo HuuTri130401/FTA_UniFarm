@@ -91,6 +91,24 @@ public abstract record EnumConstants
         PickedUp, // Đã nhận hàng
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum OrderStatusCompleted
+    {
+        CanceledByCustomer,
+        CanceledByFarmHub,
+        CanceledByCollectedHub,
+        Expired,
+        PickedUp
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum CommonEnumStatus
+    {
+        Active,
+        Inactive,
+        Completed
+    }
+
     public abstract record ActiveInactiveEnum
     {
         public static readonly string ACTIVE = "Active";
