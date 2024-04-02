@@ -5,6 +5,7 @@ using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +23,7 @@ public class WalletService : IWalletService
         _logger = logger;
         _mapper = mapper;
     }
-    
+
     public async Task<OperationResult<Wallet>> Create(WalletRequest objectRequestCreate)
     {
         var result = new OperationResult<Wallet>();
@@ -44,7 +45,7 @@ public class WalletService : IWalletService
                 result.Payload = null;
             }
         }
-        catch (Exception ex )
+        catch (Exception ex)
         {
             result.AddError(StatusCode.BadRequest, ex.Message);
             _logger.LogError("Wallet create error" + ex.Message);
@@ -60,7 +61,8 @@ public class WalletService : IWalletService
         throw new NotImplementedException();
     }
 
-    public async Task<OperationResult<Wallet>> FindByExpression(Expression<Func<Wallet, bool>> filter = null, string[]? includeProperties = null)
+    public async Task<OperationResult<Wallet>> FindByExpression(Expression<Func<Wallet, bool>> filter = null,
+        string[]? includeProperties = null)
     {
         var result = new OperationResult<Wallet>();
         try
@@ -85,11 +87,57 @@ public class WalletService : IWalletService
             _logger.LogError("Wallet find by expression error " + ex.Message);
             throw;
         }
+
         return result;
     }
-    
 
-    public Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null, Expression<Func<Wallet, bool>>? filter = null, string[]? includeProperties = null,
+    public async Task<OperationResult<WalletResponse>> GetByAccountId(Guid accountId)
+    {
+        var result = new OperationResult<WalletResponse>();
+        try
+        {
+            var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == accountId).FirstOrDefaultAsync();
+            if (wallet != null)
+            {
+                result.StatusCode = StatusCode.Ok;
+                var customer = await _unitOfWork.AccountRepository.FilterByExpression(x => x.Id == accountId).FirstOrDefaultAsync();
+                var customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                
+                var walletResponse = new WalletResponse
+                {
+                    Id = wallet.Id,
+                    AccountId = wallet.AccountId,
+                    Balance = wallet.Balance,
+                    CreatedAt = wallet.CreatedAt,
+                    UpdatedAt = wallet.UpdatedAt,
+                    
+                    Status = wallet.Status,
+                    Account = customerResponse
+                };
+                result.Payload = walletResponse;
+                result.Message = "Get wallet by account id successfully";
+                result.IsError = false;
+            }
+            else
+            {
+                result.IsError = true;
+                result.AddError(StatusCode.NotFound, "Wallet not found!");
+                result.Payload = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            result.AddError(StatusCode.BadRequest, ex.Message);
+            _logger.LogError("Wallet find by expression error " + ex.Message);
+            throw;
+        }
+
+        return result;
+    }
+
+
+    public Task<OperationResult<IEnumerable<Wallet>>> GetAll(bool? isAscending, string? orderBy = null,
+        Expression<Func<Wallet, bool>>? filter = null, string[]? includeProperties = null,
         int pageIndex = 0, int pageSize = 10)
     {
         throw new NotImplementedException();
