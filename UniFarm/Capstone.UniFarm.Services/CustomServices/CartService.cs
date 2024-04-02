@@ -134,22 +134,23 @@ public class CartService : ICartService
             var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
             orderDetailResponse.ProductItemResponse = productItemResponse;
 
-            result.Payload = new OrderResponse.OrderResponseForCustomer(
-                order.Id,
-                order.FarmHubId,
-                order.CustomerId,
-                order.StationId,
-                order.BusinessDayId,
-                order.CreatedAt,
-                order.Code,
-                order.ShipAddress,
-                order.TotalAmount,
-                order.IsPaid,
-                farmHubResponse,
-                businessDayResponse,
-                stationResponse,
-                orderDetailResponse
-            );
+            result.Payload = new OrderResponse.OrderResponseForCustomer()
+            {
+                Id = order.Id,
+                FarmHubId = order.FarmHubId,
+                CustomerId = order.CustomerId,
+                StationId = order.StationId,
+                BusinessDayId = order.BusinessDayId,
+                CreatedAt = order.CreatedAt,
+                Code = order.Code,
+                ShipAddress = order.ShipAddress,
+                TotalAmount = order.TotalAmount,
+                IsPaid = order.IsPaid,
+                FarmHubResponse = farmHubResponse,
+                BusinessDayResponse = businessDayResponse,
+                StationResponse = stationResponse,
+                OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponse }
+            };
             result.Message = EnumConstants.NotificationMessage.CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID;
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
@@ -332,22 +333,23 @@ public class CartService : ICartService
                 {
                     Message = EnumConstants.NotificationMessage.ADD_TO_CART_SUCCESS,
                     StatusCode = StatusCode.Created,
-                    Payload = new OrderResponse.OrderResponseForCustomer(
-                        orderResponse.Id,
-                        orderResponse.FarmHubId,
-                        orderResponse.CustomerId,
-                        orderResponse.StationId,
-                        orderResponse.BusinessDayId,
-                        orderResponse.CreatedAt,
-                        orderResponse.Code,
-                        orderResponse.ShipAddress,
-                        orderResponse.TotalAmount,
-                        orderResponse.IsPaid,
-                        farmHubResponse,
-                        businessDayResponse,
-                        stationResponse,
-                        orderDetailResponseForCustomer
-                    ),
+                    Payload = new OrderResponse.OrderResponseForCustomer()
+                    {
+                        Id = order.Id,
+                        FarmHubId = order.FarmHubId,
+                        CustomerId = order.CustomerId,
+                        StationId = order.StationId,
+                        BusinessDayId = order.BusinessDayId,
+                        CreatedAt = order.CreatedAt,
+                        Code = order.Code,
+                        ShipAddress = order.ShipAddress,
+                        TotalAmount = order.TotalAmount,
+                        IsPaid = order.IsPaid,
+                        FarmHubResponse = farmHubResponse,
+                        BusinessDayResponse = businessDayResponse,
+                        StationResponse = stationResponse,
+                        OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponseForCustomer }
+                    },
                     IsError = false
                 };
             }
@@ -423,22 +425,23 @@ public class CartService : ICartService
                 {
                     Message = EnumConstants.NotificationMessage.CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID,
                     StatusCode = StatusCode.Ok,
-                    Payload = new OrderResponse.OrderResponseForCustomer(
-                        order.Id,
-                        order.FarmHubId,
-                        order.CustomerId,
-                        order.StationId,
-                        order.BusinessDayId,
-                        order.CreatedAt,
-                        order.Code,
-                        order.ShipAddress,
-                        order.TotalAmount,
-                        order.IsPaid,
-                        farmHubResponse,
-                        businessDayResponse,
-                        null,
-                        orderDetailResponseForCustomer
-                    ),
+                    Payload = new OrderResponse.OrderResponseForCustomer()
+                    {
+                        Id = order.Id,
+                        FarmHubId = order.FarmHubId,
+                        CustomerId = order.CustomerId,
+                        StationId = order.StationId,
+                        BusinessDayId = order.BusinessDayId,
+                        CreatedAt = order.CreatedAt,
+                        Code = order.Code,
+                        ShipAddress = order.ShipAddress,
+                        TotalAmount = order.TotalAmount,
+                        IsPaid = order.IsPaid,
+                        FarmHubResponse = farmHubResponse,
+                        BusinessDayResponse = businessDayResponse,
+                        StationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station),
+                        OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponseForCustomer }
+                    }
                 };
             }
         }
@@ -503,22 +506,23 @@ public class CartService : ICartService
                     var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
-                    var orderResponse = new OrderResponse.OrderResponseForCustomer(
-                        order.Id,
-                        order.FarmHubId,
-                        order.CustomerId,
-                        order.StationId,
-                        order.BusinessDayId,
-                        order.CreatedAt,
-                        order.Code,
-                        order.ShipAddress,
-                        order.TotalAmount,
-                        order.IsPaid,
-                        farmHubResponse,
-                        businessDayResponse,
-                        stationResponse,
-                        orderDetailResponse
-                    );
+                    var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                    {
+                        Id = order.Id,
+                        FarmHubId = order.FarmHubId,
+                        CustomerId = order.CustomerId,
+                        StationId = order.StationId,
+                        BusinessDayId = order.BusinessDayId,
+                        CreatedAt = order.CreatedAt,
+                        Code = order.Code,
+                        ShipAddress = order.ShipAddress,
+                        TotalAmount = order.TotalAmount,
+                        IsPaid = order.IsPaid,
+                        FarmHubResponse = farmHubResponse,
+                        BusinessDayResponse = businessDayResponse,
+                        StationResponse = stationResponse,
+                        OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponse }
+                    };
                     orderResponses.Add(orderResponse);
                 }
             }

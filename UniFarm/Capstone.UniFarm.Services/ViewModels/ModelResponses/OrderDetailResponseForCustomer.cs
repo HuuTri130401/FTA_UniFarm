@@ -9,6 +9,6 @@ public record OrderDetailResponseForCustomer
     public double Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public string? Unit { get; set; }
-    public decimal TotalPrice { get; set; }
+    public decimal? TotalPrice { get; set; }
     public ProductItemResponseForCustomer? ProductItemResponse { get; set; }
 }

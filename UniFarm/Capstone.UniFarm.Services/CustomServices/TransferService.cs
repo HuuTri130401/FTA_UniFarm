@@ -142,28 +142,51 @@ public class TransferService : ITransferService
                 ).FirstOrDefaultAsync();
                 if (order != null)
                 {
-                    var orderResponse = new OrderResponse.OrderResponseForCustomer(
-                        order.Id,
-                        order.FarmHubId,
-                        order.CustomerId,
-                        order.StationId,
-                        order.BusinessDayId,
-                        order.CreatedAt,
-                        order.Code,
-                        order.ShipAddress,
-                        order.TotalAmount,
-                        order.IsPaid,
-                        _mapper.Map<FarmHubResponse>(order.FarmHub),
-                        _mapper.Map<BusinessDayResponse>(order.BusinessDay),
-                        _mapper.Map<StationResponse.StationResponseSimple>(checkStation),
-                        null
-                    );
-
+                    
                     var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
                         .FirstOrDefaultAsync();
-                    orderResponse.StationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
-                    orderResponse.FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub);
-                    orderResponse.BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay);
+                    
+                    var orderDetail = await _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == order.Id)
+                        .ToListAsync();
+                    var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
+                    foreach (var detail in orderDetail)
+                    {
+                        var product = await _unitOfWork.ProductItemRepository.FilterByExpression(x => x.Id == detail.ProductItemId)
+                            .FirstOrDefaultAsync();
+                        var productItemResponse = new ProductItemResponseForCustomer();
+                        if (product != null)
+                        {
+                            productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(product);
+                        }
+                        var orderDetailResponse = new OrderDetailResponseForCustomer
+                        {
+                            OrderId = detail.OrderId,
+                            ProductItemId = detail.ProductItemId,
+                            Quantity = detail.Quantity,
+                            UnitPrice = detail.UnitPrice,
+                            Unit = detail.Unit,
+                            TotalPrice = detail.TotalPrice,
+                            ProductItemResponse = productItemResponse
+                        };
+                        orderDetailResponses.Add(orderDetailResponse);
+                    }
+                    var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                    {
+                        Id = order.Id,
+                        FarmHubId = order.FarmHubId,
+                        CustomerId = order.CustomerId,
+                        StationId = order.StationId,
+                        BusinessDayId = order.BusinessDayId,
+                        CreatedAt = order.CreatedAt,
+                        Code = order.Code,
+                        ShipAddress = order.ShipAddress,
+                        TotalAmount = order.TotalAmount,
+                        IsPaid = order.IsPaid,
+                        FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub),
+                        BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay),
+                        StationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station),
+                        OrderDetailResponse = orderDetailResponses
+                    };
                     transferResponse.Orders.Add(orderResponse);
                 }
             }
@@ -339,27 +362,49 @@ public class TransferService : ITransferService
 
             foreach (var order in orders)
             {
-                var orderResponse = new OrderResponse.OrderResponseForCustomer(
-                    order.Id,
-                    order.FarmHubId,
-                    order.CustomerId,
-                    order.StationId,
-                    order.BusinessDayId,
-                    order.CreatedAt,
-                    order.Code,
-                    order.ShipAddress,
-                    order.TotalAmount,
-                    order.IsPaid,
-                    null,
-                    null,
-                    null,
-                    null
-                );
-                
+                var orderDetail = await _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == order.Id)
+                    .ToListAsync();
+                var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
+                foreach (var detail in orderDetail)
+                {
+                    var product = await _unitOfWork.ProductItemRepository.FilterByExpression(x => x.Id == detail.ProductItemId)
+                        .FirstOrDefaultAsync();
+                    var productItemResponse = new ProductItemResponseForCustomer();
+                    if (product != null)
+                    {
+                        productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(product);
+                    }
+                    var orderDetailResponse = new OrderDetailResponseForCustomer
+                    {
+                        OrderId = detail.OrderId,
+                        ProductItemId = detail.ProductItemId,
+                        Quantity = detail.Quantity,
+                        UnitPrice = detail.UnitPrice,
+                        Unit = detail.Unit,
+                        TotalPrice = detail.TotalPrice,
+                        ProductItemResponse = productItemResponse
+                    };
+                    orderDetailResponses.Add(orderDetailResponse);
+                }
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    FarmHubId = order.FarmHubId,
+                    CustomerId = order.CustomerId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = order.TotalAmount,
+                    IsPaid = order.IsPaid,
+                    FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub),
+                    BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay),
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailResponses
+                };
                 orderResponses.Add(orderResponse);
             }
-
-
             var transferResponse = new TransferResponse(
                 transfer.Id,
                 transfer.CollectedId,

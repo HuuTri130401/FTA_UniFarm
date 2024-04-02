@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,8 +29,8 @@ public class OrderForStaffController : BaseController
         [FromQuery] Guid? collectedHubId,
         [FromQuery] string? customerStatus,
         [FromQuery] string? deliveryStatus,
-        [FromQuery] string? orderBy,
-        [FromQuery] bool isAscending,
+        [FromQuery] string? orderBy = "CreatedAt",
+        [FromQuery] bool isAscending = false,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10
     )
@@ -86,8 +87,8 @@ public class OrderForStaffController : BaseController
         [FromQuery] Guid? collectedHubId,
         [FromQuery] string? customerStatus,
         [FromQuery] string? deliveryStatus,
-        [FromQuery] string? orderBy,
-        [FromQuery] bool isAscending,
+        [FromQuery] string? orderBy = "CreatedAt",
+        [FromQuery] bool? isAscending = false,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10
     )
@@ -173,8 +174,20 @@ public class OrderForStaffController : BaseController
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
-        }
-        else
+        } else if (defineUser.Payload.Role == EnumConstants.RoleEnumString.COLLECTEDSTAFF)
+        {
+            var result = await _orderService.GetAllOrdersOfStaff(
+                isAscending: isAscending,
+                orderBy: orderBy,
+                filter: x => x.TransferId == transferId &&
+                             (x.CollectedHubId.ToString() == defineUser.Payload.AuthorizationDecision) &&
+                             (!stationId.HasValue || x.StationId == stationId) &&
+                             (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
+                             (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
+                pageIndex: pageIndex,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+        } else
         {
             var result = await _orderService.GetAllOrdersOfStaff(
                 isAscending: isAscending,
@@ -188,6 +201,7 @@ public class OrderForStaffController : BaseController
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
         }
+        return Unauthorized("You are not allowed to view this transfer's orders");
     }
 
 

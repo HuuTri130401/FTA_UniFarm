@@ -605,4 +605,99 @@ public class OrderService : IOrderService
         }
         return result;
     }
+
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer>>> GetAllOrdersOfCustomer(
+        bool? isAscending, 
+        string? orderBy, 
+        Expression<Func<Order, bool>>? filter = null, 
+        int pageIndex = 0,
+        int pageSize = 10)
+    {
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer>>();
+        try
+        {
+            var orders = await _unitOfWork.OrderRepository
+                .FilterAll(isAscending, orderBy, filter, null, pageIndex, pageSize).ToListAsync();
+            if (!orders.Any())
+            {
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không tìm thấy đơn hàng nào!";
+                result.IsError = false;
+                return result;
+            }
+
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
+            foreach (var order in orders)
+            {
+                var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+                var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+                var businessDay = await _unitOfWork.BusinessDayRepository
+                    .FilterByExpression(x => x.Id == order.BusinessDayId)
+                    .FirstOrDefaultAsync();
+                var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
+                    .FirstOrDefaultAsync();
+
+                var stationResponse = new StationResponse.StationResponseSimple();
+                if (station != null)
+                {
+                    stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+                }
+
+                var orderDetails = await _unitOfWork.OrderDetailRepository
+                    .FilterByExpression(x => x.OrderId == order.Id)
+                    .ToListAsync();
+
+                var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
+
+                foreach (var item in orderDetails)
+                {
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var orderDetailResponse = new OrderDetailResponseForCustomer()
+                    {
+                        ProductItemId = item.ProductItemId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        Unit = item.Unit,
+                        TotalPrice = item.TotalPrice,
+                        ProductItemResponse = productItemResponse
+                    };
+                    orderDetailResponses.Add(orderDetailResponse);
+                }
+
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    CustomerId = order.CustomerId,
+                    FarmHubId = order.FarmHubId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = order.TotalAmount,
+                    IsPaid = order.IsPaid,
+                    FarmHubResponse = farmHubResponse,
+                    BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailResponses
+                };
+                
+                orderResponses.Add(orderResponse);
+            }
+            
+            result.Message = "Lấy danh sách đơn hàng thành công!";
+            result.StatusCode = StatusCode.Ok;
+            result.IsError = false;
+            result.Payload = orderResponses;
+        }
+        catch (Exception e)
+        {
+            result.AddError(StatusCode.ServerError, e.Message);
+            result.Message = "Lấy danh sách đơn hàng thất bại!";
+            result.IsError = true;
+            throw;
+        }
+        return result;
+    }
 }
