@@ -20,6 +20,8 @@ using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.OpenApi.Models;
+using Hangfire;
+using Hangfire.SqlServer;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("Init main");
@@ -48,6 +50,20 @@ try
         });
     });
 
+    //============ Hangfire =============//
+    builder.Services.AddHangfire(configuration => configuration
+       .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+       .UseSimpleAssemblyNameTypeSerializer()
+       .UseRecommendedSerializerSettings()
+       .UseSqlServerStorage(builder.Configuration["ConnectionStrings:DefaultConnection"], new SqlServerStorageOptions
+       {
+           CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+           SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+           QueuePollInterval = TimeSpan.Zero,
+           UseRecommendedIsolationLevel = true,
+           DisableGlobalLocks = true
+       }));
+    builder.Services.AddHangfireServer();
 
     //============ Identity =============//
     builder.Services.AddIdentity<Account, IdentityRole<Guid>>(options =>
@@ -225,6 +241,10 @@ try
     app.UseAuthorization();
     app.MapControllers();
     app.UseCors();
+
+    app.UseHangfireDashboard("/dashboard");
+    RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
+        service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Hourly);
     app.Run();
 
     /*static IEdmModel GetEdmModel()

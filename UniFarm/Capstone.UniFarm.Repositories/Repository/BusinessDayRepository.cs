@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,13 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .OrderByDescending(op => op.OpenDay)
                 //.Include(m => m.Menus)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BusinessDay>> GetAllBusinessDayNotEndOfDayYet(Expression<Func<BusinessDay, bool>> predicate)
+        {
+            return await _dbSet
+                .Where(predicate)
                 .ToListAsync();
         }
 
