@@ -171,6 +171,7 @@ try
     builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
     builder.Services.AddScoped<IBatchService, BatchService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();

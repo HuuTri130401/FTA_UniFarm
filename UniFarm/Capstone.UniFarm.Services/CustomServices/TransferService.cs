@@ -97,6 +97,7 @@ public class TransferService : ITransferService
                 if (order != null)
                 {
                     order.TransferId = transfer.Id;
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.OnTheWayToStation.ToString();
                     await _unitOfWork.OrderRepository.UpdateAsync(order);
                     var countUpdate = await _unitOfWork.SaveChangesAsync();
                     if (countUpdate == 0)
@@ -112,8 +113,6 @@ public class TransferService : ITransferService
             }
 
             transfer.Status = EnumConstants.StationUpdateTransfer.Pending.ToString();
-            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
-
             var transferResponse = new TransferResponse(
                 transfer.Id,
                 transfer.CollectedId,
