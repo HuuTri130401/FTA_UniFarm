@@ -677,6 +677,8 @@ public class OrderService : IOrderService
                     ShipAddress = order.ShipAddress,
                     TotalAmount = order.TotalAmount,
                     IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
                     FarmHubResponse = farmHubResponse,
                     BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
                     StationResponse = stationResponse,

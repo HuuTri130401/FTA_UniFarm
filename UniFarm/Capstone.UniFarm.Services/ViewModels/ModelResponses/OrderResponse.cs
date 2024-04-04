@@ -40,6 +40,8 @@ public abstract record OrderResponse
         public string? ShipAddress { get; set; }
         public decimal? TotalAmount { get; set; }
         public bool? IsPaid { get; set; }
+        public string? FullName { get; set; }
+        public string? PhoneNumber { get; set; }
         public FarmHubResponse? FarmHubResponse { get; set; }
         public BusinessDayResponse? BusinessDayResponse { get; set; }
         public StationResponse.StationResponseSimple? StationResponse { get; set; }
