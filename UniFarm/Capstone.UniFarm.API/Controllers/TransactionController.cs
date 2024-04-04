@@ -26,7 +26,7 @@ public class TransactionController : BaseController
     public async Task<IActionResult> GetAll(
         [FromQuery] string? status,
         [FromQuery] DateTime? paymentDate,
-        [FromQuery] bool? isAscending,
+        [FromQuery] bool? isAscending = false,
         [FromQuery] string? orderBy = "paymentDate",
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10)

@@ -22,6 +22,8 @@ namespace Capstone.UniFarm.Domain.Models
         public decimal? TotalPrice { get; set; }
         [Column(TypeName = "decimal(18, 2)")] 
         public decimal? TotalOriginPrice { get; set; }
+        public bool? IsDeleted { get; set; }
+        
         [ForeignKey(nameof(OrderId))]
         [InverseProperty("OrderDetails")]
         public virtual Order Order { get; set; } = null!;
