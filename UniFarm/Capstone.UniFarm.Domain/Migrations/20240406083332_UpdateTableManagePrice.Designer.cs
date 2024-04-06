@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240406083332_UpdateTableManagePrice")]
+    partial class UpdateTableManagePrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -641,17 +643,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<Guid>("FarmHubId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("FullName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool?>("IsPaid")
                         .HasColumnType("bit");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShipAddress")
                         .HasMaxLength(255)
@@ -705,9 +698,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
-
-                    b.Property<bool?>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");

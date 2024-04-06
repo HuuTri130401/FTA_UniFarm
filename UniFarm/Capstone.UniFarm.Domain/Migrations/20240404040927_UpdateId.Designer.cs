@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240404040927_UpdateId")]
+    partial class UpdateId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -515,17 +517,11 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<decimal>("CommissionFee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("DailyFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DeliveryFeeOfOrder")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<Guid>("FarmHubId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("NumOfOrder")
-                        .HasColumnType("int");
+                    b.Property<decimal>("OtherFees")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime2");
@@ -534,22 +530,18 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("PriceTableId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Profit")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("TotalSales")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TransactionDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessDayId");
 
                     b.HasIndex("FarmHubId");
-
-                    b.HasIndex("PriceTableId");
 
                     b.ToTable("FarmHubSettlement");
                 });
@@ -641,17 +633,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<Guid>("FarmHubId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("FullName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool?>("IsPaid")
                         .HasColumnType("bit");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShipAddress")
                         .HasMaxLength(255)
@@ -705,9 +688,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
-
-                    b.Property<bool?>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
@@ -780,62 +760,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("Payment");
-                });
-
-            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTable", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("FromDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ToDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PriceTable");
-                });
-
-            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTableItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("FromAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MaxFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MinFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Percentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("PriceTableId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("ToAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceTableId");
-
-                    b.ToTable("PriceTableItem");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>
@@ -1400,17 +1324,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone.UniFarm.Domain.Models.PriceTable", "PriceTable")
-                        .WithMany()
-                        .HasForeignKey("PriceTableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("BusinessDay");
 
                     b.Navigation("FarmHub");
-
-                    b.Navigation("PriceTable");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Menu", b =>
@@ -1501,17 +1417,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasConstraintName("FK__Payment__WalletI__778AC167");
 
                     b.Navigation("Wallet");
-                });
-
-            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTableItem", b =>
-                {
-                    b.HasOne("Capstone.UniFarm.Domain.Models.PriceTable", "PriceTable")
-                        .WithMany("PriceTableItems")
-                        .HasForeignKey("PriceTableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PriceTable");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>
@@ -1762,11 +1667,6 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Transactions");
-                });
-
-            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTable", b =>
-                {
-                    b.Navigation("PriceTableItems");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>
