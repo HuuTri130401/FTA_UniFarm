@@ -300,6 +300,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<string>("FeedBackImage")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NumberOfOrdersInBatch")
+                        .HasColumnType("int");
+
                     b.Property<string>("ReceivedDescription")
                         .HasColumnType("nvarchar(max)");
 
@@ -498,6 +501,60 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FarmHub");
+                });
+
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.FarmHubSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("AmountToBePaid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BusinessDayId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("CommissionFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DailyFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DeliveryFeeOfOrder")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("FarmHubId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("NumOfOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("PriceTableId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Profit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessDayId");
+
+                    b.HasIndex("FarmHubId");
+
+                    b.HasIndex("PriceTableId");
+
+                    b.ToTable("FarmHubSettlement");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Menu", b =>
@@ -717,6 +774,62 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("Payment");
+                });
+
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PriceTable");
+                });
+
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTableItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("FromAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MaxFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MinFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Percentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PriceTableId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ToAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceTableId");
+
+                    b.ToTable("PriceTableItem");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>
@@ -1267,6 +1380,33 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Navigation("FarmHub");
                 });
 
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.FarmHubSettlement", b =>
+                {
+                    b.HasOne("Capstone.UniFarm.Domain.Models.BusinessDay", "BusinessDay")
+                        .WithMany("FarmHubSettlements")
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Capstone.UniFarm.Domain.Models.FarmHub", "FarmHub")
+                        .WithMany("FarmHubSettlements")
+                        .HasForeignKey("FarmHubId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Capstone.UniFarm.Domain.Models.PriceTable", "PriceTable")
+                        .WithMany()
+                        .HasForeignKey("PriceTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BusinessDay");
+
+                    b.Navigation("FarmHub");
+
+                    b.Navigation("PriceTable");
+                });
+
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Menu", b =>
                 {
                     b.HasOne("Capstone.UniFarm.Domain.Models.BusinessDay", "BusinessDay")
@@ -1355,6 +1495,17 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasConstraintName("FK__Payment__WalletI__778AC167");
 
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTableItem", b =>
+                {
+                    b.HasOne("Capstone.UniFarm.Domain.Models.PriceTable", "PriceTable")
+                        .WithMany("PriceTableItems")
+                        .HasForeignKey("PriceTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PriceTable");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>
@@ -1563,6 +1714,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                 {
                     b.Navigation("Batches");
 
+                    b.Navigation("FarmHubSettlements");
+
                     b.Navigation("Menus");
 
                     b.Navigation("Orders");
@@ -1584,6 +1737,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                 {
                     b.Navigation("Batches");
 
+                    b.Navigation("FarmHubSettlements");
+
                     b.Navigation("Menus");
 
                     b.Navigation("Orders");
@@ -1601,6 +1756,11 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Capstone.UniFarm.Domain.Models.PriceTable", b =>
+                {
+                    b.Navigation("PriceTableItems");
                 });
 
             modelBuilder.Entity("Capstone.UniFarm.Domain.Models.Product", b =>

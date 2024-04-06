@@ -13,13 +13,14 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
     {
         [Required(ErrorMessage = "CollectedId is required")]
         public Guid CollectedId { get; set; }
-        //[Required(ErrorMessage = "FarmHubId is required")]
-        //public Guid FarmHubId { get; set; }
+
         [Required(ErrorMessage = "BusinessDayId is required")]
         public Guid BusinessDayId { get; set; }
+        public Guid[] OrderIds { get; set; }
+
         //public DateTime? FarmShipDate { get; set; }
-
-
+        //[Required(ErrorMessage = "FarmHubId is required")]
+        //public Guid FarmHubId { get; set; }
         //public DateTime? CollectedHubReceiveDate { get; set; }
         //public string ReceivedDescription { get; set; }
         //public string FeedBackImage { get; set; }

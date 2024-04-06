@@ -19,7 +19,8 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<bool>> CollectedHubProcessBatch(Guid collectedStaffId, Guid batchId, BatchRequestUpdate batchRequestUpdate);
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
+        Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatchesInBusinessDay(Guid farmHubId, Guid businessDayId);
         Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId);
-        Task<OperationResult<List<BatchDetailResponse>>> GetAllOrdersInBatch(Guid batchId);
+        Task<OperationResult<BatchDetailResponse>> GetAllOrdersInBatch(Guid batchId);
     }
 }

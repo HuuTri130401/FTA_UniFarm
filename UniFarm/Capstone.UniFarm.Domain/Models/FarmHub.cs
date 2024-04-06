@@ -43,5 +43,6 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual ICollection<Order> Orders { get; set; }
         [InverseProperty(nameof(ProductItem.FarmHub))]
         public virtual ICollection<ProductItem> ProductItems { get; set; }
+        public virtual ICollection<FarmHubSettlement> FarmHubSettlements { get; set; }
     }
 }

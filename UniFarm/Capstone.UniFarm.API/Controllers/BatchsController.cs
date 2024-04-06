@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.CustomServices;
+﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -45,6 +46,15 @@ namespace Capstone.UniFarm.API.Controllers
         public async Task<IActionResult> FarmHubGetAllBatches(Guid farmHubId)
         {
             var response = await _batchService.FarmHubGetAllBatches(farmHubId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "FarmHub Get Batches In Businessday - FARMHUB - {Huu Tri}")]
+        [HttpGet("batches/farmhub{farmHubId}/business-day/{businessDayId}")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> FarmHubGetAllBatchesInBussinessDay(Guid farmHubId, Guid businessDayId)
+        {
+            var response = await _batchService.FarmHubGetAllBatchesInBusinessDay(farmHubId, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

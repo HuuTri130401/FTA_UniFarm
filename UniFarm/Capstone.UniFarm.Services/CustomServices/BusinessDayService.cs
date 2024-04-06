@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using static Capstone.UniFarm.Domain.Enum.EnumConstants;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -255,6 +256,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         if (checkResult > 0)
                         {
                             _logger.LogInformation($"End Of Day: ! {existingBusinessDay.EndOfDay} | Status: {existingBusinessDay.Status}");
+                            result.AddResponseStatusCode(StatusCode.Ok, $"Get Dashboard End Of Day!", true);
                         }
                     }
                 }
