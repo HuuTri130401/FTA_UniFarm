@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
@@ -200,13 +201,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
-                //var checkListOrder = await _unitOfWork.OrderRepository.FarmHubGetAllOrderToProcess(farmHubId);
-                //if(checkListOrder == null)
-                //{
-                //    result.AddError(StatusCode.BadRequest, $"Can not Create Batch Because not Have Any Order!");
-                //    return result;
-                //}
-
                 var batch = _mapper.Map<Batch>(batchRequest);
                 batch.Id = Guid.NewGuid();
                 batch.FarmShipDate = DateTime.UtcNow.AddHours(7);
@@ -215,13 +209,29 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 await _unitOfWork.BatchesRepository.AddAsync(batch);
 
-                foreach (var order in listOrderConfirmed)
+                List<Guid> notFoundOrderIds = new List<Guid>();
+
+                foreach (var orderId in batchRequest.OrderIds)
                 {
-                    order.BatchId = batch.Id; // Update Batch For Each Order
-                    order.CollectedHubId = CollectedHub.Id; // Update CollecedId For FarmHub Ship 
-                    order.CustomerStatus = CustomerStatus.OnDelivery.ToString();
-                    order.DeliveryStatus = DeliveryStatus.OnTheWayToCollectedHub.ToString();
-                    _unitOfWork.OrderRepository.Update(order);
+                    var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+                    if (order == null)
+                    {
+                        notFoundOrderIds.Add(orderId);
+                    }
+                    else
+                    {
+                        order.BatchId = batch.Id; // Update Batch For Each Order
+                        order.CollectedHubId = CollectedHub.Id; // Update CollecedId For FarmHub Ship 
+                        order.CustomerStatus = CustomerStatus.OnDelivery.ToString();
+                        order.DeliveryStatus = DeliveryStatus.OnTheWayToCollectedHub.ToString();
+                        _unitOfWork.OrderRepository.Update(order);
+                    }
+                }
+
+                if (notFoundOrderIds.Any())
+                {
+                    result.AddError(StatusCode.NotFound, $"Not Found orders with Ids: {string.Join(", ", notFoundOrderIds)}");
+                    return result;
                 }
 
                 var checkResult = _unitOfWork.Save();

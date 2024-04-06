@@ -43,6 +43,7 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Include(fr => fr.FarmHub)
                 .Include(bs => bs.BusinessDay)
                 .Include(od => od.Orders)
+                .ThenInclude(odt => odt.OrderDetails)
                 .FirstOrDefaultAsync(bt => bt.Id == batchId);
 
             int orderCount = 0;
