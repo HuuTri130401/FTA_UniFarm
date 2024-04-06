@@ -111,6 +111,7 @@ public class OrderForStaffController : BaseController
                 filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
+                             (x.TransferId != null) &&
                              (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
                              (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
                 pageIndex: pageIndex,

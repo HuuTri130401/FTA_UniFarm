@@ -14,5 +14,8 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<bool>> AddProductItemToMenu(Guid menuId, ProductItemInMenuRequest productItemInMenuRequest);
         Task<OperationResult<List<ProductItemInMenuResponse>>> GetProductItemsInMenuByMenuId(Guid menuId);
         Task<OperationResult<bool>> RemoveProductItemFromMenu(Guid productItemInMenuId);
+        
+        // Dashboard FarmHub
+        Task<OperationResult<IEnumerable<ProductItemSellingPercentRatio>>> GetProductItemSellingPercentRatio(Guid farmHubId, Guid businessDayId);
     }
 }

@@ -172,6 +172,7 @@ try
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<ISettlementService, SettlementService>();
 
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();

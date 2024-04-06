@@ -30,6 +30,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(b => b.BusinessDay)
+                .Include(f => f.Collected)
                 .Where(fr => fr.FarmHubId == farmhubId)
                 .OrderByDescending(fs => fs.FarmShipDate)
                 .ToListAsync();

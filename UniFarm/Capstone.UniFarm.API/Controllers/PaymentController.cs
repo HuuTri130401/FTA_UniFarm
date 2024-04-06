@@ -1,4 +1,6 @@
-﻿using Capstone.UniFarm.API.Configurations;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Capstone.UniFarm.API.Configurations;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -20,51 +22,77 @@ public class PaymentController : BaseController
         _vnPayConfig = vnPayConfig;
     }
 
-    [HttpPost]
-    [Route("/payment")]
+    [HttpPost("/payment")]
     public IActionResult ProcessPayment()
     {
         if (!_vnPayConfig.IsConfigured())
         {
             return StatusCode(500, "VNPay is not properly configured.");
         }
+
         string paymentUrl = GetPaymentUrl();
         return Redirect(paymentUrl);
     }
 
     private string GetPaymentUrl()
     {
-        var version = "2.0.0";
-        var command = "pay";
-        var amount = "10000000";
-        var tmnCode = _vnPayConfig.vnp_TmnCode;
-        var createDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+        var vnp_Amount = 1000000;
+        var vnp_BankCode = _vnPayConfig.vnp_BankCode;
+        var vnp_BankTranNo = _vnPayConfig.vnp_TxnRef;
+        var vnp_CardType = _vnPayConfig.vnp_CardType;
+        var vnp_PayDate = _vnPayConfig.vnp_CreateDate;
+        var vnp_OrderInfo = _vnPayConfig.vnp_OrderInfo;
+        var vnp_ResponseCode = "00";
+        var vnp_TmnCode = _vnPayConfig.vnp_TmnCode;
+        var vnp_TransactionNo = _vnPayConfig.vnp_TxnRef;
+        var vnp_TransactionStatus = 00;
+        var vnp_TxnRef = _vnPayConfig.vnp_TxnRef;
+        var version = _vnPayConfig.vnp_Version;
+        var command = _vnPayConfig.vnp_Command;
         var returnUrl = _vnPayConfig.vnp_Returnurl;
 
-        var paymentUrl = $"{_vnPayConfig.vnp_Url}?" +
-                         $"vnp_Version={version}&" +
-                         $"vnp_Command={command}&" +
-                         $"vnp_TmnCode={tmnCode}&" +
-                         $"vnp_Amount={amount}&" +
-                         $"vnp_CreateDate={createDate}&" +
-                         $"vnp_ReturnUrl={returnUrl}";
+        var vnp_Params = new Dictionary<string, string>
+        {
+            { "vnp_Version", version },
+            { "vnp_Command", command },
+            { "vnp_TmnCode", vnp_TmnCode },
+            { "vnp_BankCode", vnp_BankCode },
+            { "vnp_BankTranNo", vnp_BankTranNo },
+            { "vnp_CardType", vnp_CardType },
+            { "vnp_PayDate", vnp_PayDate },
+            { "vnp_OrderInfo", vnp_OrderInfo },
+            { "vnp_TransactionNo", vnp_TransactionNo.ToString() },
+            { "vnp_ResponseCode", vnp_ResponseCode },
+            { "vnp_TransactionStatus", vnp_TransactionStatus.ToString() },
+            { "vnp_TxnRef", vnp_TxnRef.ToString() },
+            { "vnp_SecureHashType", "SHA256" },
+            { "vnp_Returnurl", returnUrl }
+        };
+        
+        var vnp_SecureHash = _vnPayConfig.vnp_HashSecret;
+        var vnp_Url = _vnPayConfig.vnp_Url;
+        
+        var query = vnp_Params
+            .OrderBy(x => x.Key)
+            .Aggregate("", (current, next) => current + $"{next.Key}={next.Value}&");
+        
+        query = query.Substring(0, query.Length - 1);
+        query += $"&vnp_Amount={vnp_Amount}";
+        query += $"&vnp_SecureHash={vnp_SecureHash}";
+        var paymentUrl = $"{vnp_Url}?{query}";
         return paymentUrl;
     }
-    
+
     [HttpPost]
     [Route("/api/v1/vnpay/return")]
     public IActionResult VNPayReturn([FromQuery] string vnp_ResponseCode, [FromQuery] string vnp_TransactionNo)
     {
-        // Process VNPay return data
-        // Example: Log the response code and transaction number
         Console.WriteLine($"VNPay Response Code: {vnp_ResponseCode}");
         Console.WriteLine($"VNPay Transaction No: {vnp_TransactionNo}");
 
         // You can return any response here, such as an OkResult or custom response.
         return Ok();
     }
-
-
 
     /*[HttpPost("payment")]
     public async Task<IActionResult> CreatePayment(PaymentRequestCreate paymentRequest)

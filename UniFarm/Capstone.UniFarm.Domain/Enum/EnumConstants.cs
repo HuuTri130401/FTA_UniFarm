@@ -151,6 +151,7 @@ public abstract record EnumConstants
         public static readonly string CREATE_CART_SUCCESS = "Create cart success";
         public static readonly string CREATE_CART_FAILURE = "Create cart failure";
         public static readonly string UPDATE_CART_SUCCESS = "Update cart success";
+        public static readonly string UPDATE_CART_FAILURE = "Update cart failure";
         public static readonly string CREATE_CART_ORDER_DETAIL_SUCCESS = "Create cart order detail success";
         public static readonly string CREATE_CART_ORDER_DETAIL_FAILURE = "Create cart order detail failure";
         public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Update cart order detail success";

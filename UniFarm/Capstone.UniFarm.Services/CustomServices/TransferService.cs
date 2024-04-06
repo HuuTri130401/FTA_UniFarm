@@ -97,6 +97,7 @@ public class TransferService : ITransferService
                 if (order != null)
                 {
                     order.TransferId = transfer.Id;
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.OnTheWayToStation.ToString();
                     await _unitOfWork.OrderRepository.UpdateAsync(order);
                     var countUpdate = await _unitOfWork.SaveChangesAsync();
                     if (countUpdate == 0)
@@ -112,8 +113,6 @@ public class TransferService : ITransferService
             }
 
             transfer.Status = EnumConstants.StationUpdateTransfer.Pending.ToString();
-            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
-
             var transferResponse = new TransferResponse(
                 transfer.Id,
                 transfer.CollectedId,
@@ -182,6 +181,8 @@ public class TransferService : ITransferService
                         ShipAddress = order.ShipAddress,
                         TotalAmount = order.TotalAmount,
                         IsPaid = order.IsPaid,
+                        FullName = order.FullName,
+                        PhoneNumber = order.PhoneNumber,
                         FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub),
                         BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay),
                         StationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station),
@@ -398,6 +399,8 @@ public class TransferService : ITransferService
                     ShipAddress = order.ShipAddress,
                     TotalAmount = order.TotalAmount,
                     IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
                     FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub),
                     BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay),
                     StationResponse = stationResponse,

@@ -45,6 +45,9 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ShippedDate { get; set; }
         public Guid? ShipByStationStaffId { get; set; }
         public bool? IsPaid { get; set; }
+        public bool? IsDeleted { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? FullName { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]
         [InverseProperty("Orders")]

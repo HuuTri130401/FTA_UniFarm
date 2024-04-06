@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -20,14 +21,16 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly ILogger<ProductItemInMenuService> _logger;
         private readonly IMapper _mapper;
 
-        public ProductItemInMenuService(IUnitOfWork unitOfWork, ILogger<ProductItemInMenuService> logger, IMapper mapper)
+        public ProductItemInMenuService(IUnitOfWork unitOfWork, ILogger<ProductItemInMenuService> logger,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<bool>> AddProductItemToMenu(Guid menuId, ProductItemInMenuRequest productItemInMenuRequest)
+        public async Task<OperationResult<bool>> AddProductItemToMenu(Guid menuId,
+            ProductItemInMenuRequest productItemInMenuRequest)
         {
             var result = new OperationResult<bool>();
             try
@@ -38,16 +41,19 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"Menu with id: {menuId} not found!");
                     return result;
                 }
-                var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenuRequest.ProductItemId);
+
+                var existingProductItem =
+                    await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenuRequest.ProductItemId);
                 if (existingProductItem == null)
                 {
-                    result.AddError(StatusCode.NotFound, $"ProductItem with id: {productItemInMenuRequest.ProductItemId} not found!");
+                    result.AddError(StatusCode.NotFound,
+                        $"ProductItem with id: {productItemInMenuRequest.ProductItemId} not found!");
                     return result;
                 }
 
                 if (existingMenu != null && existingProductItem != null)
                 {
-                    if(existingMenu.FarmHubId != existingProductItem.FarmHubId)
+                    if (existingMenu.FarmHubId != existingProductItem.FarmHubId)
                     {
                         result.AddError(StatusCode.NotFound, $"Menu and ProductItem must belong to the same FarmHub!");
                         return result;
@@ -72,9 +78,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                             existingProductItem.Status = "Registered";
                             _unitOfWork.ProductItemRepository.Update(existingProductItem);
                             var checkUpdateStatusProductItem = _unitOfWork.Save();
-                            if(checkUpdateStatusProductItem > 0)
+                            if (checkUpdateStatusProductItem > 0)
                             {
-                                result.AddResponseStatusCode(StatusCode.Created, "Add Product Item to Menu Success!", true);
+                                result.AddResponseStatusCode(StatusCode.Created, "Add Product Item to Menu Success!",
+                                    true);
                             }
                         }
                         else
@@ -83,6 +90,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         }
                     }
                 }
+
                 return result;
             }
             catch (Exception)
@@ -96,16 +104,21 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<List<ProductItemInMenuResponse>>();
             try
             {
-                var listProductItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
+                var listProductItemsInMenu =
+                    await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
                 var productItemsInMenuIsActive = listProductItemsInMenu.Where(pi => pi.Status != "Inactive").ToList();
-                var listProductItemsInMenuResponse = _mapper.Map<List<ProductItemInMenuResponse>>(productItemsInMenuIsActive);
+                var listProductItemsInMenuResponse =
+                    _mapper.Map<List<ProductItemInMenuResponse>>(productItemsInMenuIsActive);
 
                 if (listProductItemsInMenuResponse == null || !listProductItemsInMenuResponse.Any())
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items In Menu with Menu Id {menuId} is Empty!", listProductItemsInMenuResponse);
+                    result.AddResponseStatusCode(StatusCode.Ok,
+                        $"List Product Items In Menu with Menu Id {menuId} is Empty!", listProductItemsInMenuResponse);
                     return result;
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In Menu Done.", listProductItemsInMenuResponse);
+
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In Menu Done.",
+                    listProductItemsInMenuResponse);
                 return result;
             }
             catch (Exception ex)
@@ -120,7 +133,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<bool>();
             try
             {
-                var existingProductItemInMenu = await _unitOfWork.ProductItemInMenuRepository.GetByIdAsync(productItemInMenuId);
+                var existingProductItemInMenu =
+                    await _unitOfWork.ProductItemInMenuRepository.GetByIdAsync(productItemInMenuId);
 
                 if (existingProductItemInMenu != null)
                 {
@@ -131,7 +145,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         var productItemId = existingProductItemInMenu.ProductItemId;
                         // check product item belong to orther menu ?
-                        var otherMenusForProduct = await _unitOfWork.ProductItemInMenuRepository.FindStatusProductItem(p => p.ProductItemId == productItemId && p.Status != "Inactive");
+                        var otherMenusForProduct =
+                            await _unitOfWork.ProductItemInMenuRepository.FindStatusProductItem(p =>
+                                p.ProductItemId == productItemId && p.Status != "Inactive");
                         var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
                         var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
                         existingProductItem.Status = newStatus;
@@ -139,18 +155,22 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var checkUpdateStatusProductItem = _unitOfWork.Save();
                         if (checkUpdateStatusProductItem > 0)
                         {
-                            result.AddResponseStatusCode(StatusCode.Ok, $"Delete Product Item In Menu have Id: {productItemInMenuId} Success.", true);
+                            result.AddResponseStatusCode(StatusCode.Ok,
+                                $"Delete Product Item In Menu have Id: {productItemInMenuId} Success.", true);
                         }
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Delete Product Item In Menu Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Delete Product Item In Menu Failed!");
+                        ;
                     }
                 }
                 else
                 {
-                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product Item In Menu have Id: {productItemInMenuId}. Delete Faild!.", false);
+                    result.AddResponseStatusCode(StatusCode.NotFound,
+                        $"Can't find Product Item In Menu have Id: {productItemInMenuId}. Delete Faild!.", false);
                 }
+
                 return result;
             }
             catch (Exception)
@@ -159,5 +179,87 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<IEnumerable<ProductItemSellingPercentRatio>>>
+            GetProductItemSellingPercentRatio(Guid farmHubId, Guid businessDayId)
+        {
+            var result = new OperationResult<IEnumerable<ProductItemSellingPercentRatio>>();
+            try
+            {
+                var menu = _unitOfWork.MenuRepository
+                    .FilterByExpression(x => x.FarmHubId == farmHubId && x.BusinessDayId == businessDayId)
+                    .FirstOrDefault();
+                if (menu == null)
+                {
+                    result.StatusCode = StatusCode.NotFound;
+                    result.Message = $"Menu with FarmHub Id {farmHubId} and BusinessDay Id {businessDayId} not found!";
+                    result.AddError(StatusCode.NotFound,
+                        $"Menu with FarmHub Id {farmHubId} and BusinessDay Id {businessDayId} not found!");
+                    result.IsError = true;
+                    return result;
+                }
+
+
+                var productItemsInMenu =
+                    await _unitOfWork.ProductItemInMenuRepository
+                        .GetAllWithoutPaging(null, null, x => x.MenuId == menu.Id).ToListAsync();
+                var productItemsInMenuResponse = new List<ProductItemSellingPercentRatio>();
+                if (!productItemsInMenu.Any())
+                {
+                    result.StatusCode = StatusCode.NotFound;
+                    result.Message = $"Product Items In Menu with Menu Id {menu.Id} not found!";
+                    result.AddError(StatusCode.NotFound, $"Product Items In Menu with Menu Id {menu.Id} not found!");
+                    result.IsError = true;
+                    return result;
+                }
+
+                foreach (var productItemInMenu in productItemsInMenu)
+                {
+                    var productItem =
+                        await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
+                    if (productItem == null)
+                    {
+                        result.StatusCode = StatusCode.NotFound;
+                        result.Message = $"Product Item with Id {productItemInMenu.ProductItemId} not found!";
+                        result.AddError(StatusCode.NotFound,
+                            $"Product Item with Id {productItemInMenu.ProductItemId} not found!");
+                        result.IsError = true;
+                        return result;
+                    }
+
+
+                    var soldPercent = productItemInMenu.Quantity == 0 || productItemInMenu.Sold == 0
+                        ? 0
+                        : productItemInMenu.Sold / productItemInMenu.Quantity * 100;
+                    if (soldPercent > 0)
+                    {
+                        soldPercent = Math.Round(soldPercent ?? 0, 2);
+                    }
+                    var productItemSellingPercentRatio = new ProductItemSellingPercentRatio
+                    {
+                        ProductItemId = productItem.Id,
+                        Title = productItem.Title,
+                        SalePrice = productItemInMenu.SalePrice,
+                        Quantity = productItemInMenu.Quantity,
+                        Sold = productItemInMenu.Sold,
+                        Status = productItemInMenu.Status!,
+                        SoldPercent = soldPercent
+                    };
+                    productItemsInMenuResponse.Add(productItemSellingPercentRatio);
+                }
+
+                result.StatusCode = StatusCode.Ok;
+                result.Message = "Get Product Item Selling Percent Ratio Success!";
+                result.Payload = productItemsInMenuResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetProductItemSellingPercentRatio Service Method");
+                result.IsError = true;
+                result.StatusCode = StatusCode.ServerError;
+                throw;
+            }
+
+            return result;
+        }
     }
 }
