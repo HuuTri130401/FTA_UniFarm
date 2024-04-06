@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Repositories.Repository;
 
@@ -33,7 +34,10 @@ public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetai
                 .ThenInclude(pi => pi.Product)
                     .ThenInclude(p => p.Category)
             .Where(od => od.Order != null && od.Order.FarmHubId == farmHubId && od.Order.BusinessDayId == businessDayId)
-            .SumAsync(od => od.Quantity * od.ProductItem.Product.Category.SystemPrice * (double)od.UnitPrice);
+                        .Where(od => od.Order.CustomerStatus == CustomerStatus.CanceledByCollectedHub.ToString()
+                          || od.Order.CustomerStatus == CustomerStatus.PickedUp.ToString()
+                          || od.Order.CustomerStatus == CustomerStatus.Expired.ToString())
+            .SumAsync(od => od.Quantity * (od.ProductItem.Product.Category.SystemPrice / 100) * (double)od.UnitPrice);
         return (decimal)commissionFees;
     }
 

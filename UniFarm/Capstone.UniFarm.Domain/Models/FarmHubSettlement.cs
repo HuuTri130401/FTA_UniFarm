@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace Capstone.UniFarm.Domain.Models
 {
@@ -21,8 +22,11 @@ namespace Capstone.UniFarm.Domain.Models
         public Guid BusinessDayId { get; set; }
         [ForeignKey("PriceTable")]
         public Guid PriceTableId { get; set; }
+        [JsonIgnore]
         public virtual FarmHub FarmHub { get; set; }
+        [JsonIgnore]
         public virtual BusinessDay BusinessDay { get; set; }
+        [JsonIgnore]
         public virtual PriceTable PriceTable { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
