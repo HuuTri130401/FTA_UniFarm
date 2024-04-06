@@ -37,5 +37,6 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual ICollection<Menu> Menus { get; set; }
         [InverseProperty(nameof(Order.BusinessDay))]
         public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<FarmHubSettlement> FarmHubSettlements { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage;
+using Capstone.UniFarm.Repositories.Repository;
 
 namespace Capstone.UniFarm.Repositories.UnitOfWork
 {
@@ -34,7 +35,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         public IPaymentRepository PaymentRepository { get; }
         public IBatchRepository BatchesRepository { get; }
         public ITransactionRepository TransactionRepository { get; }
-
+        public IFarmHubSettlementRepository FarmHubSettlementRepository { get; }
+        public IPriceTableRepository PriceTableRepository { get; }
+        public IPriceTableItemRepository PriceTableItemRepository { get; }
         public UnitOfWork(FTAScript_V1Context dbContext,
             ICategoryRepository categoryRepo,
             IAreaRepository areaRepo,
@@ -57,7 +60,10 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             ITransferRepository transferRepository,
             IApartmentStationRepository apartmentStationRepository,
             IBatchRepository batchRepository,
-            ITransactionRepository transactionRepository
+            ITransactionRepository transactionRepository,
+            IFarmHubSettlementRepository farmHubSettlementRepository,
+            IPriceTableRepository priceTableRepository,
+            IPriceTableItemRepository priceTableItemRepository
         )
         {
             _dbContext = dbContext;
@@ -83,6 +89,9 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
             ApartmentStationRepository = apartmentStationRepository;
             BatchesRepository = batchRepository;
             TransactionRepository = transactionRepository;
+            FarmHubSettlementRepository = farmHubSettlementRepository;
+            PriceTableRepository = priceTableRepository;
+            PriceTableItemRepository = priceTableItemRepository;
         }
         
         public void Dispose()

@@ -15,5 +15,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId);
         Task<bool> IsUniqueOpenDay(DateTime openDay);
         Task<IEnumerable<BusinessDay>> GetAllBusinessDayNotEndOfDayYet(Expression<Func<BusinessDay, bool>> predicate);
+        Task<List<BusinessDay>> GetAllBusinessDayCompletedEndOfDay();
     }
 }

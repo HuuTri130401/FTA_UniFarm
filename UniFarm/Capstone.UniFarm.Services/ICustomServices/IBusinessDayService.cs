@@ -1,4 +1,5 @@
-﻿using Capstone.UniFarm.Services.Commons;
+﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using System;

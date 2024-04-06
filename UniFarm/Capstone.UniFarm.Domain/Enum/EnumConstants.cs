@@ -106,7 +106,8 @@ public abstract record EnumConstants
     {
         Active,
         Inactive,
-        Completed
+        Completed,
+        Paid
     }
 
     public abstract record ActiveInactiveEnum

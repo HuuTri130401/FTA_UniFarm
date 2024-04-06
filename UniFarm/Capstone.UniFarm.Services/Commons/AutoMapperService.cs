@@ -203,6 +203,12 @@ namespace Capstone.UniFarm.Services.Commons
                 //.ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
                 //.ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
                 .ReverseMap();
+
+            CreateMap<FarmHubSettlement, FarmHubSettlementRequest>().ReverseMap();
+            CreateMap<FarmHubSettlement, FarmHubSettlementResponse>()
+                .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ForMember(dest => dest.BusinessOpenday, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
+                .ReverseMap();
         }
     }
 }

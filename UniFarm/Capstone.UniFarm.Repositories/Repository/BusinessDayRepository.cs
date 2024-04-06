@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Repositories.Repository
 {
@@ -22,6 +23,13 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .OrderByDescending(op => op.OpenDay)
                 //.Include(m => m.Menus)
+                .ToListAsync();
+        }
+
+        public async Task<List<BusinessDay>> GetAllBusinessDayCompletedEndOfDay()
+        {
+            return await _dbSet
+                .Where(st => st.Status == CommonEnumStatus.Completed.ToString())
                 .ToListAsync();
         }
 

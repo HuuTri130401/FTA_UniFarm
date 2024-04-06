@@ -52,17 +52,10 @@ try
 
     //============ Hangfire =============//
     builder.Services.AddHangfire(configuration => configuration
-       .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-       .UseSimpleAssemblyNameTypeSerializer()
-       .UseRecommendedSerializerSettings()
-       .UseSqlServerStorage(builder.Configuration["ConnectionStrings:DefaultConnection"], new SqlServerStorageOptions
-       {
-           CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-           SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-           QueuePollInterval = TimeSpan.Zero,
-           UseRecommendedIsolationLevel = true,
-           DisableGlobalLocks = true
-       }));
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+       .UseSqlServerStorage(builder.Configuration["ConnectionStrings:DefaultConnection"]));
     builder.Services.AddHangfireServer();
 
     //============ Identity =============//
@@ -121,6 +114,8 @@ try
     //============ Add auto mapper ============//
     builder.Services.AddAutoMapper(typeof(AutoMapperService));
     builder.Services.AddSingleton<VNPayConfig>();
+    builder.Services.AddHttpClient();
+    builder.Services.AddSingleton<IGoongMapsService, GoongMapsService>();
 
     //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -146,6 +141,10 @@ try
     builder.Services.AddScoped<IApartmentStationRepository, ApartmentStationRepository>();
     builder.Services.AddScoped<IBatchRepository, BatchRepository>();
     builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+    builder.Services.AddScoped<IFarmHubSettlementRepository, FarmHubSettlementRepository>();
+    builder.Services.AddScoped<IPriceTableRepository, PriceTableRepository>();
+    builder.Services.AddScoped<IPriceTableItemRepository, PriceTableItemRepository>();
+
 
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
@@ -171,6 +170,8 @@ try
     builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
     builder.Services.AddScoped<IBatchService, BatchService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<ISettlementService, SettlementService>();
+
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
