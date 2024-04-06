@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Capstone.UniFarm.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,5 +22,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public string CustomerStatus { get; set; }
         public string DeliveryStatus { get; set; }
         public bool IsPaid { get; set; }
+        public ICollection<OrderDetailResponseForFarmHub>? OrderDetails { get; set; }
     }
 }
