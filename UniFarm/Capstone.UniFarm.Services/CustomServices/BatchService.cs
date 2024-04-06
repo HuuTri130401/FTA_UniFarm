@@ -54,15 +54,16 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<BatchDetailResponse>>> GetAllOrdersInBatch(Guid batchId)
+        public async Task<OperationResult<BatchDetailResponse>> GetAllOrdersInBatch(Guid batchId)
         {
-            var result = new OperationResult<List<BatchDetailResponse>>();
+            var result = new OperationResult<BatchDetailResponse>();
             try
             {
                 var listOrdersInBatch = await _unitOfWork.BatchesRepository.GetAllOrdersInBatch(batchId);
-                var listOrdersInBatchResponse = _mapper.Map<List<BatchDetailResponse>>(listOrdersInBatch);
 
-                if (listOrdersInBatchResponse == null || !listOrdersInBatchResponse.Any())
+                var listOrdersInBatchResponse = _mapper.Map<BatchDetailResponse>(listOrdersInBatch);
+
+                if (listOrdersInBatchResponse == null)
                 {
                     result.AddResponseStatusCode(StatusCode.Ok, $"List Orders with Batch Id {batchId} is Empty!", listOrdersInBatchResponse);
                     return result;
