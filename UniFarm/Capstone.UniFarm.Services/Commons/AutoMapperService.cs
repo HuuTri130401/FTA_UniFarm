@@ -131,6 +131,10 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.PaymentDay, opt => opt.MapFrom(src => DateTime.Now));
             #endregion
 
+            
+            CreateMap<ApartmentStation, ApartmentStationResponse>()
+                .ForMember(dest => dest.Apartment, opt => opt.MapFrom(src => src.Apartment))
+                .ForMember(dest => dest.Station, opt => opt.MapFrom(src => src.Station));
 
             CreateMap<ProductItem, ProductItemResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForCustomer>();

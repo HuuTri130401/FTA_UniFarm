@@ -269,7 +269,6 @@ public class CartService : ICartService
                     Code = "Order" + DateTime.Now.ToString("yyyyMMddHHmmss") + customerId,
                     UpdatedAt = DateTime.Now,
                     TotalAmount = (decimal?)(productItemInMenu.SalePrice * request.Quantity),
-                    TotalFarmHubPrice = (decimal?)(productItemInMenu.SalePrice * request.Quantity),
                     TotalBenefit = 0,
                     CustomerStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,
                     DeliveryStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,

@@ -130,7 +130,7 @@ public class OrderService : IOrderService
                     StationId = orderRequestCreate.stationId,
                     BusinessDayId = orderRequestCreate.businessDayId,
                     TotalAmount = item.totalFarmHubPrice,
-                    Code = "Order" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+                    Code = "OD" + Guid.NewGuid().ToString().Substring(0, 6),
                     ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
                     ShipAddress = orderRequestCreate.shipNote,
                     IsPaid = false

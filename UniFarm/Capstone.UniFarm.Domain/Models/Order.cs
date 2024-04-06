@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Capstone.UniFarm.Domain.Models
 {
@@ -29,8 +26,6 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ExpectedReceiveDate { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? TotalAmount { get; set; }
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal? TotalFarmHubPrice { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? TotalBenefit { get; set; }
         public Guid? BatchId { get; set; }
