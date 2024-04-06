@@ -23,6 +23,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? FarmShipDate { get; set; }
         public DateTime? CollectedHubReceiveDate { get; set; }
         public string? ReceivedDescription { get; set; }
+        public int? NumberOfOrdersInBatch { get; set; }
         public string? FeedBackImage { get; set; }
         [StringLength(100)] 
         public string? Status { get; set; }
