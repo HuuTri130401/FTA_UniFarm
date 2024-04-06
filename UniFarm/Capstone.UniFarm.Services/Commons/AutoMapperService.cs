@@ -171,6 +171,8 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<ProductItem, ProductItemRequest>().ReverseMap();
             CreateMap<ProductItem, ProductItemRequestUpdate>().ReverseMap();
             CreateMap<ProductItem, ProductItemResponse>()
+                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+                 .ForMember(dest => dest.CommissionFee, opt => opt.MapFrom(src => src.Product != null && src.Product.Category != null ? src.Product.Category.SystemPrice : 0))
                  .ForMember(dest => dest.Sold, opt => opt.MapFrom(src => src.ProductItemInMenus.Sum(item => item.Sold)))
                  .ReverseMap();
 

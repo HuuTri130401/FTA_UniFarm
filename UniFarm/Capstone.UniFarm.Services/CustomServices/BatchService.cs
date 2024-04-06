@@ -262,6 +262,28 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatchesInBusinessDay(Guid farmHubId, Guid businessDayId)
+        {
+            var result = new OperationResult<List<BatchResponse>>();
+            try
+            {
+                var listBatches = await _unitOfWork.BatchesRepository.GetAllBatchesByFarmHubIdAndBusinessDayId(farmHubId, businessDayId);
+                var listBatchesResponse = _mapper.Map<List<BatchResponse>>(listBatches);
+                if (listBatchesResponse == null || !listBatchesResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Batches In BusinessDay with FarmHubId: {farmHubId} is Empty!", listBatchesResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Batches of FarmHub In BusinessDay Done.", listBatchesResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in FarmHubGetAllBatchesInBusinessDay Service!");
+                throw;
+            }
+        }
+
         public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId)
         {
             var result = new OperationResult<List<BatchResponse>>();

@@ -14,6 +14,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
     {
         public Guid Id { get; set; }
         public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
+        public double CommissionFee { get; set; } 
         public Guid FarmHubId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
