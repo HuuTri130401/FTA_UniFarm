@@ -12,10 +12,10 @@ namespace Capstone.UniFarm.Services.ICustomServices
 {
     public interface IProductItemService
     {
-        Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId);
+        Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId, Guid businessDayId);
         Task<OperationResult<List<ProductItemResponse>>> FarmHubGetAllProductItemsByProductId(Guid farmHubId,Guid productId);
-        Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters);
-        Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters);
+        Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters, Guid businessDayId);
+        Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters, Guid businessDayId);
         Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByFarmHubAccountId(Guid farmHubAccountId);
         Task<OperationResult<ProductItemResponse>> GetProductItemById(Guid productItemId);
         Task<OperationResult<bool>> CreateProductItemForProduct(Guid productId, Guid farmHubAccountId, ProductItemRequest productItemRequest);

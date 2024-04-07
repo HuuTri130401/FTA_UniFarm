@@ -52,7 +52,6 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .SearchProductItems(productItemParameters.SearchTerm)
                 .Where(p => p.Status == "Selling")
                 .Include(pi => pi.ProductImages)
-                //.Include(fr => fr.FarmHub)
                 .ToListAsync();
             var count = _dbSet.Count();
             return PagedList<ProductItem>
@@ -73,7 +72,6 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .SearchProductItems(productItemParameters.SearchTerm)
                 .Where(p => p.Status == "Selling")
                 .Include(pi => pi.ProductImages)
-                //.Include(fr => fr.FarmHub)
                 .ToListAsync();
             var count = _dbSet.Count();
             return PagedList<ProductItem>

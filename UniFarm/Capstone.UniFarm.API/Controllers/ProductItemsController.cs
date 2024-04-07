@@ -22,10 +22,10 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Get All ProductItems By Product Id - ADMIN, CUSTOMER - {Huu Tri}")]
-        [HttpGet("product/{id}/product-items")]
-        public async Task<IActionResult> GetAllProductItemsByProductId(Guid id)
+        [HttpGet("product/{productId}/businessday/{businessDayId}/product-items")]
+        public async Task<IActionResult> GetAllProductItemsByProductId(Guid productId, Guid businessDayId)
         {
-            var response = await _productItemService.GetAllProductItemsByProductId(id);
+            var response = await _productItemService.GetAllProductItemsByProductId(productId, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -39,18 +39,18 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Search ProductItems - CUSTOMER - {Huu Tri}")]
-        [HttpGet("product-items/search")]
-        public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemParameters productItemParameters)
+        [HttpGet("product-items/businessday/{businessDayId}/search")]
+        public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemParameters productItemParameters, Guid businessDayId)
         {
-            var response = await _productItemService.SearchProductItems(productItemParameters);
+            var response = await _productItemService.SearchProductItems(productItemParameters, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
         [SwaggerOperation(Summary = "Get All ProductItems - CUSTOMER - {Huu Tri}")]
-        [HttpGet("product-items/all")]
-        public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemParameters productItemParameters)
+        [HttpGet("product-items/businessday/{businessDayId}/all")]
+        public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemParameters productItemParameters, Guid businessDayId)
         {
-            var response = await _productItemService.GetAllProductItems(productItemParameters);
+            var response = await _productItemService.GetAllProductItems(productItemParameters, businessDayId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

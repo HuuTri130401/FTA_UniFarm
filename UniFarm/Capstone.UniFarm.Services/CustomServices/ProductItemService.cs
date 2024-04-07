@@ -42,7 +42,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var productItem = _mapper.Map<ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
                         productItem.Status = "Unregistered";
-                        productItem.CreatedAt = DateTime.Now;
+                        productItem.CreatedAt = DateTime.UtcNow.AddHours(7);
                         productItem.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                         if (productItemRequest.Quantity > 0)
                         {
@@ -112,14 +112,15 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId)
+        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId, Guid businessDayId)
         {
             var result = new OperationResult<List<ProductItemResponse>>();
             try
             {
-                var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var activeProductItems = listProductItems.Where(pi => pi.Status == "Selling").ToList();
-                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
+                //var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
+                var listProductItems = await _unitOfWork.MenuRepository.GetAllProductItemByProductId(productId, businessDayId);
+                //var activeProductItems = listProductItems.Where(pi => pi.Status == "Selling").ToList();
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
                 {
@@ -303,12 +304,13 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters)
+        public async Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters, Guid businessDayId)
         {
             var result = new OperationResult<List<ProductItemResponse>>();
             try
             {
-                var listProductItems = await _unitOfWork.ProductItemRepository.SearchProductItems(productItemParameters);
+                //var listProductItems = await _unitOfWork.ProductItemRepository.SearchProductItems(productItemParameters);
+                var listProductItems = await _unitOfWork.MenuRepository.GetProductItemsByBusinessDayAsync(productItemParameters, businessDayId);
                 var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
@@ -326,12 +328,13 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters)
+        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters, Guid businessDayId)
         {
             var result = new OperationResult<List<ProductItemResponse>>();
             try
             {
-                var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItems(productItemParameters);
+                //var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItems(productItemParameters);
+                var listProductItems = await _unitOfWork.MenuRepository.GetProductItemsByBusinessDayInHomeScreenAsync(productItemParameters, businessDayId);
                 var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
