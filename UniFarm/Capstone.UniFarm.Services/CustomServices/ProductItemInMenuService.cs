@@ -70,7 +70,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         productItemInMenuRequest.ProductItemId = existingProductItem.Id;
                         var productItemInMenu = _mapper.Map<ProductItemInMenu>(productItemInMenuRequest);
                         productItemInMenu.MenuId = menuId;
-                        productItemInMenu.Status = "Preparing";
+                        productItemInMenu.Status = "Active";
                         await _unitOfWork.ProductItemInMenuRepository.AddAsync(productItemInMenu);
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
