@@ -162,7 +162,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     else
                     {
                         result.AddError(StatusCode.BadRequest, "Delete Product Item In Menu Failed!");
-                        ;
                     }
                 }
                 else

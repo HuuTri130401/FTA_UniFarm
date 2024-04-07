@@ -83,22 +83,34 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 var existingSettlement = await _unitOfWork.FarmHubSettlementRepository.GetFarmHubSettlementAsync(businessDayId, farmHubId);
                 var totalsAndNumOrderOfFarmHub = await _unitOfWork.OrderRepository.CalculateTotalForBusinessDayOfOneFarmHub(businessDayId, farmHubId);
-                if (totalsAndNumOrderOfFarmHub.OrderCount == 0)
-                {
-                    result.AddResponseStatusCode(StatusCode.Ok, "No completed orders found for this FarmHub.", null);
-                    return result;
-                }
                 var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();
-
                 var commissionFee = await _unitOfWork.OrderDetailRepository.CalculateCommissionFee(farmHubId, businessDayId);
                 var dailyFee = await CalculateDailyFee((decimal)totalsAndNumOrderOfFarmHub.TotalAmount);
 
-                // Khởi tạo đối tượng FarmHubSettlement mới và thiết lập các thuộc tính
-                if(existingSettlement == null)
+                if (totalsAndNumOrderOfFarmHub.OrderCount == 0 && existingSettlement == null)
                 {
                     existingSettlement = new FarmHubSettlement
                     {
-                        Id = Guid.NewGuid(), // Tạo ID mới
+                        Id = Guid.NewGuid(),
+                        FarmHubId = farmHubId,
+                        BusinessDayId = businessDayId,
+                        PriceTableId = priceTable.Id,
+                        TotalSales = 0,
+                        CommissionFee = 0,
+                        DailyFee = 0,
+                        NumOfOrder = 0,
+                        DeliveryFeeOfOrder = 30000,
+                        AmountToBePaid = 0,
+                        Profit = 0,
+                        PaymentStatus = "Pending",
+                    };
+                    await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
+                }
+                else if (totalsAndNumOrderOfFarmHub.OrderCount > 0 && existingSettlement == null)
+                {
+                    existingSettlement = new FarmHubSettlement
+                    {
+                        Id = Guid.NewGuid(),
                         FarmHubId = farmHubId,
                         BusinessDayId = businessDayId,
                         PriceTableId = priceTable.Id,
@@ -113,21 +125,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                     };
                     await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
                 }
-                else
-                {
-                    existingSettlement.TotalSales = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount;
-                    existingSettlement.CommissionFee = commissionFee;
-                    existingSettlement.DailyFee = dailyFee;
-                    existingSettlement.NumOfOrder = totalsAndNumOrderOfFarmHub.OrderCount;
-                    existingSettlement.DeliveryFeeOfOrder = 30000; // Giả sử là giá trị cố định
-                    existingSettlement.AmountToBePaid = commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000);
-                    existingSettlement.Profit = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount - (commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000));
-                    existingSettlement.PaymentStatus = "Pending";
 
-                    _unitOfWork.FarmHubSettlementRepository.Update(existingSettlement);
-                }
-
-                var checkResult = _unitOfWork.Save(); 
+                var checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
                 {
                     result.AddResponseStatusCode(StatusCode.Created, "Settlement processed successfully!", existingSettlement);
@@ -146,15 +145,78 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<FarmHubSettlementResponse>();
             try
             {
-                var farmHubSettlement = await _unitOfWork.FarmHubSettlementRepository.GetFarmHubSettlementAsync(businessDayId, farmHubId);
-                if (farmHubSettlement == null)
+                var totalsAndNumOrderOfFarmHub = await _unitOfWork.OrderRepository.CalculateTotalForBusinessDayOfOneFarmHub(businessDayId, farmHubId);
+                var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();
+                var commissionFee = await _unitOfWork.OrderDetailRepository.CalculateCommissionFee(farmHubId, businessDayId);
+                var existingSettlement = await _unitOfWork.FarmHubSettlementRepository.GetFarmHubSettlementAsync(businessDayId, farmHubId);
+                if (existingSettlement != null && totalsAndNumOrderOfFarmHub.OrderCount > 0)
                 {
-                    result.AddError(StatusCode.NotFound, $"Can't found farmHubSettlement with businessDayId: {businessDayId} and farmHubId: {farmHubId}");
+                    var dailyFee = await CalculateDailyFee((decimal)totalsAndNumOrderOfFarmHub.TotalAmount);
+                    existingSettlement.TotalSales = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount;
+                    existingSettlement.CommissionFee = commissionFee;
+                    existingSettlement.DailyFee = dailyFee;
+                    existingSettlement.NumOfOrder = totalsAndNumOrderOfFarmHub.OrderCount;
+                    existingSettlement.DeliveryFeeOfOrder = 30000; // Giả sử là giá trị cố định
+                    existingSettlement.AmountToBePaid = commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000);
+                    existingSettlement.Profit = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount - (commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000));
+                    existingSettlement.PaymentStatus = "Pending";
+                    _unitOfWork.FarmHubSettlementRepository.Update(existingSettlement);
+                    _unitOfWork.Save();
+                    var farmHubSettlementResponse = _mapper.Map<FarmHubSettlementResponse>(existingSettlement);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get FarmHubSettlement by businessDayId: {businessDayId} and farmHubId: {farmHubId} Success!", farmHubSettlementResponse);
                     return result;
                 }
-                var menuResponse = _mapper.Map<FarmHubSettlementResponse>(farmHubSettlement);
-                result.AddResponseStatusCode(StatusCode.Ok, $"Get FarmHubSettlement by businessDayId: {businessDayId} and farmHubId: {farmHubId} Success!", menuResponse);
-                return result;
+                else
+                {
+                    if (totalsAndNumOrderOfFarmHub.OrderCount == 0)
+                    {
+                        existingSettlement = new FarmHubSettlement
+                        {
+                            Id = Guid.NewGuid(),
+                            FarmHubId = farmHubId,
+                            BusinessDayId = businessDayId,
+                            PriceTableId = priceTable.Id,
+                            TotalSales = 0,
+                            CommissionFee = 0,
+                            DailyFee = 0,
+                            NumOfOrder = 0,
+                            DeliveryFeeOfOrder = 30000,
+                            AmountToBePaid = 0,
+                            Profit = 0,
+                            PaymentStatus = "Pending",
+                        };
+                        await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
+                    }
+                    else if (totalsAndNumOrderOfFarmHub.OrderCount > 0)
+                    {
+                        var dailyFee = await CalculateDailyFee((decimal)totalsAndNumOrderOfFarmHub.TotalAmount);
+                        existingSettlement = new FarmHubSettlement
+                        {
+                            Id = Guid.NewGuid(),
+                            FarmHubId = farmHubId,
+                            BusinessDayId = businessDayId,
+                            PriceTableId = priceTable.Id,
+                            TotalSales = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount,
+                            CommissionFee = commissionFee,
+                            DailyFee = dailyFee,
+                            NumOfOrder = totalsAndNumOrderOfFarmHub.OrderCount,
+                            DeliveryFeeOfOrder = 30000,
+                            AmountToBePaid = commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000),
+                            Profit = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount - (commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000)),
+                            PaymentStatus = "Pending",
+                        };
+                        await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
+                    }
+
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        var farmHubSettlementCreated = _mapper.Map<FarmHubSettlementResponse>(existingSettlement);
+                        result.AddResponseStatusCode(StatusCode.Created, "Settlement processed successfully!", farmHubSettlementCreated);
+                        return result;
+                    }
+                    return result;
+                }
             }
             catch (Exception ex)
             {
@@ -162,6 +224,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
 
         private async Task<decimal> CalculateDailyFee(decimal totalSales)
         {

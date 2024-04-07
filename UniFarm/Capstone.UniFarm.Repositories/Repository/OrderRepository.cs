@@ -150,13 +150,13 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Where(cus => cus.CustomerStatus == CustomerStatus.CanceledByCollectedHub.ToString()
                           || cus.CustomerStatus == CustomerStatus.PickedUp.ToString()
                           || cus.CustomerStatus == CustomerStatus.Expired.ToString())
-            .GroupBy(o => o.FarmHubId) // Bạn có thể bỏ qua GroupBy nếu chỉ quan tâm đến một FarmHub
+            .GroupBy(o => o.FarmHubId) 
             .Select(g => new
             {
                 TotalAmount = g.Sum(o => o.TotalAmount),
                 OrderCount = g.Count()
             })
-            .FirstOrDefaultAsync(); // Sử dụng FirstOrDefaultAsync vì chúng ta chỉ quan tâm đến một FarmHub
+            .FirstOrDefaultAsync(); 
 
         return (result?.TotalAmount, result?.OrderCount ?? 0);
     }

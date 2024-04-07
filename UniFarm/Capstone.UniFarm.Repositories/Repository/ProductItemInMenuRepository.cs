@@ -35,11 +35,13 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             _dbSet.Remove(productItemInMenu);
         }
+
         public async Task<ProductItemInMenu> GetByMenuIdAndProductItemId(Guid menuId, Guid productItemId)
         {
             return await _dbSet
                 .FirstOrDefaultAsync(pim => pim.MenuId == menuId && pim.ProductItemId == productItemId);
         }
+
         public async Task<IEnumerable<ProductItemInMenu>> FindStatusProductItem(Expression<Func<ProductItemInMenu, bool>> predicate)
         {
             return await _dbSet
