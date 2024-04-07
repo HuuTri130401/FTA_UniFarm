@@ -46,25 +46,27 @@ namespace Capstone.UniFarm.Services.CustomServices
 
         public string GenerateJwtToken(Account user, byte[] key, string userRole)
         {
-            
-            var accountRole =  _accountRoleService.GetAccountRoleByExpression(x => x.AccountId == user.Id);
+            var accountRole = _accountRoleService.GetAccountRoleByExpression(x => x.AccountId == user.Id);
             var workPlaceId = "CUSTOMER";
-            if(userRole == EnumConstants.RoleEnumString.FARMHUB && accountRole.Result.Payload!.FarmHubId != null)
+            if (userRole == EnumConstants.RoleEnumString.FARMHUB && accountRole.Result.Payload!.FarmHubId != null)
             {
                 workPlaceId = accountRole.Result.Payload.FarmHubId.ToString();
             }
-            else if(userRole == EnumConstants.RoleEnumString.COLLECTEDSTAFF && accountRole.Result.Payload!.CollectedHubId != null)
+            else if (userRole == EnumConstants.RoleEnumString.COLLECTEDSTAFF &&
+                     accountRole.Result.Payload!.CollectedHubId != null)
             {
                 workPlaceId = accountRole.Result.Payload.CollectedHubId.ToString();
             }
-            else if(userRole == EnumConstants.RoleEnumString.STATIONSTAFF && accountRole.Result.Payload!.StationId != null)
+            else if (userRole == EnumConstants.RoleEnumString.STATIONSTAFF &&
+                     accountRole.Result.Payload!.StationId != null)
             {
                 workPlaceId = accountRole.Result.Payload.StationId.ToString();
-            } else if(userRole == EnumConstants.RoleEnumString.ADMIN)
+            }
+            else if (userRole == EnumConstants.RoleEnumString.ADMIN)
             {
                 workPlaceId = "ADMIN";
             }
-            
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -85,7 +87,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        
+
 
         public async Task<OperationResult<AccountRequestCreate>> CreateAccount(
             AccountRequestCreate accountRequestCreate)
@@ -337,29 +339,115 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(id);
                 if (account == null)
                 {
-                    result.AddError(StatusCode.NotFound, "Account not found");
+                    Error error = new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Account not found"
+                    };
+                    result.Errors.Add(error);
                     result.Message = "Account not found";
                     result.IsError = true;
                     result.StatusCode = StatusCode.NotFound;
                     return result;
                 }
 
-                var accountUpdate = _mapper.Map<Account>(accountRequestUpdate);
-                accountUpdate.Id = id;
-                var userList = _unitOfWork.AccountRepository.FilterByExpression(x =>
-                    x.Email == accountUpdate.Email || x.Phone == accountUpdate.Phone);
-                if (userList.Count() > 1)
+
+                var checkEmail = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                    x.Email == accountRequestUpdate.Email);
+
+                if (checkEmail.Count() > 1)
                 {
-                    result.AddError(StatusCode.BadRequest, "Email or phone number already exists");
-                    result.Message = "Email or phone number already exists";
+                    Error error = new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Email is already exists"
+                    };
+                    result.Errors.Add(error);
                     result.IsError = true;
                     result.StatusCode = StatusCode.BadRequest;
                     return result;
                 }
 
-                _unitOfWork.AccountRepository.Update(accountUpdate);
-                await _unitOfWork.SaveChangesAsync();
-                result.Payload = _mapper.Map<AccountResponse>(accountUpdate);
+                var checkPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                    x.Phone == accountRequestUpdate.PhoneNumber);
+                if (checkPhone.Count() > 1)
+                {
+                    Error error = new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Phone number is already exists"
+                    };
+                    result.Errors.Add(error);
+                    result.IsError = true;
+                    result.StatusCode = StatusCode.BadRequest;
+                    return result;
+                }
+
+                var checkEmailAndPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                    x.Email == accountRequestUpdate.Email && x.Phone == accountRequestUpdate.PhoneNumber);
+
+                if (checkEmailAndPhone.Count() > 1)
+                {
+                    Error error = new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Email or phone number already exists"
+                    };
+                    result.Errors.Add(error);
+                    result.IsError = true;
+                    result.StatusCode = StatusCode.BadRequest;
+                    return result;
+                }
+
+                if (checkEmail.Count() == 1 && checkPhone.Count() == 1)
+                {
+                    if (checkEmail.First().Id != checkPhone.First().Id)
+                    {
+                        Error error = new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Email or phone number already exists"
+                        };
+                        result.Errors.Add(error);
+                        result.IsError = true;
+                        result.StatusCode = StatusCode.BadRequest;
+                        return result;
+                    }
+                }
+
+                account.Email = accountRequestUpdate.Email;
+                account.Phone = accountRequestUpdate.PhoneNumber;
+                account.FirstName = accountRequestUpdate.FirstName;
+                account.LastName = accountRequestUpdate.LastName;
+                account.UserName = accountRequestUpdate.UserName;
+                account.Avatar = accountRequestUpdate.Avatar;
+                account.Code = accountRequestUpdate.Code;
+                account.Address = accountRequestUpdate.Address;
+                account.Status = accountRequestUpdate.Status;
+                account.AccountRoles = null;
+
+                if (accountRequestUpdate.Password != null)
+                {
+                    account.PasswordHash =
+                        _userManager.PasswordHasher.HashPassword(account, accountRequestUpdate.Password);
+                }
+
+                await _unitOfWork.AccountRepository.UpdateAsync(account);
+                int count = await _unitOfWork.SaveChangesAsync();
+                if (count == 0)
+                {
+                    Error error = new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Update account error"
+                    };
+                    result.Errors.Add(error);
+                    result.IsError = true;
+                    result.StatusCode = StatusCode.BadRequest;
+                    return result;
+                }
+                
+                result.Payload = _mapper.Map<AccountResponse>(account);
                 result.Message = "Update account successfully";
                 result.IsError = false;
             }
@@ -661,6 +749,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 result.StatusCode = StatusCode.ServerError;
                 throw;
             }
+
             return result;
         }
 
@@ -695,10 +784,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                 result.StatusCode = StatusCode.ServerError;
                 throw;
             }
+
             return result;
         }
 
-        public async Task<OperationResult<FarmHubRegisterRequest>> CreateFarmhubAccount(FarmHubRegisterRequest farmHubRegisterRequest)
+        public async Task<OperationResult<FarmHubRegisterRequest>> CreateFarmhubAccount(
+            FarmHubRegisterRequest farmHubRegisterRequest)
         {
             var result = new OperationResult<FarmHubRegisterRequest>();
             try
@@ -721,7 +812,8 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 var newAccount = _mapper.Map<Account>(farmHubRegisterRequest);
                 newAccount.CreatedAt = DateTime.UtcNow;
-                newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, farmHubRegisterRequest.Password);
+                newAccount.PasswordHash =
+                    _userManager.PasswordHasher.HashPassword(newAccount, farmHubRegisterRequest.Password);
                 newAccount.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
                 newAccount.RoleName = EnumConstants.RoleEnumString.FARMHUB;
                 var accountRole = new AccountRole

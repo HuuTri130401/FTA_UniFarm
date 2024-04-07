@@ -16,7 +16,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
     {
         string GenerateJwtToken(Account user, byte[] key, string userRole);
         OperationResult<AboutMeResponse.AboutMeRoleAndID> GetIdAndRoleFromToken(string token);
-        
         Task<OperationResult<AccountRequestCreate>> CreateAccount(AccountRequestCreate accountRequestCreate);
         Task<OperationResult<FarmHubRegisterRequest>> CreateFarmhubAccount(FarmHubRegisterRequest farmHubRegisterRequest);
         Task<OperationResult<Account>> HandleLoginGoogle(IEnumerable<Claim> claims);

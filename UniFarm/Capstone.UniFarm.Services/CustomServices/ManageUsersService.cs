@@ -111,7 +111,7 @@ public class ManageUsersService : IManageUsersService
                     Error error = new Error
                     {
                         Code = StatusCode.BadRequest,
-                        Message = "Create wallet error " + walletResult.Errors.FirstOrDefault()?.Message,
+                        Message = "Create wallet error "
                     };
                     result.Errors.Add(error);
                     result.IsError = true;
@@ -125,7 +125,12 @@ public class ManageUsersService : IManageUsersService
             else
             {
                 result.Payload = null;
-                result.AddError(StatusCode.BadRequest, response.Errors.AsEnumerable().ToList().ToString()!);
+                Error error = new Error
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = response.Errors.FirstOrDefault()!.Description ?? "Create account error!"
+                };
+                result.Errors.Add(error);
                 result.IsError = true;
             }
         }

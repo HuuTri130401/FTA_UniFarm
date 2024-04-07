@@ -17,7 +17,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 
         [Required]
         [StringLength(20, MinimumLength = 8 , ErrorMessage = "The password must be at least 8 characters long.")]
-        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+]{8,}$", ErrorMessage = "Invalid password format.")]
+        /*[RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+]{8,}$", ErrorMessage = "Invalid password format.")]*/
         public string Password { get; set; }
         
         [Required]

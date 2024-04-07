@@ -44,7 +44,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? UpdatedAt { get; set; }
 
         [InverseProperty(nameof(AccountRole.Account))]
-        public AccountRole AccountRoles { get; set; }
+        public AccountRole? AccountRoles { get; set; }
 
         [InverseProperty(nameof(ApartmentStation.Account))]
         public ICollection<ApartmentStation>? ApartmentStations { get; set; } = null;
