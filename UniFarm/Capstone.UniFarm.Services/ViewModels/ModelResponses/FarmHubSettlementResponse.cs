@@ -8,6 +8,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
     public class FarmHubSettlementResponse
     {
+        public Guid Id { get; set; }
         public Guid FarmHubId { get; set; }
         public Guid BusinessDayId { get; set; }
         public string BusinessDayName { get; set; }
