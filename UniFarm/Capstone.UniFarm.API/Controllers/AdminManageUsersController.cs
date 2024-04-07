@@ -24,7 +24,7 @@ public class AdminManageUsersController : BaseController
     {
         var response = await _manageUsersService.CreateAccountForAdmin(model);
         return response.IsError
-            ? HandleErrorResponse(response!.Errors)
+            ? HandleErrorResponse(response.Errors)
             : Created("/api/v1/admin/account/create", response.Payload);
     }
 

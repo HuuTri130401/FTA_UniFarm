@@ -615,8 +615,7 @@ public class CartService : ICartService
 
         return result;
     }
-
-
+    
     public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> GetCart(
         Expression<Func<Order, bool>>? filter,
         string? orderBy,

@@ -54,7 +54,14 @@ public class ManageUsersService : IManageUsersService
             var checkEmail = await _userManager.FindByEmailAsync(accountRequestCreate.Email);
             if (checkEmail != null)
             {
-                result.AddError(StatusCode.BadRequest, "Email already exists");
+                result.Message = "Email already exists";
+                result.StatusCode = StatusCode.BadRequest;
+                Error error = new Error
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Email already exists"
+                };
+                result.Errors.Add(error);
                 result.IsError = true;
                 return result;
             }
@@ -63,7 +70,14 @@ public class ManageUsersService : IManageUsersService
                 await _unitOfWork.AccountRepository.FindSingleAsync(x => x.Phone == accountRequestCreate.PhoneNumber);
             if (checkPhone != null)
             {
-                result.AddError(StatusCode.BadRequest, "Phone already exists");
+                result.Message = "Phone number already exists";
+                result.StatusCode = StatusCode.BadRequest;
+                Error error = new Error
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Phone number already exists"
+                };
+                result.Errors.Add(error);
                 result.IsError = true;
                 return result;
             }
@@ -94,8 +108,12 @@ public class ManageUsersService : IManageUsersService
                 var walletResult = await _walletService.Create(wallet);
                 if (walletResult.IsError)
                 {
-                    result.AddError(StatusCode.BadRequest,
-                        "Create wallet error " + walletResult.Errors.FirstOrDefault()?.Message);
+                    Error error = new Error
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Create wallet error " + walletResult.Errors.FirstOrDefault()?.Message,
+                    };
+                    result.Errors.Add(error);
                     result.IsError = true;
                     return result;
                 }

@@ -86,7 +86,7 @@ namespace Capstone.UniFarm.API.Controllers
             
             if(user.Status == EnumConstants.ActiveInactiveEnum.INACTIVE)
             {
-                return BadRequest(new ErrorResponse(400, "Bad Request", "Account has been blocked! Please contact admin for more information fta@gmail.com", DateTime.Now));
+                return BadRequest(new ErrorResponse(400, "Bad Request", true,"Account has been blocked! Please contact admin for more information fta@gmail.com", DateTime.Now));
             }
 
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
