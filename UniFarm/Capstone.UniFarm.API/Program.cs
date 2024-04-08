@@ -145,7 +145,6 @@ try
     builder.Services.AddScoped<IPriceTableRepository, PriceTableRepository>();
     builder.Services.AddScoped<IPriceTableItemRepository, PriceTableItemRepository>();
 
-
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IProductService, ProductService>();
@@ -171,6 +170,7 @@ try
     builder.Services.AddScoped<IBatchService, BatchService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<ISettlementService, SettlementService>();
+    builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
     builder.Services.AddScoped<ITransactionService, TransactionService>();
     //============Configure logging============//
