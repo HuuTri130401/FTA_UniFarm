@@ -44,6 +44,7 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Include(bs => bs.BusinessDay)
                 .Include(od => od.Orders)
                 .ThenInclude(odt => odt.OrderDetails)
+                .ThenInclude(odi => odi.ProductItem)
                 .FirstOrDefaultAsync(bt => bt.Id == batchId);
 
             int orderCount = 0;

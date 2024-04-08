@@ -13,6 +13,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
     {
         public Guid OrderId { get; set; }
         public Guid ProductItemId { get; set; }
+        public string ProductItemTitle { get; set; }
         public double Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         //public decimal OriginUnitPrice { get; set; }

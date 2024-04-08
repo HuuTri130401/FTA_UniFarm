@@ -138,7 +138,9 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<ProductItem, ProductItemResponseForCustomer>();
             CreateMap<OrderDetail, OrderDetailResponseForCustomer>();
-            CreateMap<OrderDetail, OrderDetailResponseForFarmHub>().ReverseMap();
+            CreateMap<OrderDetail, OrderDetailResponseForFarmHub>()
+                .ForMember(dest => dest.ProductItemTitle, opt => opt.MapFrom(src => src.ProductItem != null ? src.ProductItem.Title : null))
+                .ReverseMap();
 
 
             CreateMap<TransferRequestCreate, Transfer>()

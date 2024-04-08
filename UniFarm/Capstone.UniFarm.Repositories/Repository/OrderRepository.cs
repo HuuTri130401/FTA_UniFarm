@@ -19,6 +19,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(o => o.Customer)
             .Include(o => o.BusinessDay)
             .Include(od => od.OrderDetails)
+            .ThenInclude(odi => odi.ProductItem)
             .Where(bd => bd.BusinessDayId == businessDayId)
             .Where(fr => fr.FarmHubId == farmhubId)
             //.Where(ord => ord.CustomerStatus == "Pending" || ord.CustomerStatus == "Confirmed")
