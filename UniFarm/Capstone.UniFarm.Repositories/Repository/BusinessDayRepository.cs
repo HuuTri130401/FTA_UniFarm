@@ -18,6 +18,13 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
         }
 
+        public async Task<BusinessDay> FarmHubGetBusinessDayByIdAsync(Guid farmhubId, Guid businessDayId)
+        {
+            return await _dbSet
+                .Include(bd => bd.Menus.Where(menu => menu.FarmHubId == farmhubId))
+                .FirstOrDefaultAsync(bd => bd.Id == businessDayId);
+        }
+
         public async Task<List<BusinessDay>> GetAllBusinessDay()
         {
             return await _dbSet

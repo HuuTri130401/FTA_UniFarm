@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -12,10 +13,12 @@ namespace Capstone.UniFarm.API.Controllers
     public class BusinessDaysController : BaseController
     {
         private readonly IBusinessDayService _businessDayService;
+        private readonly IAccountService _accountService;
 
-        public BusinessDaysController(IBusinessDayService businessDayService)
+        public BusinessDaysController(IBusinessDayService businessDayService, IAccountService accountService)
         {
             _businessDayService = businessDayService;
+            _accountService = accountService;
         }
 
         [SwaggerOperation(Summary = "Get All Business Days - ADMIN, FARMHUB - {Huu Tri}")]
@@ -31,6 +34,29 @@ namespace Capstone.UniFarm.API.Controllers
         public async Task<IActionResult> GetBusinessDayById(Guid id)
         {
             var response = await _businessDayService.GetBusinessDayById(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "FarmHub Get Business Day By Id - FARMHUB - {Huu Tri}")]
+        [HttpGet("farmhub/business-day/{id}")]
+        [Authorize(Roles = "FarmHub")]
+        public async Task<IActionResult> FarmHubGetBusinessDayById(Guid id)
+        {
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+
+            string token = authHeader.Replace("Bearer ", "");
+
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null)
+            {
+                return HandleErrorResponse(defineUser!.Errors);
+            }
+            var farmHubAccountId = defineUser.Payload.Id;
+            var response = await _businessDayService.FarmHubGetBusinessDayById(farmHubAccountId, id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

@@ -13,6 +13,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task UpdateBusinessDayStatus(Guid businessDayId, string status);
         Task<List<BusinessDay>> GetAllBusinessDay();
         Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId);
+        Task<BusinessDay> FarmHubGetBusinessDayByIdAsync(Guid farmhubId, Guid businessDayId);
         Task<bool> IsUniqueOpenDay(DateTime openDay);
         Task<IEnumerable<BusinessDay>> GetAllBusinessDayNotEndOfDayYet(Expression<Func<BusinessDay, bool>> predicate);
         Task<List<BusinessDay>> GetAllBusinessDayCompletedEndOfDay();
