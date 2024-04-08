@@ -177,6 +177,34 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId, Guid businessDayId)
+        {
+            var result = new OperationResult<BusinessDayResponse>();
+            try
+            {
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                var businessDay = await _unitOfWork.BusinessDayRepository.FarmHubGetBusinessDayByIdAsync((Guid)accountRoleInfor.FarmHubId, businessDayId);
+                if (businessDay == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
+                    return result;
+                }
+                else if (businessDay.Status != "Inactive")
+                {
+                    var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get BusinessDay by Id: {businessDayId} Success!", businessDayResponse);
+                    return result;
+                }
+                result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in FarmHubGetBusinessDayById Service Method for category ID: {businessDayId}");
+                throw;
+            }
+        }
+
         public async Task<OperationResult<List<BusinessDayResponse>>> GetAllBusinessDays()
         {
             var result = new OperationResult<List<BusinessDayResponse>>();
