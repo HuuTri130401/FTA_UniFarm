@@ -17,6 +17,7 @@ public class FarmHubDashboardController : BaseController
     }
     
     [HttpGet("farm-hub/product-item-selling-percent-ratio")]
+    [Authorize(Roles = "FarmHub")]
     public async Task<IActionResult> GetProductItemSellingPercentRatio(Guid businessDayId)
     {
         string authHeader = HttpContext.Request.Headers["Authorization"];

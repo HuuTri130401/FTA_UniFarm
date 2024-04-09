@@ -25,6 +25,59 @@ public record AdminDashboardResponse
         public int TotalOrderExpired { get; init; }
         public int TotalOrderPending { get; init; }
         public int TotalOrderConfirmed { get; init; }
+    }
+
+    public record DashboardStatistic
+    {
+        public List<RevenueByMonth>? RevenueByMonths { get; init; }
+        public List<ProductSellingPercent>? ProductSellingPercents { get; init; }
+    }
+    
+    
+    public record RevenueByMonth
+    {
+        public string? Month { get; set; }
+        public decimal? TotalRevenue { get; set; }
+        public decimal? TotalDepositMoney { get; set; }
+        public decimal? TotalWithdrawMoney { get; set; }
+        public decimal? TotalRefundMoney { get; set; }
+        public decimal? TotalBenefit { get; set; }
         
+        public int? TotalOrder { get; set; }
+        public int? TotalOrderSuccess { get; set; }
+        public int? TotalOrderCancel { get; set; }
+        public int? TotalOrderExpired { get; set; }
+    }
+    
+    public record ProductSellingPercent
+    {
+        public Guid ProductItemId { get; set; }
+        public string? ProductName { get; set; }
+        public double SoldQuantity { get; set; }
+        public double Percent { get; set; }
+    }
+    
+    public record ProductItem
+    {
+        public Guid? Id { get; init; }
+        public string? Name { get; init; }
+        public decimal? Price { get; init; }
+        public int? Quantity { get; init; }
+        public string? Unit { get; init; }
+        public decimal? TotalRevenue { get; init; }
+        public int? TotalOrderCancel { get; init; }
+        public int? TotalOrderSuccess { get; init; }
+    }
+    
+    public record TopFarmHub
+    {
+        public Guid? Id { get; init; }
+        public string? Name { get; init; }
+        public Guid? OwnerId { get; init; }
+        public Guid? OwnerName { get; init; }
+        public string? Address { get; init; }
+        public decimal? TotalRevenue { get; init; }
+        public int? TotalOrderCancel { get; init; }
+        public int? TotalOrderSuccess { get; init; }
     }
 }

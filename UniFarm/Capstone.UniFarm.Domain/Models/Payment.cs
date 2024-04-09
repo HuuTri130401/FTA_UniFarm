@@ -18,7 +18,7 @@ namespace Capstone.UniFarm.Domain.Models
         public string? To { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? Amount { get; set; }
-        public DateTime? PaymentDay { get; set; }
+        public DateTime PaymentDay { get; set; } = DateTime.Now;
         [StringLength(100)]
         public string? Status { get; set; }
         

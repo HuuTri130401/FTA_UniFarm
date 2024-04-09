@@ -17,4 +17,9 @@ public interface IAdminDashboardService
             Expression<Func<Order, bool>>? filter = null,
             int pageIndex = 0,
             int pageSize = 10);
+
+    Task<OperationResult<OrderResponse.OrderAndOrderDetailResponse>> GetOrderDetail(Guid businessDayId, Guid orderId);
+    Task<OperationResult<IEnumerable<AdminDashboardResponse.RevenueByMonth>>> GetStatisticByMonth();
+    
+    Task<OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>> GetProductSellingPercent(DateTime? fromDate, DateTime? toDate);
 }

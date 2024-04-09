@@ -190,4 +190,29 @@ public abstract record EnumConstants
         public static readonly string DANG_VAN_CHUYEN = "Đang vận chuyển";
         public static readonly string CHO_NHAN_HANG = "Chờ nhận hàng";
     }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FilterOrder
+    {
+        CreatedAt,
+        Code,
+        ShipAddress,
+        ExpectedReceiveDate,
+        TotalAmount,
+        ExpiredDayInStation,
+        ShippedDate,
+        FullName,
+        PhoneNumber,
+        CustomerStatus,
+        DeliveryStatus,
+        UpdatedAt
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum PaymentType
+    {
+        Deposit,
+        Withdraw,
+        Refund
+    }
 }

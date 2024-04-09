@@ -70,4 +70,24 @@ public abstract record OrderResponse
         public TransferResponse.TransferResponseSimple? TransferResponse { get; set; }
         public AboutMeResponse.CustomerResponseSimple? CustomerResponse { get; set; }
     }
+
+    public record OrderAndOrderDetailResponse
+    {
+        public Guid Id { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ExpectedReceiveDate { get; set; }
+        public string? Code { get; set; }
+        public string? ShipAddress { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? DeliveryStatus { get; set; }
+        public string? CustomerStatus { get; set; }
+        public FarmHubResponse? FarmHubResponse { get; set; }
+        public AboutMeResponse.CustomerResponseSimple? CustomerResponse { get; set; }
+        public BusinessDayResponse? BusinessDayResponse { get; set; }
+        public StationResponse.StationResponseSimple? StationResponse { get; set; }
+        public BatchResponseSimple? BatchResponse { get; set; }
+        public CollectedHubResponse? CollectedHubResponse { get; set; }
+        public TransferResponse.TransferResponseSimple? TransferResponse { get; set; }
+        public List<OrderDetailResponse>? OrderDetailResponse { get; set; }
+    }
 }

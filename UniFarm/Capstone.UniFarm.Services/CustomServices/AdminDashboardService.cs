@@ -76,15 +76,22 @@ public class AdminDashboardService : IAdminDashboardService
                     || x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
                     || x.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
                 ),
-                TotalOrderSuccess = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()),
-                TotalOrderCancelByCustomer = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()),
-                TotalOrderCancelByFarm = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()),
-                TotalOrderCancelBySystem = orderList.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString()),
-                TotalOrderExpired = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString()),
-                TotalOrderPending = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Pending.ToString()),
-                TotalOrderConfirmed = orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Confirmed.ToString())
+                TotalOrderSuccess =
+                    orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()),
+                TotalOrderCancelByCustomer = orderList.Count(x =>
+                    x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()),
+                TotalOrderCancelByFarm = orderList.Count(x =>
+                    x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()),
+                TotalOrderCancelBySystem = orderList.Count(x =>
+                    x.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString()),
+                TotalOrderExpired =
+                    orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString()),
+                TotalOrderPending =
+                    orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Pending.ToString()),
+                TotalOrderConfirmed =
+                    orderList.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Confirmed.ToString())
             };
-            
+
             result.Payload = orderStatistic;
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
@@ -179,13 +186,13 @@ public class AdminDashboardService : IAdminDashboardService
                 }
 
                 var transferResponse = new TransferResponse.TransferResponseSimple();
-                
+
                 var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
-                
+
                 var customerResponse = new AboutMeResponse.CustomerResponseSimple();
                 if (customer != null)
                 {
-                    customerResponse= _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                    customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
                 }
 
                 if (order.TransferId != null)
@@ -241,6 +248,246 @@ public class AdminDashboardService : IAdminDashboardService
         {
             result.AddError(StatusCode.ServerError, e.Message);
             result.Message = "Lấy danh sách đơn hàng thất bại!";
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<OrderResponse.OrderAndOrderDetailResponse>> GetOrderDetail(Guid businessDayId,
+        Guid orderId)
+    {
+        var result = new OperationResult<OrderResponse.OrderAndOrderDetailResponse>();
+        try
+        {
+            var order = await _unitOfWork.OrderRepository
+                .FilterByExpression(x => x.Id == orderId && x.BusinessDayId == businessDayId).FirstOrDefaultAsync();
+            if (order == null)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không tìm thấy đơn hàng!"
+                });
+                result.IsError = true;
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+
+            var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+            var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+            var businessDay = await _unitOfWork.BusinessDayRepository
+                .FilterByExpression(x => x.Id == order.BusinessDayId)
+                .FirstOrDefaultAsync();
+            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
+                .FirstOrDefaultAsync();
+
+            var stationResponse = new StationResponse.StationResponseSimple();
+            if (station != null)
+            {
+                stationResponse.Id = station.Id;
+                stationResponse.Name = station.Name;
+                stationResponse.Address = station.Address;
+                stationResponse.Description = station.Description;
+                stationResponse.Image = station.Image;
+                stationResponse.CreatedAt = station.CreatedAt;
+                stationResponse.UpdatedAt = station.UpdatedAt;
+                stationResponse.Status = station.Status;
+            }
+
+            var orderDetails = await _unitOfWork.OrderDetailRepository
+                .FilterByExpression(x => x.OrderId == order.Id)
+                .ToListAsync();
+
+            var orderDetailResponses = new List<OrderDetailResponse>();
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = "Lấy chi tiết đơn hàng thất bại!"
+            });
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+
+    /// <summary>
+    /// - Lấy thống kê doanh thu theo tháng
+    /// - Tổng doanh thu
+    /// - Tổng tiền đặt cọc
+    /// - Tổng tiền rút
+    /// - Tổng tiền hoàn
+    /// - Tổng lợi nhuận
+    /// - Tổng số đơn hàng
+    /// - Tổng số đơn hàng thành công
+    /// - Tổng số đơn hàng hủy
+    /// - Tổng số đơn hàng hết hạn
+    /// </summary>
+    /// <returns></returns>
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.RevenueByMonth>>> GetStatisticByMonth()
+    {
+        var result = new OperationResult<IEnumerable<AdminDashboardResponse.RevenueByMonth>>();
+        try
+        {
+            var orderList = await _unitOfWork.OrderRepository.GetAllWithoutPaging(isAscending: true, EnumConstants.FilterOrder.CreatedAt.ToString())
+                .ToListAsync();
+            if (orderList.Count == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không có đơn hàng nào!"
+                });
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không có đơn hàng nào!";
+                result.IsError = true;
+                return result;
+            }
+
+            var paymentList = await _unitOfWork.PaymentRepository.GetAllWithoutPaging(null, null).ToListAsync();
+
+            var revenueByMonths = new List<AdminDashboardResponse.RevenueByMonth>();
+            var months = orderList.Select(x => x.CreatedAt.Month).Distinct().ToList();
+            foreach (var month in months)
+            {
+                var orders = orderList.Where(x => x.CreatedAt.Month == month).ToList();
+                var payments = paymentList.Where(x => x.PaymentDay.Month == month).ToList();
+                var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
+                {
+                    Month = month.ToString(),
+                    TotalRevenue = orders.Sum(x => x.TotalAmount ?? 0),
+                    TotalBenefit = orders.Sum(x => x.TotalAmount ?? 0),
+                    TotalOrder = orders.Count,
+                    TotalOrderSuccess = orders.Count(x =>
+                        x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()),
+                    TotalOrderCancel = orders.Count(x =>
+                        x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
+                        || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
+                        || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCollectedHub.ToString()),
+                    TotalOrderExpired = orders.Count(x =>
+                        x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString())
+                };
+                revenueByMonth.TotalDepositMoney = payments
+                    .Where(x => x.Type == EnumConstants.PaymentType.Deposit.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                revenueByMonth.TotalWithdrawMoney = payments
+                    .Where(x => x.Type == EnumConstants.PaymentType.Withdraw.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                revenueByMonth.TotalRefundMoney = payments
+                    .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                revenueByMonths.Add(revenueByMonth);
+            }
+
+            result.Payload = revenueByMonths;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Lấy thống kê doanh thu theo tháng thành công!";
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "Lấy thống kê doanh thu theo tháng thất bại!";
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// - Lấy thống kê sản phẩm bán chạy theo thang
+    /// - Tên sản phẩm
+    /// - Phần trăm
+    /// - Lấy tất cả businessId theo thời gian từ fromDate đến toDate trong BusinessDay
+    /// - Lấy tất cả menu theo businessdayId trong Menu
+    /// - Lấy tất cả sản phẩm trong ProductItemInMenu theo menuId
+    /// - Tính phần trăm bán chạy của sản phẩm theo số lượng bán ra
+    /// </summary>
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>> GetProductSellingPercent(DateTime? fromDate, DateTime? toDate)
+    {
+        var result = new OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>();
+        try
+        {
+            var businessDays = await _unitOfWork.BusinessDayRepository.FilterByExpression(x => x.OpenDay >= fromDate && x.OpenDay <= toDate)
+                .ToListAsync();
+            if (businessDays.Count == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không có ngày kinh doanh nào!"
+                });
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không có ngày kinh doanh nào!";
+                result.IsError = true;
+                return result;
+            }
+
+            var menuList = await _unitOfWork.MenuRepository.GetAllWithoutPaging(null, null).ToListAsync();
+            var productItemInMenuList = await _unitOfWork.ProductItemInMenuRepository.GetAllWithoutPaging(null, null).ToListAsync();
+
+            var productItemSellingPercentRatios = new List<AdminDashboardResponse.ProductSellingPercent>();
+            double totalQuantitySold = 0;
+            
+            var newProductItemInMenuList = new List<ProductItemInMenu>();
+
+            foreach (var businessDay in businessDays)
+            {
+                var menu = menuList.FirstOrDefault(x => x.BusinessDayId == businessDay.Id);
+                if (menu == null)
+                {
+                    continue;
+                }
+
+                var productItemInMenus = productItemInMenuList.Where(x => x.MenuId == menu.Id).ToList();
+                if (productItemInMenus.Count == 0)
+                {
+                    continue;
+                }
+                
+                newProductItemInMenuList.AddRange(productItemInMenus);
+                totalQuantitySold += productItemInMenus.Sum(x => x.Sold ?? 0);
+            }
+
+            var newProductItemUnique = newProductItemInMenuList.GroupBy(x => x.ProductItemId)
+                .Select(x => new AdminDashboardResponse.ProductSellingPercent()
+                {
+                    ProductItemId = x.First().ProductItemId,
+                    SoldQuantity = x.Sum(y => y.Sold ?? 0),
+                    Percent = Math.Round(x.Sum(y => y.Sold ?? 0) / totalQuantitySold * 100, 2)
+                }).ToList();
+            
+
+            // check duplicate product item then sum percent and get one
+            foreach (var item in newProductItemUnique)
+            {
+                item.ProductName = (await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId))!.Title;
+            }
+            
+            
+            result.Payload = newProductItemUnique;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Lấy thống kê sản phẩm bán chạy thành công!";
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "Lấy thống kê sản phẩm bán chạy thất bại!";
             result.IsError = true;
             throw;
         }
