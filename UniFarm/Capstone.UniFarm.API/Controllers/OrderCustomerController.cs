@@ -3,6 +3,7 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers;
 
@@ -19,6 +20,7 @@ public class OrderCustomerController : BaseController
 
     [HttpPost("order/create")]
     [Authorize]
+    [SwaggerOperation(Summary = "Create order - Tien")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderRequestCreate orderRequestCreate)
     {
         string authHeader = HttpContext.Request.Headers["Authorization"];
@@ -36,7 +38,8 @@ public class OrderCustomerController : BaseController
     }
 
     [HttpGet("orders/get-all")]
-    [Authorize]
+    [Authorize(Roles = "Customer")]
+    [SwaggerOperation(Summary = "Get all order of customer - Tien")]
     public async Task<IActionResult> GetAllOrder(
         [FromQuery] string? searchWord,
         [FromQuery] EnumConstants.CustomerStatus? status,
