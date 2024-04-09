@@ -335,7 +335,8 @@ public class AdminDashboardService : IAdminDashboardService
         var result = new OperationResult<IEnumerable<AdminDashboardResponse.RevenueByMonth>>();
         try
         {
-            var orderList = await _unitOfWork.OrderRepository.GetAllWithoutPaging(isAscending: true, EnumConstants.FilterOrder.CreatedAt.ToString())
+            var orderList = await _unitOfWork.OrderRepository
+                .GetAllWithoutPaging(isAscending: true, EnumConstants.FilterOrder.CreatedAt.ToString())
                 .ToListAsync();
             if (orderList.Count == 0)
             {
@@ -354,13 +355,13 @@ public class AdminDashboardService : IAdminDashboardService
 
             var revenueByMonths = new List<AdminDashboardResponse.RevenueByMonth>();
             var months = orderList.Select(x => x.CreatedAt.Month).Distinct().ToList();
-            foreach (var month in months)
+            for (int i = 1; i <= 12; i++)
             {
-                var orders = orderList.Where(x => x.CreatedAt.Month == month).ToList();
-                var payments = paymentList.Where(x => x.PaymentDay.Month == month).ToList();
+                var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();
+                var payments = paymentList.Where(x => x.PaymentDay.Month == i).ToList();
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
                 {
-                    Month = month.ToString(),
+                    Month = i.ToString(),
                     TotalRevenue = orders.Sum(x => x.TotalAmount ?? 0),
                     TotalBenefit = orders.Sum(x => x.TotalAmount ?? 0),
                     TotalOrder = orders.Count,
@@ -374,11 +375,14 @@ public class AdminDashboardService : IAdminDashboardService
                         x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString())
                 };
                 revenueByMonth.TotalDepositMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Deposit.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                    .Where(x => x.Type == EnumConstants.PaymentType.Deposit.ToString() && x.PaymentDay.Month == i)
+                    .Sum(x => x.Amount);
                 revenueByMonth.TotalWithdrawMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Withdraw.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                    .Where(x => x.Type == EnumConstants.PaymentType.Withdraw.ToString() && x.PaymentDay.Month == i)
+                    .Sum(x => x.Amount);
                 revenueByMonth.TotalRefundMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay.Month == month).Sum(x => x.Amount);
+                    .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay.Month == i)
+                    .Sum(x => x.Amount);
                 revenueByMonths.Add(revenueByMonth);
             }
 
@@ -412,12 +416,14 @@ public class AdminDashboardService : IAdminDashboardService
     /// - Lấy tất cả sản phẩm trong ProductItemInMenu theo menuId
     /// - Tính phần trăm bán chạy của sản phẩm theo số lượng bán ra
     /// </summary>
-    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>> GetProductSellingPercent(DateTime? fromDate, DateTime? toDate)
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>>
+        GetProductSellingPercent(DateTime? fromDate, DateTime? toDate)
     {
         var result = new OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>();
         try
         {
-            var businessDays = await _unitOfWork.BusinessDayRepository.FilterByExpression(x => x.OpenDay >= fromDate && x.OpenDay <= toDate)
+            var businessDays = await _unitOfWork.BusinessDayRepository
+                .FilterByExpression(x => x.OpenDay >= fromDate && x.OpenDay <= toDate)
                 .ToListAsync();
             if (businessDays.Count == 0)
             {
@@ -433,11 +439,12 @@ public class AdminDashboardService : IAdminDashboardService
             }
 
             var menuList = await _unitOfWork.MenuRepository.GetAllWithoutPaging(null, null).ToListAsync();
-            var productItemInMenuList = await _unitOfWork.ProductItemInMenuRepository.GetAllWithoutPaging(null, null).ToListAsync();
+            var productItemInMenuList =
+                await _unitOfWork.ProductItemInMenuRepository.GetAllWithoutPaging(null, null).ToListAsync();
 
             var productItemSellingPercentRatios = new List<AdminDashboardResponse.ProductSellingPercent>();
             double totalQuantitySold = 0;
-            
+
             var newProductItemInMenuList = new List<ProductItemInMenu>();
 
             foreach (var businessDay in businessDays)
@@ -453,7 +460,7 @@ public class AdminDashboardService : IAdminDashboardService
                 {
                     continue;
                 }
-                
+
                 newProductItemInMenuList.AddRange(productItemInMenus);
                 totalQuantitySold += productItemInMenus.Sum(x => x.Sold ?? 0);
             }
@@ -465,15 +472,15 @@ public class AdminDashboardService : IAdminDashboardService
                     SoldQuantity = x.Sum(y => y.Sold ?? 0),
                     Percent = Math.Round(x.Sum(y => y.Sold ?? 0) / totalQuantitySold * 100, 2)
                 }).ToList();
-            
+
 
             // check duplicate product item then sum percent and get one
             foreach (var item in newProductItemUnique)
             {
                 item.ProductName = (await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId))!.Title;
             }
-            
-            
+
+
             result.Payload = newProductItemUnique;
             result.StatusCode = StatusCode.Ok;
             result.Message = "Lấy thống kê sản phẩm bán chạy thành công!";
