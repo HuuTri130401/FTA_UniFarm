@@ -13,7 +13,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [Required(ErrorMessage = "Caption is required")]
         [StringLength(50, ErrorMessage = "Caption length cannot exceed 50 characters")]
         [MinLength(3, ErrorMessage = "Caption length must be at least 3 characters")]
-        public string Caption { get; set; }
+        public string Caption { get; set; } 
         [Required(ErrorMessage = "Image URL is required")]
         public IFormFile ImageUrl { get; set; }
         [Required(ErrorMessage = "DisplayIndex is required")]

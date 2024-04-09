@@ -89,7 +89,7 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "Create Product Item For Product - FARMHUB - {Huu Tri}")]
         [HttpPost("product/{id}/product-item")]
         [Authorize(Roles = "FarmHub")]
-        public async Task<IActionResult> CreateProductItemForProduct(Guid id, ProductItemRequest productItemRequest)
+        public async Task<IActionResult> CreateProductItemForProduct(Guid id, [FromForm]ProductItemRequest productItemRequest)
         {
             if (ModelState.IsValid)
             {
@@ -101,7 +101,6 @@ namespace Capstone.UniFarm.API.Controllers
 
                 // The token is prefixed with "Bearer ", so we need to remove that prefix
                 string token = authHeader.Replace("Bearer ", "");
-
                 var defineUser = _accountService.GetIdAndRoleFromToken(token);
                 if (defineUser.Payload == null)
                 {

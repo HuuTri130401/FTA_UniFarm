@@ -20,12 +20,14 @@ namespace Capstone.UniFarm.Services.CustomServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ProductItemService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductItemService(IUnitOfWork unitOfWork, ILogger<ProductItemService> logger, IMapper mapper)
+        public ProductItemService(IUnitOfWork unitOfWork, ILogger<ProductItemService> logger, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<OperationResult<bool>> CreateProductItemForProduct(Guid productId, Guid farmHubAccountId, ProductItemRequest productItemRequest)
@@ -53,15 +55,23 @@ namespace Capstone.UniFarm.Services.CustomServices
                             productItem.OutOfStock = true;
                         }
                         await _unitOfWork.ProductItemRepository.AddAsync(productItem);
-                        var checkResult = _unitOfWork.Save();
-                        if (checkResult > 0)
+                        _unitOfWork.Save();
+
+                        var productImage = new ProductImage();
+                        int displayIndex = 1;
+                        foreach (var imageRequest in productItemRequest.Images)
                         {
-                            result.AddResponseStatusCode(StatusCode.Created, "Add Product Item for Product Success!", true);
+                            productImage.Id = Guid.NewGuid();
+                            productImage.DisplayIndex = displayIndex++;
+                            productImage.Caption = $"{productItemRequest.Title}: {productImage.DisplayIndex}";
+                            var imageUrl = await _cloudinaryService.UploadImageAsync(imageRequest);
+                            productImage.ImageUrl = imageUrl;
+                            productImage.ProductItemId = productItem.Id;
+                            productImage.Status = "Active";
+                            await _unitOfWork.ProductImageRepository.AddAsync(productImage);
+                            _unitOfWork.Save();
                         }
-                        else
-                        {
-                            result.AddError(StatusCode.BadRequest, "Add Product Item for Product Failed!");
-                        }
+                        result.AddResponseStatusCode(StatusCode.Created, "Add Product Item for Product Success!", true);
                     }
                     else
                     {

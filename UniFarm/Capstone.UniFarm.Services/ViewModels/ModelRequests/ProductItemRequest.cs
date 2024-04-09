@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -33,5 +34,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public double MinOrder { get; set; }
         [Required(ErrorMessage = "Unit is required")]
         public string Unit { get; set; }
+
+        [Required(ErrorMessage = "ProductImages are required")]
+        public List<IFormFile> Images { get; set; }
     }
 }
