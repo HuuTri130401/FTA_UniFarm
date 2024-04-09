@@ -22,4 +22,6 @@ public interface IAdminDashboardService
     Task<OperationResult<IEnumerable<AdminDashboardResponse.RevenueByMonth>>> GetStatisticByMonth();
     
     Task<OperationResult<IEnumerable<AdminDashboardResponse.ProductSellingPercent>>> GetProductSellingPercent(DateTime? fromDate, DateTime? toDate);
+    Task<OperationResult<IEnumerable<AdminDashboardResponse.TopFarmHub>>> GetTopFarmHub(DateTime? fromDate, DateTime? toDate, int? top);
+    
 }

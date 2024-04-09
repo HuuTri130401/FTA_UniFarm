@@ -71,13 +71,15 @@ public record AdminDashboardResponse
     
     public record TopFarmHub
     {
-        public Guid? Id { get; init; }
-        public string? Name { get; init; }
-        public Guid? OwnerId { get; init; }
-        public Guid? OwnerName { get; init; }
-        public string? Address { get; init; }
-        public decimal? TotalRevenue { get; init; }
-        public int? TotalOrderCancel { get; init; }
-        public int? TotalOrderSuccess { get; init; }
+        public Guid Id { get; set; }
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public Guid? OwnerId { get; set; }
+        public string? OwnerName { get; set; }
+        public string? Address { get; set; }
+        public string? Image { get; set; }
+        public decimal? TotalRevenue { get; set; }
+        public int? TotalOrderCancel { get; set; }
+        public int? TotalOrderSuccess { get; set; }
     }
 }
