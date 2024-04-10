@@ -502,7 +502,7 @@ public class AdminDashboardService : IAdminDashboardService
         return result;
     }
 
-    
+
     /// <summary>
     /// Get all businessday from fromDate to toDate in BusinessDay
     /// Get all order has businessdayId in Order
@@ -512,12 +512,14 @@ public class AdminDashboardService : IAdminDashboardService
     /// <param name="fromDate"></param>
     /// <param name="toDate"></param>
     /// <param name="top"></param>
-    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.TopFarmHub>>> GetTopFarmHub(DateTime? fromDate, DateTime? toDate, int? top)
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.TopFarmHub>>> GetTopFarmHub(DateTime? fromDate,
+        DateTime? toDate, int? top)
     {
         var result = new OperationResult<IEnumerable<AdminDashboardResponse.TopFarmHub>>();
         try
         {
-            var businessDays = _unitOfWork.BusinessDayRepository.FilterByExpression(x => x.OpenDay >= fromDate && x.OpenDay <= toDate).ToList();
+            var businessDays = _unitOfWork.BusinessDayRepository
+                .FilterByExpression(x => x.OpenDay >= fromDate && x.OpenDay <= toDate).ToList();
             if (businessDays.Count == 0)
             {
                 result.Errors.Add(new Error()
@@ -531,7 +533,9 @@ public class AdminDashboardService : IAdminDashboardService
                 return result;
             }
 
-            var orders = _unitOfWork.OrderRepository.FilterByExpression(x =>businessDays.Select(y => y.Id).ToList().Contains(x.BusinessDayId!.Value)).ToList();
+            var orders = _unitOfWork.OrderRepository
+                .FilterByExpression(x => businessDays.Select(y => y.Id).ToList().Contains(x.BusinessDayId!.Value))
+                .ToList();
             if (orders.Count == 0)
             {
                 result.Errors.Add(new Error()
@@ -549,13 +553,25 @@ public class AdminDashboardService : IAdminDashboardService
                 .Select(x => new AdminDashboardResponse.TopFarmHub()
                 {
                     Id = x.Key,
-                    TotalRevenue = x.Sum(y => (y.CustomerStatus != null && y.CustomerStatus.Contains(EnumConstants.CustomerStatus.PickedUp.ToString())) ? y.TotalAmount : 0),
-                    TotalOrderCancel = x.Sum(y => (y.CustomerStatus != null && 
-                                                   (y.CustomerStatus.Contains(EnumConstants.CustomerStatus.CanceledByCustomer.ToString()) 
-                                                    || y.CustomerStatus.Contains(EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()) 
-                                                    || y.CustomerStatus.Contains(EnumConstants.CustomerStatus.CanceledByCollectedHub.ToString()))) ? 0 : 1),
-                    TotalOrderSuccess = x.Sum(y => (y.CustomerStatus != null && 
-                                                    y.CustomerStatus.Contains(EnumConstants.CustomerStatus.PickedUp.ToString())) ? 1 : 0)
+                    TotalRevenue = x.Sum(y =>
+                        (y.CustomerStatus != null &&
+                         y.CustomerStatus.Contains(EnumConstants.CustomerStatus.PickedUp.ToString()))
+                            ? y.TotalAmount
+                            : 0),
+                    TotalOrderCancel = x.Sum(y => (y.CustomerStatus != null &&
+                                                   (y.CustomerStatus.Contains(EnumConstants.CustomerStatus
+                                                        .CanceledByCustomer.ToString())
+                                                    || y.CustomerStatus.Contains(EnumConstants.CustomerStatus
+                                                        .CanceledByFarmHub.ToString())
+                                                    || y.CustomerStatus.Contains(EnumConstants.CustomerStatus
+                                                        .CanceledByCollectedHub.ToString())))
+                        ? 0
+                        : 1),
+                    TotalOrderSuccess = x.Sum(y => (y.CustomerStatus != null &&
+                                                    y.CustomerStatus.Contains(EnumConstants.CustomerStatus.PickedUp
+                                                        .ToString()))
+                        ? 1
+                        : 0)
                 })
                 .OrderByDescending(x => x.TotalRevenue)
                 .Take(top ?? 5)
@@ -568,7 +584,8 @@ public class AdminDashboardService : IAdminDashboardService
                 item.Address = farmHub.Address;
                 item.Image = farmHub.Image;
                 item.Code = farmHub.Code;
-                var accountRole = _unitOfWork.AccountRoleRepository.FilterByExpression(x => x.FarmHubId == farmHub.Id).FirstOrDefault();
+                var accountRole = _unitOfWork.AccountRoleRepository.FilterByExpression(x => x.FarmHubId == farmHub.Id)
+                    .FirstOrDefault();
                 if (accountRole != null)
                 {
                     var account = _unitOfWork.AccountRepository.GetByIdAsync(accountRole.AccountId).Result;
@@ -596,6 +613,62 @@ public class AdminDashboardService : IAdminDashboardService
         }
 
         return result;
+    }
 
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.BalanceFluctuations>>> GetBalanceFluctuations()
+    {
+        var result = new OperationResult<IEnumerable<AdminDashboardResponse.BalanceFluctuations>>();
+        try
+        {
+            var paymentList = _unitOfWork.PaymentRepository.GetAllWithoutPaging(null, null).ToList();
+            if (paymentList.Count == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không có giao dịch nào!"
+                });
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không có giao dịch nào!";
+                result.IsError = true;
+                return result;
+            }
+
+            var balanceFluctuations = new List<AdminDashboardResponse.BalanceFluctuations>();
+            for (int i = 1; i <= 12; i++)
+            {
+                var payments = paymentList.Where(x => x.PaymentDay.Month == i).ToList();
+                var balanceFluctuation = new AdminDashboardResponse.BalanceFluctuations()
+                {
+                    month = i,
+                    TotalDepositMoney = payments
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay.Month == i)
+                        .Sum(x => x.Amount),
+                    TotalWithdrawMoney = payments
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay.Month == i)
+                        .Sum(x => x.Amount)
+                };
+                balanceFluctuations.Add(balanceFluctuation);
+            }
+            
+            result.Payload = balanceFluctuations;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Lấy biến động số dư thành công!";
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "Lấy biến động số dư thất bại!";
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
     }
 }

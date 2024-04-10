@@ -17,16 +17,17 @@ namespace Capstone.UniFarm.Domain.Models
         [StringLength(255)]
         public string? To { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal? Amount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime PaymentDay { get; set; } = DateTime.Now;
         [StringLength(100)]
         public string? Status { get; set; }
         
-        [RegularExpression("^(Deposit|Withdraw)$", ErrorMessage = "Type can be either Deposit or Withdraw.")]
         public string Type { get; set; }
 
         [ForeignKey(nameof(WalletId))]
+        /*
         [InverseProperty("Payments")]
+        */
         public virtual Wallet? Wallet { get; set; }
     }
 }

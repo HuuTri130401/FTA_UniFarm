@@ -1,11 +1,8 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Capstone.UniFarm.API.Configurations;
+﻿
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace Capstone.UniFarm.API.Controllers;
 
@@ -14,10 +11,12 @@ namespace Capstone.UniFarm.API.Controllers;
 public class PaymentController : BaseController
 {
     private readonly IVnPayService _vnPayService;
+    private readonly IAccountService _accountService;
 
-    public PaymentController(IVnPayService vnPayService)
+    public PaymentController(IVnPayService vnPayService, IAccountService accountService)
     {
         _vnPayService = vnPayService;
+        _accountService = accountService;
     }
 
     [HttpPost]
@@ -28,7 +27,7 @@ public class PaymentController : BaseController
     }
 
     [HttpGet("PaymentCallBack")] // Unique route for PaymentCallBack
-    public IActionResult PaymentCallBack()
+    public  IActionResult PaymentCallBack()
     {
         var response = _vnPayService.PaymentExecute(Request.Query);
 
@@ -37,19 +36,45 @@ public class PaymentController : BaseController
             return RedirectToAction(nameof(PaymentFail));
         }
 
-        // Lưu đơn hàng vô database
+        // save payment
+        var responsePayment =  _vnPayService.SavePayment(response).Result;
+        
+        if(responsePayment.IsError)
+        {
+            return RedirectToAction(nameof(PaymentFail));
+        }
+      
         return RedirectToAction(nameof(PaymentSuccess));
     }
 
-    [HttpGet("fail")] // Unique route for PaymentFail
+    [HttpGet("fail")]
     public IActionResult PaymentFail()
     {
-        return BadRequest("Tao thanh toan khong thanh cong");
+        return BadRequest("Tạo giao dịch thất bại!");
     }
 
-    [HttpGet("success")] // Unique route for PaymentSuccess
+    [HttpGet("success")]
     public IActionResult PaymentSuccess()
     {
-        return Ok("Tao thanh toan thanh cong");
+        return Ok("Tạo giao dịch thành công!");
+    }
+    
+    [HttpPost("create-payment")]
+    [Authorize]
+    public IActionResult CreatePayment([FromBody] PaymentRequestCreateModel model)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        
+        var response = _vnPayService.CreatePayment(defineUser.Payload.Id, model).Result;
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

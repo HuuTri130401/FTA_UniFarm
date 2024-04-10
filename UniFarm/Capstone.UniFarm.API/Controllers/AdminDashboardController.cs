@@ -56,6 +56,17 @@ public class AdminDashboardController : BaseController
         var response = await _adminDashboardService.GetTopFarmHub(fromDate, toDate, top);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+    
+    
+    [HttpGet("admin/dashboard/balance-fluctuations")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerOperation(Summary = "Biến động số dư theo tháng - Tien")]
+    public async Task<IActionResult> GetBalanceFluctuations()
+    {
+        var response = await _adminDashboardService.GetBalanceFluctuations();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+    
 
     [HttpGet("admin/dashboard/business-day/{businessDayId}/order-statistic")]
     [Authorize(Roles = "Admin")]

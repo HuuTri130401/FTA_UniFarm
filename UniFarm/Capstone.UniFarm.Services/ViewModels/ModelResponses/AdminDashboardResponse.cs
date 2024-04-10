@@ -82,4 +82,11 @@ public record AdminDashboardResponse
         public int? TotalOrderCancel { get; set; }
         public int? TotalOrderSuccess { get; set; }
     }
+    
+    public record BalanceFluctuations
+    {
+        public int month { get; set; }
+        public decimal? TotalDepositMoney { get; set; }
+        public decimal? TotalWithdrawMoney { get; set; }
+    }
 }

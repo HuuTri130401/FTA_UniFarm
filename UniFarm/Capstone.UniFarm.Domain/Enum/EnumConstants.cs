@@ -130,6 +130,15 @@ public abstract record EnumConstants
     {
         public static readonly string SUCCESS = "Success";
         public static readonly string FAILURE = "Failure";
+        public static readonly string VNPAY = "VNPAY";
+        public static readonly string WALLET = "Wallet";
+    }
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FromToWallet
+    {
+        VNPAY,
+        WALLET
     }
 
     public abstract record PaymentTypeEnum
@@ -224,5 +233,12 @@ public abstract record EnumConstants
         Deposit,
         Withdraw,
         Refund
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum PaymentMethod
+    {
+        WITHDRAW,
+        DEPOSIT,
     }
 }
