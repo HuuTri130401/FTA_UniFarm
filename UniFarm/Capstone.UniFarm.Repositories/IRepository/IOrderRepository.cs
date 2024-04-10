@@ -10,7 +10,7 @@ public interface IOrderRepository : IGenericRepository<Order>
     Task<bool> CheckAllOrderProcessedByCollectedHub(Guid batchId);
     Task<bool> AreAllOrdersCompletedForBusinessDay(Guid businessDayId);
     Task<List<Order>> GetAllOrderToUpdateEndOfDay(Guid businessDayId);
-    Task<List<FarmHubSettlement>> SystemCalculateTotalForFarmHub(Guid businessDayId);
+    //Task<List<FarmHubSettlement>> SystemCalculateTotalForFarmHub(Guid businessDayId);
     //Task<Dictionary<Guid, decimal?>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId);
     Task<Dictionary<Guid, (decimal? TotalAmount, int OrderCount)>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId);
     Task<(decimal? TotalAmount, int OrderCount)> CalculateTotalForBusinessDayOfOneFarmHub(Guid businessDayId, Guid farmHubId);

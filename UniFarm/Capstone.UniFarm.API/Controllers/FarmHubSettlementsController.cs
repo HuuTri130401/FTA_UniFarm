@@ -12,35 +12,35 @@ namespace Capstone.UniFarm.API.Controllers
     public class FarmHubSettlementsController : BaseController
     {
         private readonly ISettlementService _settlementService;
+        private readonly IAccountService _accountService;
 
-        public FarmHubSettlementsController(ISettlementService settlementService)
+        public FarmHubSettlementsController(ISettlementService settlementService, 
+            IAccountService accountService)
         {
             _settlementService = settlementService;
+            _accountService = accountService;
         }
 
-        //[SwaggerOperation(Summary = "TEST SETLEMENT - ADMIN - {Huu Tri}")]
-        //[HttpPost("settlement")]
-        //public async Task<IActionResult> CreateSettlement(Guid businessDayId)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        await _settlementService.CreateSettlementForBusinessDay(businessDayId);
-        //        return Ok();
-        //    }
-        //    return BadRequest("Model is invalid");
-        //}
+        [SwaggerOperation(Summary = "Payment Profit Fo rFarmHub In BusinessDay - ADMIN - {Huu Tri}")]
+        [HttpPost("settlement/payout-for-all-farmhub/businessday/{businessDayId}")]
+        public async Task<IActionResult> PaymentProfitForFarmHubInBusinessDay(Guid businessDayId)
+        {
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+            string token = authHeader.Replace("Bearer ", "");
 
-        //[SwaggerOperation(Summary = "FarmHub Shop Create Settlement - FARMHUB - {Huu Tri}")]
-        //[HttpPost("settlement/create-or-update")]
-        //public async Task<IActionResult> CreateFarmHub(Guid businessDayId, Guid farmHubId)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var response = await _settlementService.CreateSettlementForFarmHub(businessDayId, farmHubId);
-        //        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-        //    }
-        //    return BadRequest("Model is invalid");
-        //}
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null)
+            {
+                return HandleErrorResponse(defineUser!.Errors);
+            }
+            var systemAccountId = defineUser.Payload.Id;
+            var response = await _settlementService.PaymentProfitForFarmHubInBusinessDay(businessDayId, systemAccountId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
 
         [SwaggerOperation(Summary = "FarmHub Shop Get Settlement By FarmHubId and BusinessDayId - FARMHUB - {Huu Tri}")]
         [HttpGet("settlement/businessday/{businessdayId}/farmhub/{farmHubId}")]

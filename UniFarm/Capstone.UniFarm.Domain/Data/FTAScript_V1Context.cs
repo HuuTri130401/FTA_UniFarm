@@ -315,11 +315,11 @@ namespace Capstone.UniFarm.Domain.Data
 
                 entity.Property(e => e.PaymentDate).HasDefaultValueSql("(getdate())");
 
-                entity.HasOne(d => d.Wallet)
-                    .WithMany(p => p.Transactions)
-                    .HasForeignKey(d => d.WalletId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Transacti__Walle__7C4F7684");
+                //entity.HasOne(d => d.Wallet)
+                //    .WithMany(p => p.Transactions)
+                //    .HasForeignKey(d => d.WalletId)
+                //    .OnDelete(DeleteBehavior.ClientSetNull)
+                //    .HasConstraintName("FK__Transacti__Walle__7C4F7684");
                 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.Transactions)

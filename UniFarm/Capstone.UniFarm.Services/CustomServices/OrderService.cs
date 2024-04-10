@@ -8,6 +8,7 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
@@ -244,9 +245,11 @@ public class OrderService : IOrderService
                         Id = Guid.NewGuid(),
                         OrderId = order.Id,
                         Amount = orderDetail.TotalPrice,
-                        PaymentDate = DateTime.Now,
+                        PaymentDate = DateTime.UtcNow.AddHours(7),
                         Status = "Success",
-                        WalletId = wallet.Id
+                        PayerWalletId = wallet.Id,
+                        PayeeWalletId = adminWallet.Id,
+                        TransactionType = TransactionEnum.Payment.ToString()
                     };
 
                     await _unitOfWork.TransactionRepository.AddAsync(transactionEntity);

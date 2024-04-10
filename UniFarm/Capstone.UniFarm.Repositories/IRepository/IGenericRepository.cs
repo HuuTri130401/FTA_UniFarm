@@ -13,6 +13,7 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<TEntity?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includeProperties);
         Task<TEntity> AddAsync(TEntity entity);
         Task<TEntity> UpdateAsync(TEntity entity);
+        Task UpdateEntityAsync(TEntity entity);
         void Update(TEntity entity);
         void UpdateRange(List<TEntity> entities);
         void SoftRemove(TEntity entity);

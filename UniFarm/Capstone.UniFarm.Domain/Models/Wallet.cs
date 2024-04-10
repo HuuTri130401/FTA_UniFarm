@@ -12,7 +12,8 @@ namespace Capstone.UniFarm.Domain.Models
         public Wallet()
         {
             Payments = new HashSet<Payment>();
-            Transactions = new HashSet<Transaction>();
+            TransactionsAsPayers = new HashSet<Transaction>();
+            //TransactionsAsPayees = new HashSet<Transaction>();
         }
 
         [Key]
@@ -30,7 +31,10 @@ namespace Capstone.UniFarm.Domain.Models
         public virtual Account Account { get; set; } = null!;
         [InverseProperty(nameof(Payment.Wallet))]
         public virtual ICollection<Payment> Payments { get; set; }
-        [InverseProperty(nameof(Transaction.Wallet))]
-        public virtual ICollection<Transaction> Transactions { get; set; }
+        [InverseProperty("PayerWallet")]
+        public virtual ICollection<Transaction> TransactionsAsPayers { get; set; }
+
+        //[InverseProperty("PayeeWallet")]
+        //public virtual ICollection<Transaction> TransactionsAsPayees { get; set; }
     }
 }

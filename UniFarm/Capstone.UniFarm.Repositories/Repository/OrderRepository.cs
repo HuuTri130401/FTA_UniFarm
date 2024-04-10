@@ -92,23 +92,23 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             _completedStatuses.Contains(status));
     }
 
-    public async Task<List<FarmHubSettlement>> SystemCalculateTotalForFarmHub(Guid businessDayId)
-    {
-        var totals = await _dbSet
-            .Where(bt => bt.BusinessDayId == businessDayId)
-            .Where(de => de.DeliveryStatus == DeliveryStatus.CanceledByCollectedHub.ToString()
-                || de.DeliveryStatus == CustomerStatus.PickedUp.ToString()
-                || de.DeliveryStatus == CustomerStatus.Expired.ToString())
-            .GroupBy(f => f.FarmHubId)
-            .Select(group => new FarmHubSettlement
-            {
-                BusinessDayId = businessDayId,
-                FarmHubId = group.Key,
-                TotalSales = (decimal)group.Sum(o => o.TotalAmount)
-            })
-            .ToListAsync();
-        return totals;
-    }
+    //public async Task<List<FarmHubSettlement>> SystemCalculateTotalForFarmHub(Guid businessDayId)
+    //{
+    //    var totals = await _dbSet
+    //        .Where(bt => bt.BusinessDayId == businessDayId)
+    //        .Where(de => de.DeliveryStatus == DeliveryStatus.CanceledByCollectedHub.ToString()
+    //            || de.DeliveryStatus == CustomerStatus.PickedUp.ToString()
+    //            || de.DeliveryStatus == CustomerStatus.Expired.ToString())
+    //        .GroupBy(f => f.FarmHubId)
+    //        .Select(group => new FarmHubSettlement
+    //        {
+    //            BusinessDayId = businessDayId,
+    //            FarmHubId = group.Key,
+    //            TotalSales = (decimal)group.Sum(o => o.TotalAmount)
+    //        })
+    //        .ToListAsync();
+    //    return totals;
+    //}
 
     //public async Task<Dictionary<Guid, decimal?>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId)
     //{
@@ -146,6 +146,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
     public async Task<(decimal? TotalAmount, int OrderCount)> CalculateTotalForBusinessDayOfOneFarmHub(Guid businessDayId, Guid farmHubId)
     {
         // Lấy tổng số lượng và tổng số tiền của các đơn hàng từ một FarmHub cụ thể trong một BusinessDay
+        //Tổng tiền của farmhub này bao gồm đơn hàng đã hoàn thành: Khi khách đã nhận, khi khách quá hạn nhận, khi bị hủy bỏ bởi hệ thống
         var result = await _dbSet
             .Where(o => o.BusinessDayId == businessDayId && o.FarmHubId == farmHubId)
             .Where(cus => cus.CustomerStatus == CustomerStatus.CanceledByCollectedHub.ToString()

@@ -54,7 +54,7 @@ public class TransactionController : BaseController
             var result = await _transactionService.GetAll(
                 isAscending,
                 orderBy,
-                x => x.WalletId == walletId &&
+                x => x.PayerWalletId == walletId &&
                      (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
                      (!paymentDate.HasValue || x.PaymentDate == paymentDate),
                 null,

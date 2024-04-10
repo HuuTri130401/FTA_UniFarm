@@ -4,5 +4,6 @@ namespace Capstone.UniFarm.Repositories.IRepository;
 
 public interface IAccountRoleRepository : IGenericRepository<AccountRole>
 {
-        Task<AccountRole> GetAccountRoleByAccountIdAsync(Guid farmhubAccountId);
+    Task<AccountRole> GetAccountRoleByAccountIdAsync(Guid farmhubAccountId);
+    Task<AccountRole> GetAccountRoleForFarmHubAsync(Guid farmhubId);
 }
