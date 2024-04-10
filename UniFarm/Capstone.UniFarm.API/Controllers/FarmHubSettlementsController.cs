@@ -21,8 +21,9 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Payment Profit Fo rFarmHub In BusinessDay - ADMIN - {Huu Tri}")]
+        [SwaggerOperation(Summary = "Payment Profit For All FarmHub In BusinessDay - ADMIN - {Huu Tri}")]
         [HttpPost("settlement/payout-for-all-farmhub/businessday/{businessDayId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PaymentProfitForFarmHubInBusinessDay(Guid businessDayId)
         {
             string authHeader = HttpContext.Request.Headers["Authorization"];
@@ -42,6 +43,7 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [Authorize(Roles = "Admin, FarmHub")]
         [SwaggerOperation(Summary = "FarmHub Shop Get Settlement By FarmHubId and BusinessDayId - FARMHUB - {Huu Tri}")]
         [HttpGet("settlement/businessday/{businessdayId}/farmhub/{farmHubId}")]
         public async Task<IActionResult> GetMenuById(Guid businessdayId, Guid farmHubId)
