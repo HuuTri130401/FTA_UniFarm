@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,9 @@ public class TransactionController : BaseController
     private readonly ITransactionService _transactionService;
     private readonly IAccountService _accountService;
     private readonly IWalletService _walletService;
-    
-
-    public TransactionController(ITransactionService transactionService, IAccountService accountService, IWalletService walletService)
+    public TransactionController(ITransactionService transactionService, 
+        IAccountService accountService, 
+        IWalletService walletService)
     {
         _transactionService = transactionService;
         _accountService = accountService;
@@ -78,5 +79,27 @@ public class TransactionController : BaseController
         }
         
         return Unauthorized();
+    }
+
+    [SwaggerOperation(Summary = "Get All Transaction - ADMIN, FARMHUB - {Huu Tri}")]
+    [HttpGet("transactions/all")]
+    [Authorize(Roles = "Admin, FarmHub")]
+    public async Task<IActionResult> GetAllTransaction()
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+        string token = authHeader.Replace("Bearer ", "");
+
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null)
+        {
+            return HandleErrorResponse(defineUser!.Errors);
+        }
+        var accountId = defineUser.Payload.Id;
+        var response = await _transactionService.GetAllTransaction(accountId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

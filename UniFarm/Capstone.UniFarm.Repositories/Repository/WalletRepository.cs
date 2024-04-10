@@ -43,4 +43,9 @@ public class WalletRepository : GenericRepository<Wallet>, IWalletRepository
         _dbSet.Update(wallet);
         return wallet;
     }
+
+    public Wallet GetById(Guid walletId)
+    {
+        return _dbSet.FirstOrDefault(w => w.Id == walletId);
+    }
 }
