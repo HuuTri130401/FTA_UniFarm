@@ -425,16 +425,16 @@ namespace Capstone.UniFarm.Services.CustomServices
                 account.Address = string.IsNullOrEmpty(accountRequestUpdate.Address) ? account.Address : accountRequestUpdate.Address;
                 account.Status = string.IsNullOrEmpty(accountRequestUpdate.Status) ? account.Status : accountRequestUpdate.Status;
                 account.AccountRoles = null;
+                account.NormalizedEmail = account.Email.ToUpper();
+                account.UpdatedAt = DateTime.UtcNow;
 
                 if (!string.IsNullOrEmpty(accountRequestUpdate.Password))
                 {
-                    account.PasswordHash =
-                        _userManager.PasswordHasher.HashPassword(account, accountRequestUpdate.Password);
+                    account.PasswordHash =_userManager.PasswordHasher.HashPassword(account, accountRequestUpdate.Password);
                 }
 
-                await _unitOfWork.AccountRepository.UpdateAsync(account);
-                int count = await _unitOfWork.SaveChangesAsync();
-                if (count == 0)
+                var response = await _userManager.UpdateAsync(account);
+                if (response.Succeeded == false)
                 {
                     Error error = new Error()
                     {
