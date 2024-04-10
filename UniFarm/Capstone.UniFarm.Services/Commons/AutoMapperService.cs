@@ -219,6 +219,11 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
                 .ForMember(dest => dest.BusinessOpenday, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
                 .ReverseMap();
+
+            CreateMap<Transaction, TransactionResponse>()
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.HasValue ? src.Amount.Value : 0))
+                .ForMember(dest => dest.PayerName, opt => opt.MapFrom(src => src.PayerWallet.Account.UserName))
+                .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order));
         }
     }
 }

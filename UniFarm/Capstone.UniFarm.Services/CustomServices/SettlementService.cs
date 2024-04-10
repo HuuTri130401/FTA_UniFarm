@@ -47,7 +47,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                     foreach (var farmHubSettlement in listFarmHubSettlement)
                     {
-                        if (farmHubSettlement.PaymentStatus != "Paid")
+                        if (farmHubSettlement.PaymentStatus != "Paid" && farmHubSettlement.Profit > 0)
                         {
                             var accountRole = await _unitOfWork.AccountRoleRepository.GetAccountRoleForFarmHubAsync(farmHubSettlement.FarmHubId);
                             var accountId = accountRole.AccountId;
