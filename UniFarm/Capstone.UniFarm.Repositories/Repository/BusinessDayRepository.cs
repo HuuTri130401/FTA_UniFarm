@@ -50,6 +50,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         public async Task<BusinessDay> GetBusinessDayByIdAsync(Guid businessDayId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(m => m.Menus)
                 .FirstOrDefaultAsync(bd => bd.Id == businessDayId);
         }
@@ -61,10 +62,13 @@ namespace Capstone.UniFarm.Repositories.Repository
 
         public async Task UpdateBusinessDayStatus(Guid businessDayId, string status)
         {
-            var businessDay = await _dbSet.FirstOrDefaultAsync(bd => bd.Id == businessDayId);
+            var businessDay = await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(bd => bd.Id == businessDayId);
             if (businessDay != null)
             {
                 businessDay.Status = status;
+                _dbSet.Update(businessDay);
             }
         }
     }

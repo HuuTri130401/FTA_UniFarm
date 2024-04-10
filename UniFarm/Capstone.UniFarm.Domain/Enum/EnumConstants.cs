@@ -105,9 +105,19 @@ public abstract record EnumConstants
     public enum CommonEnumStatus
     {
         Active,
-        Inactive,
+        PaymentConfirm,
         Completed,
-        Paid
+        Inactive
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum TransactionEnum
+    {
+        Payment,
+        Payout,
+        Refund,
+        Paid,
+        Pending
     }
 
     public abstract record ActiveInactiveEnum

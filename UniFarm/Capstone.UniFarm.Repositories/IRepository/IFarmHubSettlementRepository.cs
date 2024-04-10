@@ -10,5 +10,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
     public interface IFarmHubSettlementRepository : IGenericRepository<FarmHubSettlement>
     {
         Task<FarmHubSettlement> GetFarmHubSettlementAsync(Guid businessDayId, Guid farmHubId);
+        Task<List<FarmHubSettlement>> GetAllFarmHubSettlementAsync(Guid businessDayId);
     }
 }

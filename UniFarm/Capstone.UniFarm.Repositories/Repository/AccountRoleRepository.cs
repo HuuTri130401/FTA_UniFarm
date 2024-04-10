@@ -29,4 +29,9 @@ public class AccountRoleRepository : GenericRepository<AccountRole>, IAccountRol
     {
         return await _dbSet.FirstOrDefaultAsync(fr => fr.AccountId == farmhubAccountId);
     }
+
+    public async Task<AccountRole> GetAccountRoleForFarmHubAsync(Guid farmhubId)
+    {
+        return await _dbSet.FirstOrDefaultAsync(fr => fr.FarmHubId == farmhubId);
+    }
 }

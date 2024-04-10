@@ -6,12 +6,14 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -28,50 +30,64 @@ namespace Capstone.UniFarm.Services.CustomServices
             _logger = logger;
         }
 
-        public async Task<OperationResult<FarmHubSettlementRequest>> CreateSettlementForBusinessDay(Guid businessDayId)
+        public async Task<OperationResult<bool>> PaymentProfitForFarmHubInBusinessDay(Guid businessDayId, Guid systemAcountId)
         {
-            var result = new OperationResult<FarmHubSettlementRequest>();
+            var result = new OperationResult<bool>();
             try
             {
-                var totalsAndNumOrderOfFarmHub = await _unitOfWork.OrderRepository.CalculateTotalForBusinessDayByFarmHub(businessDayId);
-                var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();
-
-                foreach (var totalAmountAndNumOrder in totalsAndNumOrderOfFarmHub)
+                var businessDayStatusPaymentConfirm = await _unitOfWork.BusinessDayRepository.GetBusinessDayByIdAsync(businessDayId);
+                if (businessDayStatusPaymentConfirm.Status == CommonEnumStatus.PaymentConfirm.ToString())
                 {
-                    var farmHubId = totalAmountAndNumOrder.Key;
-                    var totalSalesAndNumberOrder = totalAmountAndNumOrder.Value;
-
-                    var commissionFee = await _unitOfWork.OrderDetailRepository.CalculateCommissionFee(farmHubId, businessDayId);
-                    var dailyFee = await CalculateDailyFee((decimal)totalSalesAndNumberOrder.TotalAmount);
-
-                    FarmHubSettlementRequest farmHubSettlementRequest = new FarmHubSettlementRequest();
-
-                    farmHubSettlementRequest.FarmHubId = farmHubId;
-                    farmHubSettlementRequest.BusinessDayId = businessDayId;
-                    farmHubSettlementRequest.PriceTableId = priceTable.Id;
-                    farmHubSettlementRequest.TotalSales = (decimal)totalSalesAndNumberOrder.TotalAmount;
-                    farmHubSettlementRequest.CommissionFee = commissionFee;
-                    farmHubSettlementRequest.DailyFee = dailyFee;
-                    farmHubSettlementRequest.NumOfOrder = totalSalesAndNumberOrder.OrderCount;
-                    farmHubSettlementRequest.DeliveryFeeOfOrder = 30000;
-                    farmHubSettlementRequest.AmountToBePaid = commissionFee + dailyFee + (totalSalesAndNumberOrder.OrderCount * 30000);
-                    farmHubSettlementRequest.Profit = (decimal)totalSalesAndNumberOrder.TotalAmount - (commissionFee + dailyFee + (totalSalesAndNumberOrder.OrderCount * 30000));
-                    farmHubSettlementRequest.PaymentStatus = "Pending";
-
-                    var farmhubSetlement = _mapper.Map<FarmHubSettlement>(farmHubSettlementRequest);
-                    farmhubSetlement.Id = new Guid();
-                    await _unitOfWork.FarmHubSettlementRepository.AddAsync(farmhubSetlement);
-                    var checkResult = _unitOfWork.Save();
-                    if (checkResult > 0)
+                    var listFarmHubSettlement = await _unitOfWork.FarmHubSettlementRepository.GetAllFarmHubSettlementAsync(businessDayId);
+                    if (listFarmHubSettlement == null || !listFarmHubSettlement.Any())
                     {
-                        result.AddResponseStatusCode(StatusCode.Created, "Add Settlement Success!", farmHubSettlementRequest);
+                        result.AddResponseStatusCode(StatusCode.Ok, "List FarmHub Settlement Is Empty!", true);
                         return result;
                     }
+
+                    foreach (var farmHubSettlement in listFarmHubSettlement)
+                    {
+                        if (farmHubSettlement.PaymentStatus != "Paid")
+                        {
+                            var accountRole = await _unitOfWork.AccountRoleRepository.GetAccountRoleForFarmHubAsync(farmHubSettlement.FarmHubId);
+                            var accountId = accountRole.AccountId;
+
+                            var profit = farmHubSettlement.Profit;
+                            var farmHubWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(accountId);
+                            var systemWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(systemAcountId);
+                            if (farmHubWallet != null && systemWallet != null)
+                            {
+                                var transaction = new Transaction()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Amount = profit,
+                                    PaymentDate = DateTime.UtcNow.AddHours(7),
+                                    Status = "Success",
+                                    PayerWalletId = systemWallet.Id,
+                                    PayeeWalletId = farmHubWallet.Id,
+                                    TransactionType = TransactionEnum.Payout.ToString()
+                                };
+                                await _unitOfWork.TransactionRepository.AddAsync(transaction);
+                                var balanceOfFarmHub = farmHubWallet.Balance + profit;
+                                await _unitOfWork.WalletRepository.UpdateBalance(farmHubWallet.Id, (decimal)balanceOfFarmHub);
+                                var balanceOfSystem = systemWallet.Balance - profit;
+                                await _unitOfWork.WalletRepository.UpdateBalance(systemWallet.Id, (decimal)balanceOfSystem);
+                                farmHubSettlement.PaymentStatus = "Paid";
+                                farmHubSettlement.PaymentDate = DateTime.UtcNow.AddHours(7);
+                                await _unitOfWork.FarmHubSettlementRepository.UpdateEntityAsync(farmHubSettlement);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
+                        }
+                    }
                 }
+                businessDayStatusPaymentConfirm.Status = CommonEnumStatus.Completed.ToString();
+                await _unitOfWork.BusinessDayRepository.UpdateEntityAsync(businessDayStatusPaymentConfirm);
+                result.AddResponseStatusCode(StatusCode.Created, $"Payment Profit For FarmHub In BusinessDay: {businessDayId} Success!", true);
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in PaymentProfitForFarmHubInBusinessDay method for businessDayId: {businessDayId}");
                 throw;
             }
         }

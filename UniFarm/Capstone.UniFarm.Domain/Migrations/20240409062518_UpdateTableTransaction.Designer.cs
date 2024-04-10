@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240409062518_UpdateTableTransaction")]
+    partial class UpdateTableTransaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1067,6 +1069,7 @@ namespace Capstone.UniFarm.Domain.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("OrderId")
+                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PayeeWalletId")
@@ -1593,6 +1596,8 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.HasOne("Capstone.UniFarm.Domain.Models.Order", "Order")
                         .WithMany("Transactions")
                         .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("FK__Transacti__Order__02FC7413");
 
                     b.HasOne("Capstone.UniFarm.Domain.Models.Wallet", "PayerWallet")

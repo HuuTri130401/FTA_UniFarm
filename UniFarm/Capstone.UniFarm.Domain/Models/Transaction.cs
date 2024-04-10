@@ -15,20 +15,24 @@ namespace Capstone.UniFarm.Domain.Models
 
         [Key]
         public Guid Id { get; set; }
-        public Guid WalletId { get; set; }
-        public Guid OrderId { get; set; }
-        public DateTime PaymentDate { get; set; }
+        public string TransactionType { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? Amount { get; set; }
+        public DateTime PaymentDate { get; set; }
         [StringLength(100)]
-        public string? Status { get; set; }
-
-        [ForeignKey(nameof(WalletId))]
-        [InverseProperty("Transactions")]
-        public virtual Wallet Wallet { get; set; } = null!;
+        public string Status { get; set; }
+        public Guid PayerWalletId { get; set; }
+        [ForeignKey(nameof(PayerWalletId))]
+        [InverseProperty("TransactionsAsPayers")]
+        public virtual Wallet PayerWallet { get; set; } = null!;
+        public Guid PayeeWalletId { get; set; }
+        //[ForeignKey(nameof(PayeeWalletId))]
+        //[InverseProperty("TransactionsAsPayees")]
+        //public virtual Wallet PayeeWallet { get; set; } = null!;
+        public Guid? OrderId { get; set; }
 
         [ForeignKey(nameof(OrderId))]
         [InverseProperty("Transactions")]
-        public virtual Order Order { get; set; }
+        public virtual Order? Order { get; set; }
     }
 }

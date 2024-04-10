@@ -278,7 +278,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         // Tất cả Orders đã hoàn thành, cập nhật EndOfDay cho BusinessDay
                         existingBusinessDay.EndOfDay = DateTime.UtcNow.AddHours(7);
-                        existingBusinessDay.Status = CommonEnumStatus.Completed.ToString();
+                        existingBusinessDay.Status = CommonEnumStatus.PaymentConfirm.ToString();
                         _unitOfWork.BusinessDayRepository.Update(existingBusinessDay);
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)

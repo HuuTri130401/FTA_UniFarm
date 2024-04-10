@@ -23,5 +23,13 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Where(s => s.FarmHubId == farmHubId && s.BusinessDayId == businessDayId)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<FarmHubSettlement>> GetAllFarmHubSettlementAsync(Guid businessDayId)
+        {
+            return await _dbSet
+            .Include(b => b.BusinessDay)
+            .Where(s => s.BusinessDayId == businessDayId)
+            .ToListAsync();
+        }
     }
 }

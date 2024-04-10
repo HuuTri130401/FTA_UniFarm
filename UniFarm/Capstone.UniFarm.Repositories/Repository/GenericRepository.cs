@@ -13,9 +13,10 @@ namespace Capstone.UniFarm.Repositories.Repository
     public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
         protected DbSet<TEntity> _dbSet;
-
+        protected readonly DbContext _context;
         public GenericRepository(FTAScript_V1Context context)
         {
+            _context = context;
             _dbSet = context.Set<TEntity>();
         }
         public virtual Task<List<TEntity>> GetAllAsync() => _dbSet.ToListAsync();
@@ -40,6 +41,12 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             _dbSet.Update(entity);
             return Task.FromResult(entity);
+        }
+
+        public virtual async Task UpdateEntityAsync(TEntity entity)
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
         public virtual void SoftRemove(TEntity entity)
