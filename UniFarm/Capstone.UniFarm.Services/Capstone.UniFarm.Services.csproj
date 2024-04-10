@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <Folder Include="BackgroundJobServices\" />
-    <Folder Include="ThirdPartyService\" />
   </ItemGroup>
 
 	<ItemGroup>

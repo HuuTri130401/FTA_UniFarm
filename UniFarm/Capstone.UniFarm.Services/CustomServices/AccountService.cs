@@ -415,18 +415,18 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                 }
 
-                account.Email = accountRequestUpdate.Email;
-                account.Phone = accountRequestUpdate.PhoneNumber;
-                account.FirstName = accountRequestUpdate.FirstName;
-                account.LastName = accountRequestUpdate.LastName;
-                account.UserName = accountRequestUpdate.UserName;
-                account.Avatar = accountRequestUpdate.Avatar;
-                account.Code = accountRequestUpdate.Code;
-                account.Address = accountRequestUpdate.Address;
-                account.Status = accountRequestUpdate.Status;
+                account.Email = string.IsNullOrEmpty(accountRequestUpdate.Email) ? account.Email : accountRequestUpdate.Email;
+                account.Phone = string.IsNullOrEmpty(accountRequestUpdate.PhoneNumber) ? account.Phone : accountRequestUpdate.PhoneNumber;
+                account.FirstName = string.IsNullOrEmpty(accountRequestUpdate.FirstName) ? account.FirstName : accountRequestUpdate.FirstName;
+                account.LastName = string.IsNullOrEmpty(accountRequestUpdate.LastName) ? account.LastName : accountRequestUpdate.LastName;
+                account.UserName = string.IsNullOrEmpty(accountRequestUpdate.UserName) ? account.UserName : accountRequestUpdate.UserName;
+                account.Avatar = string.IsNullOrEmpty(accountRequestUpdate.Avatar) ? account.Avatar : accountRequestUpdate.Avatar;
+                account.Code = string.IsNullOrEmpty(accountRequestUpdate.Code) ? account.Code : accountRequestUpdate.Code;
+                account.Address = string.IsNullOrEmpty(accountRequestUpdate.Address) ? account.Address : accountRequestUpdate.Address;
+                account.Status = string.IsNullOrEmpty(accountRequestUpdate.Status) ? account.Status : accountRequestUpdate.Status;
                 account.AccountRoles = null;
 
-                if (accountRequestUpdate.Password != null)
+                if (!string.IsNullOrEmpty(accountRequestUpdate.Password))
                 {
                     account.PasswordHash =
                         _userManager.PasswordHasher.HashPassword(account, accountRequestUpdate.Password);
