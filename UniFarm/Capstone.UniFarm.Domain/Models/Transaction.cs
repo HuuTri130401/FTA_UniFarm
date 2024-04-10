@@ -26,9 +26,6 @@ namespace Capstone.UniFarm.Domain.Models
         [InverseProperty("TransactionsAsPayers")]
         public virtual Wallet PayerWallet { get; set; } = null!;
         public Guid PayeeWalletId { get; set; }
-        //[ForeignKey(nameof(PayeeWalletId))]
-        //[InverseProperty("TransactionsAsPayees")]
-        //public virtual Wallet PayeeWallet { get; set; } = null!;
         public Guid? OrderId { get; set; }
 
         [ForeignKey(nameof(OrderId))]

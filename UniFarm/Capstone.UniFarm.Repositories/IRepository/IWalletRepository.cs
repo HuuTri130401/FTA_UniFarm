@@ -6,4 +6,5 @@ public interface IWalletRepository : IGenericRepository<Wallet>
 {
     Task<Wallet> GetWalletByAccountIdAsync(Guid accountId);
     Task<Wallet> UpdateBalance(Guid walletId, decimal balance);
+    Wallet GetById(Guid walletId);
 }
