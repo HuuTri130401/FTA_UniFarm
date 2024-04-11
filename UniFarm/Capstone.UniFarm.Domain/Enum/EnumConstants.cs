@@ -241,4 +241,10 @@ public abstract record EnumConstants
         WITHDRAW,
         DEPOSIT,
     }
+    
+    public enum PaymentStatus
+    {
+        SUCCESS,
+        DENIED
+    }
 }

@@ -208,9 +208,9 @@ public class StationService : IStationService
         return result;
     }
 
-    public async Task<OperationResult<StationResponse>> Update(Guid id, StationRequestUpdate objectRequestUpdate)
+    public async Task<OperationResult<StationResponse.StationResponseSimple>> Update(Guid id, StationRequestUpdate objectRequestUpdate)
     {
-        var result = new OperationResult<StationResponse>();
+        var result = new OperationResult<StationResponse.StationResponseSimple>();
         try
         {
             var station = await _unitOfWork.StationRepository.GetByIdAsync(id);
@@ -222,16 +222,12 @@ public class StationService : IStationService
             }
 
             _mapper.Map(objectRequestUpdate, station);
-            station.Area = await _unitOfWork.AreaRepository.GetByIdAsync(objectRequestUpdate.AreaId);
+            station.Area = null;
             _unitOfWork.StationRepository.Update(station);
             var count = await _unitOfWork.SaveChangesAsync();
             if (count > 0)
             {
-                result.Payload = _mapper.Map<StationResponse>(station);
-
-                station.Area = await _unitOfWork.AreaRepository.GetByIdAsync(objectRequestUpdate.AreaId);
-                var stationResponse = _mapper.Map<StationResponse>(station);
-                stationResponse.Area = _mapper.Map<Area>(station.Area);
+                var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
                 result.Payload = stationResponse;
                 result.StatusCode = StatusCode.Ok;
             }

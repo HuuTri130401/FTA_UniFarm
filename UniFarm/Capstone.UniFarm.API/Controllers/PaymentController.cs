@@ -1,4 +1,6 @@
-﻿using Capstone.UniFarm.Services.ICustomServices;
+﻿using System.Globalization;
+using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +123,48 @@ public class PaymentController : BaseController
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
 
         var response = await _paymentService.CreatePaymentWithdrawRequest(defineUser.Payload.Id, request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+    
+    [HttpPut("payment/update-withdraw-request")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerOperation(Summary = "Cập nhật trạng thái yêu cầu rút tiền - Admin - Tien")]
+    public async Task<IActionResult> UpdateWithdrawRequest([FromBody] PaymentUpdateStatus request)
+    {
+        if(ModelState.IsValid == false) return BadRequest(ModelState);
+        var response = await _paymentService.UpdateWithdrawRequest(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
+    
+    // get all payments of FarmHub and Customer 
+    [HttpGet("payments/user")]
+    [Authorize(Roles = "FarmHub, Customer")]
+    [SwaggerOperation(Summary = "Get all payment - FarmHub, Customer - Tien")]
+    public async Task<IActionResult> GetAllPayment(
+        [FromQuery] EnumConstants.PaymentEnum? status,
+        [FromQuery] bool? isAscending = false,
+        [FromQuery] string? orderBy = "PaymentDay",
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+        )
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        var response = await _paymentService.GetPaymentForUser(
+            isAscending,
+            orderBy,
+            x => string.IsNullOrEmpty(status.ToString()) || x.Status!.Contains(status.ToString()!),
+            x => x.Id == defineUser.Payload.Id,
+            pageIndex,
+            pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

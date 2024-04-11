@@ -32,4 +32,9 @@ public interface IPaymentService
     
     Task<OperationResult<IEnumerable<PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize);
 
+    Task<OperationResult<IEnumerable<PaymentResponse>>> GetPaymentForUser(bool? isAscending, string? orderBy,
+        Expression<Func<Payment, bool>>? filter, Expression<Func<Account, bool>> filterAccount, int pageIndex,
+        int pageSize);
+    
+    Task<OperationResult<PaymentResponse>> UpdateWithdrawRequest(PaymentUpdateStatus request);
 }

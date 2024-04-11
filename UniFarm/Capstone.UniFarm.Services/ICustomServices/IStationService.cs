@@ -21,7 +21,7 @@ public interface IStationService
 
     Task<OperationResult<StationResponse>> Create(StationRequestCreate objectRequestCreate);
     Task<OperationResult<bool>> Delete(Guid id);
-    Task<OperationResult<StationResponse>> Update(Guid id, StationRequestUpdate objectRequestUpdate);
+    Task<OperationResult<StationResponse.StationResponseSimple>> Update(Guid id, StationRequestUpdate objectRequestUpdate);
 
     Task<OperationResult<IEnumerable<AboutMeResponse.StaffResponse>>>
         GetStationStaffsData(

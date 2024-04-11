@@ -332,4 +332,229 @@ public class PaymentService : IPaymentService
 
         return result;
     }
+
+    public async Task<OperationResult<IEnumerable<PaymentResponse>>> GetPaymentForUser(bool? isAscending,
+        string? orderBy,  Expression<Func<Payment, bool>>? filter, Expression<Func<Account, bool>> filterAccount,
+        int pageIndex,
+        int pageSize)
+    {
+        var result = new OperationResult<IEnumerable<PaymentResponse>>();
+
+        try
+        {
+            var account = await _unitOfWork.AccountRepository.FilterByExpression(filterAccount).FirstOrDefaultAsync();
+            if (account == null)
+            {
+                result.IsError = false;
+                result.Message = "Account not found";
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+
+            var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == account.Id)
+                .FirstOrDefaultAsync();
+
+            if (wallet == null)
+            {
+                result.IsError = false;
+                result.Message = "Wallet not found";
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+
+            Expression<Func<Payment, bool>> filterPayment = x => x.WalletId == wallet.Id;
+
+            var paymentList = _unitOfWork.PaymentRepository
+                .GetAllWithoutPaging(isAscending, orderBy, filterPayment, null);
+            
+            var payments = await paymentList.Where(filter!).ToListAsync();
+            if (!payments.Any())
+            {
+                result.IsError = false;
+                result.Message = "Payment not found";
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+
+            var paymentResponses = new List<PaymentResponse>();
+            foreach (var payment in payments)
+            {
+                var paymentResponse = new PaymentResponse()
+                {
+                    Id = payment.Id,
+                    UserName = account!.UserName,
+                    Balance = wallet.Balance ?? 0,
+                    TransferAmount = payment.Amount,
+                    From = payment.From!,
+                    To = payment.To!,
+                    CreatedAt = payment.CreatedAt,
+                    UpdatedAt = payment.UpdatedAt,
+                    PaymentDay = payment.PaymentDay,
+                    Status = payment.Status!,
+                    Type = payment.Type,
+                    BankName = payment.BankName,
+                    BankOwnerName = payment.BankOwnerName,
+                    BankAccountNumber = payment.BankAccountNumber,
+                    Note = payment.Note
+                };
+                paymentResponses.Add(paymentResponse);
+            }
+
+            result.Payload = paymentResponses;
+            result.Message = "Get payment for user success";
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Message = e.Message;
+            result.IsError = true;
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<PaymentResponse>> UpdateWithdrawRequest(PaymentUpdateStatus request)
+    {
+        var result = new OperationResult<PaymentResponse>();
+        var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var payment = await _unitOfWork.PaymentRepository.FilterByExpression(x => x.Id == request.Id)
+                .FirstOrDefaultAsync();
+            if (payment == null)
+            {
+                result.Message = "Payment not found";
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Payment not found"
+                });
+                return result;
+            }
+
+            if (payment.Status == EnumConstants.PaymentEnum.PENDING.ToString())
+            {
+                var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.Id == payment.WalletId)
+                    .FirstOrDefaultAsync();
+                if (wallet == null)
+                {
+                    result.Message = "Wallet not found";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Wallet not found"
+                    });
+                    return result;
+                }
+
+                if (request.Status.ToString() == EnumConstants.PaymentEnum.DENIED.ToString())
+                {
+                    wallet.Balance += payment.Amount;
+                }
+                else if (request.Status.ToString() == EnumConstants.PaymentEnum.SUCCESS.ToString())
+                {
+                    payment.PaymentDay = DateTime.Now;
+                }
+                else
+                {
+                    result.Message = "Payment status is already updated";
+                    result.Payload = null;
+                    return result;
+                }
+
+                await _unitOfWork.WalletRepository.UpdateAsync(wallet);
+                var countUpdate = _unitOfWork.SaveChangesAsync();
+                if (countUpdate.Result == 0)
+                {
+                    await transaction.RollbackAsync();
+                    result.Message = "Update wallet failed";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Update wallet failed"
+                    });
+                    return result;
+                }
+
+                payment.Status = request.Status.ToString();
+                payment.UpdatedAt = DateTime.Now;
+                await _unitOfWork.PaymentRepository.UpdateAsync(payment);
+                var count = _unitOfWork.SaveChangesAsync();
+                if (count.Result == 0)
+                {
+                    await transaction.RollbackAsync();
+                    result.Message = "Update payment failed";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Update payment failed"
+                    });
+                    return result;
+                }
+
+                await transaction.CommitAsync();
+                var account = await _unitOfWork.AccountRepository.FilterByExpression(x => x.Id == wallet.AccountId)
+                    .FirstOrDefaultAsync();
+                if (account == null)
+                {
+                    result.Message = "Account not found";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Account not found"
+                    });
+                    return result;
+                }
+
+                var paymentResponse = new PaymentResponse()
+                {
+                    Id = payment.Id,
+                    UserName = account!.UserName,
+                    Balance = wallet.Balance ?? 0,
+                    TransferAmount = payment.Amount,
+                    From = payment.From!,
+                    To = payment.To!,
+                    CreatedAt = payment.CreatedAt,
+                    UpdatedAt = payment.UpdatedAt,
+                    PaymentDay = payment.PaymentDay,
+                    Status = payment.Status!,
+                    Type = payment.Type,
+                    BankName = payment.BankName,
+                    BankOwnerName = payment.BankOwnerName,
+                    BankAccountNumber = payment.BankAccountNumber,
+                    Note = payment.Note
+                };
+                result.Message = "Update status success!";
+                result.IsError = false;
+                result.Payload = paymentResponse;
+                return result;
+            }
+
+            result.Message = "Payment status is already updated";
+            result.Payload = null;
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            result.Message = e.Message;
+            result.IsError = true;
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+        }
+
+        return result;
+    }
 }
