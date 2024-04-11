@@ -126,19 +126,19 @@ public abstract record EnumConstants
         public static readonly string INACTIVE = "Inactive";
     }
 
-    public abstract record PaymentEnum
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum PaymentEnum
     {
-        public static readonly string SUCCESS = "Success";
-        public static readonly string FAILURE = "Failure";
-        public static readonly string VNPAY = "VNPAY";
-        public static readonly string WALLET = "Wallet";
+        SUCCESS,
+        DENIED,
+        PENDING
     }
     
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum FromToWallet
     {
-        VNPAY,
-        WALLET
+        WALLET,
+        BANK
     }
 
     public abstract record PaymentTypeEnum

@@ -11,14 +11,16 @@ public class PaymentController : BaseController
 {
     private readonly IVnPayService _vnPayService;
     private readonly IAccountService _accountService;
+    private readonly IPaymentService _paymentService;
 
-    public PaymentController(IVnPayService vnPayService, IAccountService accountService)
+    public PaymentController(IVnPayService vnPayService, IAccountService accountService, IPaymentService paymentService)
     {
         _vnPayService = vnPayService;
         _accountService = accountService;
+        _paymentService = paymentService;
     }
 
-    [HttpPost("payment/create-payment-url")]
+    /*[HttpPost("payment/create-payment-url")]
     public IActionResult CreatePaymentUrl([FromBody] VnPaymentRequestModel model)
     {
         var url = _vnPayService.CreatePaymentUrl(HttpContext, model);
@@ -76,7 +78,7 @@ public class PaymentController : BaseController
 
         var response = _vnPayService.CreatePayment(defineUser.Payload.Id, model).Result;
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }
+    }*/
 
     [HttpGet("payments")]
     [Authorize(Roles = "Admin")]
@@ -91,7 +93,7 @@ public class PaymentController : BaseController
         [FromQuery] int pageSize = 10
         )
     {
-        var response = await _vnPayService.GetPayment(
+        var response = await _paymentService.GetPayment(
             isAscending,
             orderBy,
             x => (string.IsNullOrEmpty(from) || x.From!.Contains(from)) &&
@@ -102,4 +104,23 @@ public class PaymentController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
     
+    
+    [HttpPost("payment/create-withdraw-request")]
+    [Authorize(Roles = "FarmHub, Customer")]
+    [SwaggerOperation(Summary = "Tạo yêu cầu rút tiền - FarmHub, Customer - Tien")]
+    public async Task<IActionResult> CreateWithdrawRequest([FromBody] PaymentWithdrawRequest request)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        var response = await _paymentService.CreatePaymentWithdrawRequest(defineUser.Payload.Id, request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
 }

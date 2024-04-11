@@ -359,7 +359,7 @@ public class AdminDashboardService : IAdminDashboardService
             for (int i = 1; i <= 12; i++)
             {
                 var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();
-                var payments = paymentList.Where(x => x.PaymentDay.Month == i).ToList();
+                var payments = paymentList.Where(x => x.PaymentDay?.Month == i).ToList();
                 var accountCustomer = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
                 var accountFarmHub = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
@@ -380,13 +380,13 @@ public class AdminDashboardService : IAdminDashboardService
                     TotalNewFarmHub = accountFarmHub.Count
                 };
                 revenueByMonth.TotalDepositMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay.Month == i)
+                    .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay?.Month == i)
                     .Sum(x => x.Amount);
                 revenueByMonth.TotalWithdrawMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay.Month == i)
+                    .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay?.Month == i)
                     .Sum(x => x.Amount);
                 revenueByMonth.TotalRefundMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay.Month == i)
+                    .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay?.Month == i)
                     .Sum(x => x.Amount);
                 revenueByMonths.Add(revenueByMonth);
             }
@@ -477,7 +477,6 @@ public class AdminDashboardService : IAdminDashboardService
                     SoldQuantity = x.Sum(y => y.Sold ?? 0),
                     Percent = Math.Round(x.Sum(y => y.Sold ?? 0) / totalQuantitySold * 100, 2)
                 }).ToList();
-
 
             // check duplicate product item then sum percent and get one
             foreach (var item in newProductItemUnique)
@@ -642,15 +641,15 @@ public class AdminDashboardService : IAdminDashboardService
             var balanceFluctuations = new List<AdminDashboardResponse.BalanceFluctuations>();
             for (int i = 1; i <= 12; i++)
             {
-                var payments = paymentList.Where(x => x.PaymentDay.Month == i).ToList();
+                var payments = paymentList.Where(x => x.PaymentDay?.Month == i).ToList();
                 var balanceFluctuation = new AdminDashboardResponse.BalanceFluctuations()
                 {
                     month = i,
                     TotalDepositMoney = payments
-                        .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay.Month == i)
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay?.Month == i)
                         .Sum(x => x.Amount),
                     TotalWithdrawMoney = payments
-                        .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay.Month == i)
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay?.Month == i)
                         .Sum(x => x.Amount)
                 };
                 balanceFluctuations.Add(balanceFluctuation);

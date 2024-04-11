@@ -2,6 +2,7 @@
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 namespace Capstone.UniFarm.Services.ICustomServices;
 
@@ -27,5 +28,8 @@ public interface IPaymentService
         int pageIndex = 0, 
         int pageSize = 10);
     
-    Task<OperationResult<Payment>> CreatePayment(PaymentRequestCreate paymentRequestCreate);
+    Task<OperationResult<PaymentResponse>> CreatePaymentWithdrawRequest(Guid? accountId, PaymentWithdrawRequest request);
+    
+    Task<OperationResult<IEnumerable<PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize);
+
 }

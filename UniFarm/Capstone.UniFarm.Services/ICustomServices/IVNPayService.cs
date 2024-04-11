@@ -15,6 +15,5 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<Payment>> SavePayment(VnPaymentResponseModel response);
         
         Task<OperationResult<Payment>> CreatePayment(Guid? accountId, PaymentRequestCreateModel requestModel);
-        Task<OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize);
     }
 }

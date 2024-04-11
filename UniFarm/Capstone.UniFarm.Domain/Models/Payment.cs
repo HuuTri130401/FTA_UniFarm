@@ -16,9 +16,22 @@ namespace Capstone.UniFarm.Domain.Models
         public string? From { get; set; }
         [StringLength(255)]
         public string? To { get; set; }
+        
+        public string? BankName { get; set; }
+        
+        public string? BankOwnerName { get; set; }
+        
+        public string? BankAccountNumber { get; set; }
+        
+        public string? Code { get; set; }
+        
+        public string? Note { get; set; }
+
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
-        public DateTime PaymentDay { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime? PaymentDay { get; set; }
         [StringLength(100)]
         public string? Status { get; set; }
         

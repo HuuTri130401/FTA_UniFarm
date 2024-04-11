@@ -116,15 +116,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     Id = Guid.NewGuid(),
                     WalletId = response.WalletId,
-                    From = EnumConstants.PaymentEnum.VNPAY.ToString(),
-                    To = EnumConstants.PaymentEnum.WALLET.ToString(),
+                    From = EnumConstants.FromToWallet.BANK.ToString(),
+                    To = EnumConstants.FromToWallet.WALLET.ToString(),
                     Amount = Math.Round((decimal)response.Amount, 2),
                     PaymentDay = DateTime.Now,
                     Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
                     Type = response.PaymentMethod.ToString(),
                     Wallet = null,
                 };
-                
+
                 await _unitOfWork.PaymentRepository.AddAsync(payment);
                 var count = _unitOfWork.SaveChangesAsync();
                 if (count.Result == 0)
@@ -138,7 +138,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         Message = "Payment failed"
                     });
                 }
-                
+
                 if (response.PaymentMethod.ToString() == EnumConstants.PaymentMethod.DEPOSIT.ToString())
                 {
                     wallet.Balance += payment.Amount;
@@ -177,7 +177,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         Message = "Payment failed"
                     });
                 }
-                
+
                 await transaction.CommitAsync();
                 payment.Wallet = null;
                 result.Payload = payment;
@@ -250,7 +250,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         Message = "Payment failed"
                     });
                 }
-                
+
                 if (requestModel.Type.ToString() == EnumConstants.PaymentMethod.DEPOSIT.ToString())
                 {
                     wallet.Balance += payment.Amount;
@@ -289,7 +289,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         Message = "Payment failed"
                     });
                 }
-                
+
                 await transaction.Result.CommitAsync();
                 payment.Wallet = null;
                 result.Payload = payment;
@@ -309,55 +309,5 @@ namespace Capstone.UniFarm.Services.CustomServices
             return result;
         }
 
-        public async Task<OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize)
-        {
-            var result = new OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>();
-            try 
-            {
-                var payments = await _unitOfWork.PaymentRepository.FilterAll(isAscending, orderBy, filter, null,  pageIndex, pageSize).ToListAsync();
-                
-                var paymentResponses = new List<AdminDashboardResponse.PaymentResponse>();
-                foreach (var payment in payments)
-                {
-                    var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.Id == payment.WalletId)
-                        .FirstOrDefaultAsync();
-                    if(wallet == null) continue;
-                    
-                    var account = await _unitOfWork.AccountRepository.FilterByExpression(x => x.Id == wallet.AccountId)
-                        .FirstOrDefaultAsync();
-                    if(account == null) continue;
-                    
-                    var paymentResponse = new AdminDashboardResponse.PaymentResponse
-                    {
-                        Id = payment.Id,
-                        UserName = account.UserName,
-                        Balance = wallet.Balance ?? 0,
-                        TransferAmount = payment.Amount,
-                        From = payment.From!,
-                        To = payment.To!,
-                        PaymentDay = payment.PaymentDay,
-                        Status = payment.Status!,
-                        Type = payment.Type,
-                    };
-                    paymentResponses.Add(paymentResponse);
-                }
-                
-                
-                result.Payload = paymentResponses;
-                result.Message = "Get payment success";
-                result.IsError = false;
-            }
-            catch (Exception e)
-            {
-                result.Message = e.Message;
-                result.IsError = true;
-                result.Errors.Add(new Error()
-                {
-                    Code = StatusCode.ServerError,
-                    Message = e.Message
-                });
-            }
-            return result;
-        }
     }
 }
