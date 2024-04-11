@@ -79,6 +79,9 @@ namespace Capstone.UniFarm.Repositories.Repository
             return new PagedList<ProductItem>(sortedProductItems, count, productItemParameters.PageNumber, productItemParameters.PageSize);
         }
 
-
+        public async Task<List<Menu>> GetAllMenuInCurrentBusinessDay(Guid businessDayId)
+        {
+            return await _dbSet.Where(b => b.BusinessDayId == businessDayId).ToListAsync();
+        }
     }
 }

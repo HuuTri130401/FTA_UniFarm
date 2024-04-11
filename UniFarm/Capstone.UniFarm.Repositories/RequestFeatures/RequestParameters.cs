@@ -29,4 +29,9 @@ namespace Capstone.UniFarm.Repositories.RequestFeatures
     {
 
     }
+
+    public class ProductItemInMenuParameters : RequestParameters
+    {
+
+    }
 }

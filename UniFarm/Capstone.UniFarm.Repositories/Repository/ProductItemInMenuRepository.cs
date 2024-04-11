@@ -1,6 +1,7 @@
 ﻿using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,8 +22,33 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(p => p.ProductItem)
+                .ThenInclude(pi => pi.ProductImages)
                 .Include(m => m.Menu)
                 .Where(mn => mn.MenuId == menuId)
+                .ToListAsync();
+        }
+
+        public async Task<List<ProductItemInMenu>> GetProductItemsByMenuIdForCustomer(ProductItemInMenuParameters productItemInMenuParameters, Guid menuId)
+        {
+            var productItemsInMenu = await _dbSet
+                .SearchProductItemsInMenu(productItemInMenuParameters.SearchTerm)
+                .Include(p => p.ProductItem)
+                    .ThenInclude(pi => pi.ProductImages)
+                .Include(m => m.Menu)
+                .Where(mn => mn.MenuId == menuId && mn.Status == "Active")
+                .ToListAsync();
+            var count = _dbSet.Count();
+            return PagedList<ProductItemInMenu>
+                .ToPagedList(productItemsInMenu, count, productItemInMenuParameters.PageNumber, productItemInMenuParameters.PageSize);
+        }        
+        
+        public async Task<List<ProductItemInMenu>> GetProductItemInMenuByProductIdCustomer(Guid menuId)
+        {
+            return await _dbSet
+                .Include(p => p.ProductItem)
+                    .ThenInclude(pi => pi.ProductImages)
+                .Include(m => m.Menu)
+                .Where(mn => mn.MenuId == menuId && mn.Status == "Active")
                 .ToListAsync();
         }
 

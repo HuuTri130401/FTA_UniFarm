@@ -128,6 +128,35 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        //public async Task<OperationResult<List<ProductItemInMenuResponseForCustomer>>> GetProductItemsByMenuIdForCustomer(Guid menuId)
+        //{
+        //    var result = new OperationResult<List<ProductItemInMenuResponseForCustomer>>();
+        //    try
+        //    {
+        //        var listProductItemsInMenu =
+        //            await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
+        //        var productItemsInMenuIsActive = listProductItemsInMenu.Where(pi => pi.Status != "Inactive").ToList();
+        //        var listProductItemsInMenuResponse =
+        //            _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenuIsActive);
+
+        //        if (listProductItemsInMenuResponse == null || !listProductItemsInMenuResponse.Any())
+        //        {
+        //            result.AddResponseStatusCode(StatusCode.Ok,
+        //                $"List Product Items In Menu with Menu Id {menuId} is Empty!", listProductItemsInMenuResponse);
+        //            return result;
+        //        }
+
+        //        result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In Menu Done.",
+        //            listProductItemsInMenuResponse);
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, $"Error occurred in GetProductItemsByMenuIdForCustomer Service Method");
+        //        throw;
+        //    }
+        //}
+
         public async Task<OperationResult<bool>> RemoveProductItemFromMenu(Guid productItemInMenuId)
         {
             var result = new OperationResult<bool>();
