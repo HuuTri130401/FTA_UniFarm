@@ -19,5 +19,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<List<ProductItem>> FarmHubGetAllProductItemByProductId(Guid farmHubId, Guid productId);
         Task<List<ProductItem>> GetAllProductItemByFarmHubId(Guid farmHubId);
         Task<ProductItem> GetProductItemByIdAsync(Guid productId);
+        Task<ProductItem> CustomerGetProductItemById(Guid productItemId, Guid menuId);
     }
 }

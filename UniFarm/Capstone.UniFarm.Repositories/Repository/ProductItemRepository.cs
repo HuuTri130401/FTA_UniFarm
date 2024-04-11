@@ -65,6 +65,17 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Include(pi => pi.ProductImages)
                 .Include(fr => fr.FarmHub)
                 .FirstOrDefaultAsync(pi => pi.Id == productId);
+        }        
+        
+        public async Task<ProductItem> CustomerGetProductItemById(Guid productItemId, Guid menuId)
+        {
+            return await _dbSet
+                .Include(pim => pim.ProductItemInMenus)
+                    .ThenInclude(m => m.Menu)
+                .Include(pi => pi.ProductImages)
+                .Include(fr => fr.FarmHub)
+                .FirstOrDefaultAsync(pi => pi.Id == productItemId &&
+                pi.ProductItemInMenus.Any(pim => pim.MenuId == menuId));
         }
 
         public async Task<List<ProductItem>> SearchProductItems(ProductItemParameters productItemParameters)

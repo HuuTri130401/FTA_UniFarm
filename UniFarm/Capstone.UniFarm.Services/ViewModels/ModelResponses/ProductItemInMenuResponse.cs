@@ -24,6 +24,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
     public class ProductItemInMenuResponseForCustomer
     {
         public Guid Id { get; set; }
+        public Guid MenuId { get; set; }
         public double Quantity { get; set; }
         public double Sold { get; set; }
         public double SalePrice { get; set; }
