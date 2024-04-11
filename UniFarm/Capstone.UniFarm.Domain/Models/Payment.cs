@@ -25,9 +25,7 @@ namespace Capstone.UniFarm.Domain.Models
         public string Type { get; set; }
 
         [ForeignKey(nameof(WalletId))]
-        /*
         [InverseProperty("Payments")]
-        */
         public virtual Wallet? Wallet { get; set; }
     }
 }

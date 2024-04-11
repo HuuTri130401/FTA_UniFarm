@@ -42,11 +42,12 @@ public record AdminDashboardResponse
         public decimal? TotalWithdrawMoney { get; set; }
         public decimal? TotalRefundMoney { get; set; }
         public decimal? TotalBenefit { get; set; }
-        
         public int? TotalOrder { get; set; }
         public int? TotalOrderSuccess { get; set; }
         public int? TotalOrderCancel { get; set; }
         public int? TotalOrderExpired { get; set; }
+        public int? TotalNewCustomer { get; set; }
+        public int? TotalNewFarmHub { get; set; }
     }
     
     public record ProductSellingPercent
@@ -88,5 +89,18 @@ public record AdminDashboardResponse
         public int month { get; set; }
         public decimal? TotalDepositMoney { get; set; }
         public decimal? TotalWithdrawMoney { get; set; }
+    }
+
+    public record PaymentResponse
+    {
+        public Guid Id { get; set; }
+        public string UserName { get; set; }
+        public decimal Balance { get; set; }
+        public decimal TransferAmount { get; set; }
+        public string From { get; set; }
+        public string To { get; set; }
+        public DateTime PaymentDay { get; set; }
+        public string Status { get; set; }
+        public string Type { get; set; }
     }
 }

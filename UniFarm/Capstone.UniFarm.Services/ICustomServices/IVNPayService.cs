@@ -1,6 +1,8 @@
-﻿using Capstone.UniFarm.Domain.Models;
+﻿using System.Linq.Expressions;
+using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Http;
 
 namespace Capstone.UniFarm.Services.ICustomServices
@@ -13,7 +15,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<Payment>> SavePayment(VnPaymentResponseModel response);
         
         Task<OperationResult<Payment>> CreatePayment(Guid? accountId, PaymentRequestCreateModel requestModel);
-        
-        
+        Task<OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize);
     }
 }
