@@ -20,7 +20,17 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public MenuResponse? Menu { get; set; }
         public ProductItemResponse? ProductItem { get; set; }
     }
-    
+
+    public class ProductItemInMenuResponseForCustomer
+    {
+        public Guid Id { get; set; }
+        public double Quantity { get; set; }
+        public double Sold { get; set; }
+        public double SalePrice { get; set; }
+        public string Status { get; set; }
+        public ProductItemResponseForCustomerView? ProductItem { get; set; }
+    }
+
     public record ProductItemSellingPercentRatio
     {
         public Guid ProductItemId { get; set; }

@@ -60,6 +60,11 @@ namespace Capstone.UniFarm.Repositories.Repository
             return !await _dbSet.AnyAsync(b => b.OpenDay.Date == openDay.Date);
         }
 
+        public async Task<BusinessDay> GetOpendayIsToday(DateTime today)
+        {
+            return await _dbSet.FirstOrDefaultAsync(op => op.OpenDay.Date == today.Date);
+        }
+
         public async Task UpdateBusinessDayStatus(Guid businessDayId, string status)
         {
             var businessDay = await _dbSet

@@ -21,11 +21,19 @@ namespace Capstone.UniFarm.API.Controllers
             _accountService = accountService;
         }
 
-        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - ADMIN, CUSTOMER - {Huu Tri}")]
-        [HttpGet("product/{productId}/businessday/{businessDayId}/product-items")]
-        public async Task<IActionResult> GetAllProductItemsByProductId(Guid productId, Guid businessDayId)
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - CUSTOMER - {Huu Tri}")]
+        [HttpGet("product/{productId}/product-items-in-ptoduct")]
+        public async Task<IActionResult> CustomerGetAllProductItemsByProductId(Guid productId)
         {
-            var response = await _productItemService.GetAllProductItemsByProductId(productId, businessDayId);
+            var response = await _productItemService.CustomerGetAllProductItemsByProductId(productId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "Get All ProductItems By Product Id - ADMIN - {Huu Tri}")]
+        [HttpGet("product/{productId}/product-items")]
+        public async Task<IActionResult> GetAllProductItemsByProductId(Guid productId)
+        {
+            var response = await _productItemService.GetAllProductItemsByProductId(productId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
@@ -39,18 +47,18 @@ namespace Capstone.UniFarm.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Search ProductItems - CUSTOMER - {Huu Tri}")]
-        [HttpGet("product-items/businessday/{businessDayId}/search")]
-        public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemParameters productItemParameters, Guid businessDayId)
+        [HttpGet("product-items/search")]
+        public async Task<IActionResult> SearchProductItems([FromQuery] ProductItemInMenuParameters productItemInMenuParameters)
         {
-            var response = await _productItemService.SearchProductItems(productItemParameters, businessDayId);
+            var response = await _productItemService.SearchProductItems(productItemInMenuParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
         [SwaggerOperation(Summary = "Get All ProductItems - CUSTOMER - {Huu Tri}")]
-        [HttpGet("product-items/businessday/{businessDayId}/all")]
-        public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemParameters productItemParameters, Guid businessDayId)
+        [HttpGet("product-items/all-in-businessday")]
+        public async Task<IActionResult> GetAllProductItems([FromQuery] ProductItemInMenuParameters productItemParameters)
         {
-            var response = await _productItemService.GetAllProductItems(productItemParameters, businessDayId);
+            var response = await _productItemService.GetAllProductItems(productItemParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

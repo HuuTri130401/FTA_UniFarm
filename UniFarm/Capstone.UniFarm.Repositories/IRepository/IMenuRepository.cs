@@ -15,5 +15,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<List<ProductItem>> GetAllProductItemByProductId(Guid productId, Guid businessDayId);
         Task<PagedList<ProductItem>> GetProductItemsByBusinessDayInHomeScreenAsync(
             ProductItemParameters productItemParameters, Guid businessDayId);
+        Task<List<Menu>> GetAllMenuInCurrentBusinessDay(Guid businessDayId);
     }
 }

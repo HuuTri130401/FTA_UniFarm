@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Capstone.UniFarm.Services.ViewModels.ModelResponses.AdminDashboardResponse;
 
 namespace Capstone.UniFarm.Services.CustomServices
 {
@@ -41,7 +42,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
                     if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                     {
-                        var productItem = _mapper.Map<ProductItem>(productItemRequest);
+                        var productItem = _mapper.Map<Domain.Models.ProductItem>(productItemRequest);
                         productItem.ProductId = productId;
                         productItem.Status = "Unregistered";
                         productItem.CreatedAt = DateTime.UtcNow.AddHours(7);
@@ -122,15 +123,55 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId, Guid businessDayId)
+        public async Task<OperationResult<List<ProductItemInMenuResponseForCustomer>>> CustomerGetAllProductItemsByProductId(Guid productId)
+        {
+            var result = new OperationResult<List<ProductItemInMenuResponseForCustomer>>();
+            try
+            {
+                var today = DateTime.UtcNow.AddHours(7).Date;
+                var currentBusinessDay = await _unitOfWork.BusinessDayRepository.GetOpendayIsToday(today);
+                if (currentBusinessDay == null)
+                {
+                    result.AddError(StatusCode.Ok, $"Not open business day for sale today!");
+                    return result;
+                }
+
+                var menuForToday = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(currentBusinessDay.Id);
+                var productItems = new List<ProductItemInMenuResponseForCustomer>();
+
+                foreach (var menu in menuForToday)
+                {
+                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemInMenuByProductIdCustomer(menu.Id);
+                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                    foreach (var pim in productItemsResponse)
+                    {
+                        productItems.Add(pim);
+                    }
+                }
+                if(productItems == null || !productItems.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items with Product Id {productId} is Empty!", null);
+                    return result;
+                }
+                var listProductItemsByProductId = productItems.Where(pi => pi.ProductItem.ProductId == productId).ToList();
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsByProductId);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByProductId Service Method");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItemsByProductId(Guid productId)
         {
             var result = new OperationResult<List<ProductItemResponse>>();
             try
             {
-                //var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
-                var listProductItems = await _unitOfWork.MenuRepository.GetAllProductItemByProductId(productId, businessDayId);
-                //var activeProductItems = listProductItems.Where(pi => pi.Status == "Selling").ToList();
-                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
+                var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItemByProductId(productId);
+                var activeProductItems = listProductItems.Where(pi => pi.Status == "Selling").ToList();
+                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(activeProductItems);
 
                 if (listProductItemsResponse == null || !listProductItemsResponse.Any())
                 {
@@ -314,45 +355,79 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> SearchProductItems(ProductItemParameters productItemParameters, Guid businessDayId)
+        public async Task<OperationResult<List<ProductItemInMenuResponseForCustomer>>> SearchProductItems(ProductItemInMenuParameters productItemInMenuParameters)
         {
-            var result = new OperationResult<List<ProductItemResponse>>();
+            var result = new OperationResult<List<ProductItemInMenuResponseForCustomer>>();
             try
             {
-                //var listProductItems = await _unitOfWork.ProductItemRepository.SearchProductItems(productItemParameters);
-                var listProductItems = await _unitOfWork.MenuRepository.GetProductItemsByBusinessDayAsync(productItemParameters, businessDayId);
-                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
-
-                if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                var today = DateTime.UtcNow.AddHours(7).Date;
+                var currentBusinessDay = await _unitOfWork.BusinessDayRepository.GetOpendayIsToday(today);
+                if (currentBusinessDay == null)
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", listProductItemsResponse);
+                    result.AddError(StatusCode.Ok, $"Not open business day for sale today!");
                     return result;
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsResponse);
+
+                var menuForToday = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(currentBusinessDay.Id);
+                var productItems = new List<ProductItemInMenuResponseForCustomer>();
+
+                foreach (var menu in menuForToday)
+                {
+                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
+                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                    foreach (var pim in productItemsResponse)
+                    {
+                        productItems.Add(pim);
+                    }
+                }
+
+                if (productItems == null || !productItems.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", productItems);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", productItems);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in SearchAllProductItems Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllProductItems Service Method");
                 throw;
             }
         }
 
-        public async Task<OperationResult<List<ProductItemResponse>>> GetAllProductItems(ProductItemParameters productItemParameters, Guid businessDayId)
+        public async Task<OperationResult<List<ProductItemInMenuResponseForCustomer>>> GetAllProductItems(ProductItemInMenuParameters productItemInMenuParameters)
         {
-            var result = new OperationResult<List<ProductItemResponse>>();
+            var result = new OperationResult<List<ProductItemInMenuResponseForCustomer>>();
             try
             {
-                //var listProductItems = await _unitOfWork.ProductItemRepository.GetAllProductItems(productItemParameters);
-                var listProductItems = await _unitOfWork.MenuRepository.GetProductItemsByBusinessDayInHomeScreenAsync(productItemParameters, businessDayId);
-                var listProductItemsResponse = _mapper.Map<List<ProductItemResponse>>(listProductItems);
-
-                if (listProductItemsResponse == null || !listProductItemsResponse.Any())
+                var today = DateTime.UtcNow.AddHours(7).Date;
+                var currentBusinessDay = await _unitOfWork.BusinessDayRepository.GetOpendayIsToday(today);
+                if (currentBusinessDay == null)
                 {
-                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", listProductItemsResponse);
+                    result.AddError(StatusCode.Ok, $"Not open business day for sale today!");
                     return result;
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", listProductItemsResponse);
+
+                var menuForToday = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(currentBusinessDay.Id);
+                var productItems = new List<ProductItemInMenuResponseForCustomer>();
+
+                foreach (var menu in menuForToday)
+                {
+                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
+                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                    foreach(var pim in productItemsResponse)
+                    {
+                        productItems.Add(pim);
+                    }
+                }
+
+                if (productItems == null || !productItems.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Product Items is Empty!", productItems);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items Done.", productItems);
                 return result;
             }
             catch (Exception ex)
