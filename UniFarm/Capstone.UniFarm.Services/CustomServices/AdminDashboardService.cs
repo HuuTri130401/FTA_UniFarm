@@ -352,6 +352,7 @@ public class AdminDashboardService : IAdminDashboardService
             }
 
             var paymentList = await _unitOfWork.PaymentRepository.GetAllWithoutPaging(null, null).ToListAsync();
+            var accountList = await _unitOfWork.AccountRepository.GetAllWithoutPaging(null, null).ToListAsync();
 
             var revenueByMonths = new List<AdminDashboardResponse.RevenueByMonth>();
             var months = orderList.Select(x => x.CreatedAt.Month).Distinct().ToList();
@@ -359,6 +360,8 @@ public class AdminDashboardService : IAdminDashboardService
             {
                 var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();
                 var payments = paymentList.Where(x => x.PaymentDay.Month == i).ToList();
+                var accountCustomer = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
+                var accountFarmHub = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
                 {
                     Month = i.ToString(),
@@ -372,13 +375,15 @@ public class AdminDashboardService : IAdminDashboardService
                         || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
                         || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCollectedHub.ToString()),
                     TotalOrderExpired = orders.Count(x =>
-                        x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString())
+                        x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString()),
+                    TotalNewCustomer = accountCustomer.Count,
+                    TotalNewFarmHub = accountFarmHub.Count
                 };
                 revenueByMonth.TotalDepositMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Deposit.ToString() && x.PaymentDay.Month == i)
+                    .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay.Month == i)
                     .Sum(x => x.Amount);
                 revenueByMonth.TotalWithdrawMoney = payments
-                    .Where(x => x.Type == EnumConstants.PaymentType.Withdraw.ToString() && x.PaymentDay.Month == i)
+                    .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay.Month == i)
                     .Sum(x => x.Amount);
                 revenueByMonth.TotalRefundMoney = payments
                     .Where(x => x.Type == EnumConstants.PaymentType.Refund.ToString() && x.PaymentDay.Month == i)

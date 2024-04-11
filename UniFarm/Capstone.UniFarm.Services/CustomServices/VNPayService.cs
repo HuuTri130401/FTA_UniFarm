@@ -1,11 +1,14 @@
-﻿using Capstone.UniFarm.Domain.Enum;
+﻿using System.Linq.Expressions;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ThirdPartyService;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace Capstone.UniFarm.Services.CustomServices
@@ -303,6 +306,57 @@ namespace Capstone.UniFarm.Services.CustomServices
                 });
             }
 
+            return result;
+        }
+
+        public async Task<OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>> GetPayment(bool? isAscending, string? orderBy, Expression<Func<Payment, bool>>? filter, int pageIndex, int pageSize)
+        {
+            var result = new OperationResult<IEnumerable<AdminDashboardResponse.PaymentResponse>>();
+            try 
+            {
+                var payments = await _unitOfWork.PaymentRepository.FilterAll(isAscending, orderBy, filter, null,  pageIndex, pageSize).ToListAsync();
+                
+                var paymentResponses = new List<AdminDashboardResponse.PaymentResponse>();
+                foreach (var payment in payments)
+                {
+                    var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.Id == payment.WalletId)
+                        .FirstOrDefaultAsync();
+                    if(wallet == null) continue;
+                    
+                    var account = await _unitOfWork.AccountRepository.FilterByExpression(x => x.Id == wallet.AccountId)
+                        .FirstOrDefaultAsync();
+                    if(account == null) continue;
+                    
+                    var paymentResponse = new AdminDashboardResponse.PaymentResponse
+                    {
+                        Id = payment.Id,
+                        UserName = account.UserName,
+                        Balance = wallet.Balance ?? 0,
+                        TransferAmount = payment.Amount,
+                        From = payment.From!,
+                        To = payment.To!,
+                        PaymentDay = payment.PaymentDay,
+                        Status = payment.Status!,
+                        Type = payment.Type,
+                    };
+                    paymentResponses.Add(paymentResponse);
+                }
+                
+                
+                result.Payload = paymentResponses;
+                result.Message = "Get payment success";
+                result.IsError = false;
+            }
+            catch (Exception e)
+            {
+                result.Message = e.Message;
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.ServerError,
+                    Message = e.Message
+                });
+            }
             return result;
         }
     }

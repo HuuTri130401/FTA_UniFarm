@@ -351,57 +351,50 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
-
-                var checkEmail = _unitOfWork.AccountRepository.FilterByExpression(x =>
-                    x.Email == accountRequestUpdate.Email);
-
-                if (checkEmail.Count() > 1)
+                if(accountRequestUpdate.Email != null)
                 {
-                    Error error = new Error()
+                    var checkEmail = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                        x.Email == accountRequestUpdate.Email);
+
+                    if (checkEmail.Count() > 1)
                     {
-                        Code = StatusCode.BadRequest,
-                        Message = "Email is already exists"
-                    };
-                    result.Errors.Add(error);
-                    result.IsError = true;
-                    result.StatusCode = StatusCode.BadRequest;
-                    return result;
+                        Error error = new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Email is already exists"
+                        };
+                        result.Errors.Add(error);
+                        result.IsError = true;
+                        result.StatusCode = StatusCode.BadRequest;
+                        return result;
+                    }
                 }
 
-                var checkPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
-                    x.Phone == accountRequestUpdate.PhoneNumber);
-                if (checkPhone.Count() > 1)
+                if(accountRequestUpdate.PhoneNumber != null)
                 {
-                    Error error = new Error()
+                    var checkPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                        x.Phone == accountRequestUpdate.PhoneNumber);
+                    if (checkPhone.Count() > 1)
                     {
-                        Code = StatusCode.BadRequest,
-                        Message = "Phone number is already exists"
-                    };
-                    result.Errors.Add(error);
-                    result.IsError = true;
-                    result.StatusCode = StatusCode.BadRequest;
-                    return result;
+                        Error error = new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Phone number is already exists"
+                        };
+                        result.Errors.Add(error);
+                        result.IsError = true;
+                        result.StatusCode = StatusCode.BadRequest;
+                        return result;
+                    }
                 }
 
-                var checkEmailAndPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
-                    x.Email == accountRequestUpdate.Email && x.Phone == accountRequestUpdate.PhoneNumber);
-
-                if (checkEmailAndPhone.Count() > 1)
+                if (!string.IsNullOrEmpty(accountRequestUpdate.Email) &&
+                    !string.IsNullOrEmpty(accountRequestUpdate.PhoneNumber))
                 {
-                    Error error = new Error()
-                    {
-                        Code = StatusCode.BadRequest,
-                        Message = "Email or phone number already exists"
-                    };
-                    result.Errors.Add(error);
-                    result.IsError = true;
-                    result.StatusCode = StatusCode.BadRequest;
-                    return result;
-                }
+                    var checkEmailAndPhone = _unitOfWork.AccountRepository.FilterByExpression(x =>
+                        x.Email == accountRequestUpdate.Email && x.Phone == accountRequestUpdate.PhoneNumber);
 
-                if (checkEmail.Count() == 1 && checkPhone.Count() == 1)
-                {
-                    if (checkEmail.First().Id != checkPhone.First().Id)
+                    if (checkEmailAndPhone.Count() > 1)
                     {
                         Error error = new Error()
                         {
@@ -414,7 +407,42 @@ namespace Capstone.UniFarm.Services.CustomServices
                         return result;
                     }
                 }
-
+                // check email in correct format
+                if (!string.IsNullOrEmpty(accountRequestUpdate.Email))
+                {
+                    var email = accountRequestUpdate.Email;
+                    if (!email.Contains("@"))
+                    {
+                        Error error = new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Email is invalid"
+                        };
+                        result.Errors.Add(error);
+                        result.IsError = true;
+                        result.StatusCode = StatusCode.BadRequest;
+                        return result;
+                    }
+                }
+                
+                // check phone number in correct format [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Invalid phone number format. 0[3|5|7|8|9] + 8 digits.")]
+                if (!string.IsNullOrEmpty(accountRequestUpdate.PhoneNumber))
+                {
+                    var phone = accountRequestUpdate.PhoneNumber;
+                    if (!phone.StartsWith("0"))
+                    {
+                        Error error = new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Phone number is invalid"
+                        };
+                        result.Errors.Add(error);
+                        result.IsError = true;
+                        result.StatusCode = StatusCode.BadRequest;
+                        return result;
+                    }
+                }
+                
                 account.Email = string.IsNullOrEmpty(accountRequestUpdate.Email) ? account.Email : accountRequestUpdate.Email;
                 account.Phone = string.IsNullOrEmpty(accountRequestUpdate.PhoneNumber) ? account.Phone : accountRequestUpdate.PhoneNumber;
                 account.FirstName = string.IsNullOrEmpty(accountRequestUpdate.FirstName) ? account.FirstName : accountRequestUpdate.FirstName;
@@ -423,7 +451,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                 account.Avatar = string.IsNullOrEmpty(accountRequestUpdate.Avatar) ? account.Avatar : accountRequestUpdate.Avatar;
                 account.Code = string.IsNullOrEmpty(accountRequestUpdate.Code) ? account.Code : accountRequestUpdate.Code;
                 account.Address = string.IsNullOrEmpty(accountRequestUpdate.Address) ? account.Address : accountRequestUpdate.Address;
-                account.Status = string.IsNullOrEmpty(accountRequestUpdate.Status) ? account.Status : accountRequestUpdate.Status;
                 account.AccountRoles = null;
                 account.NormalizedEmail = account.Email.ToUpper();
                 account.UpdatedAt = DateTime.UtcNow;

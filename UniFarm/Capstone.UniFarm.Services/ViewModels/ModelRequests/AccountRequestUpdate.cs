@@ -10,12 +10,11 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public record AccountRequestUpdate
     {
-        [EmailAddress]
         public string? Email { get; set; }
         public string? Password { get; set; }
         
-        [StringLength(10, MinimumLength = 10, ErrorMessage = "The phone number must be 10 characters long.")]
-        [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Invalid phone number format. 0[3|5|7|8|9] + 8 digits.")]
+        /*[StringLength(10, MinimumLength = 10, ErrorMessage = "The phone number must be 10 characters long.")]
+        [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Invalid phone number format. 0[3|5|7|8|9] + 8 digits.")]*/
         public string? PhoneNumber { get; set; }
 
         [StringLength(50)]
@@ -30,6 +29,5 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         public string? Address { get; set; }
         [RegularExpression("^(Customer|FarmHub|CollectedStaff|StationStaff)$", ErrorMessage = "Status can be either Customer, FarmHub, CollectedStaff, StationStaff")]
         public string Role { get; set; }
-        public string Status { get; set; } = EnumConstants.ActiveInactiveEnum.ACTIVE;
     }
 }

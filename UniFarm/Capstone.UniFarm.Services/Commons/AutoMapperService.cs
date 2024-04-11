@@ -25,9 +25,6 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
             CreateMap<AccountRequestUpdate, Account>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => System.DateTime.Now))
-                .ForMember(dest => dest.Status,
-                    opt => opt.MapFrom(src =>
-                        string.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role))
                 .ReverseMap();
 
