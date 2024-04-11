@@ -246,6 +246,40 @@ namespace Capstone.UniFarm.Services.CustomServices
                 _logger.LogError(ex, $"Error occurred in GetProductItemById service method for productItem ID: {productItemId}");
                 throw;
             }
+        }        
+        
+        public async Task<OperationResult<ProductItemResponse>> CustomerGetProductItemById(Guid productItemId, Guid menuId)
+        {
+            var result = new OperationResult<ProductItemResponse>();
+            try
+            {
+                var productItem = await _unitOfWork.ProductItemRepository.CustomerGetProductItemById(productItemId, menuId);
+                if (productItem == null)
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
+                    return result;
+                }
+                else if (productItem.Status != "Inactive")
+                {
+                    //var tmp = new ProductItemResponse
+                    //{
+                    //    Price = (decimal)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).SalePrice,
+                    //    Quantity = (double)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).Quantity,
+                    //};
+                    productItem.Price = (decimal)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).SalePrice;
+                    productItem.Quantity = (double)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).Quantity;
+                    var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get Product Item by Id: {productItemId} Success!", productItemResponse);
+                    return result;
+                }
+                result.AddError(StatusCode.NotFound, $"Can't found Product Item with Id: {productItemId}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in CustomerGetProductItemById service method for productItem ID: {productItemId}");
+                throw;
+            }
         }
 
         public async Task<OperationResult<bool>> UpdateProductItem(Guid productItemId, ProductItemRequestUpdate productItemRequestUpdate)

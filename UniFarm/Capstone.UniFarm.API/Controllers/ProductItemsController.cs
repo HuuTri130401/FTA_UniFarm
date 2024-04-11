@@ -94,6 +94,14 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
+        [SwaggerOperation(Summary = "Customer Get Product Item By Id - CUSTOMER - {Huu Tri}")]
+        [HttpGet("product-item/{productItemId}/menu/{menuId}")]
+        public async Task<IActionResult> CustomerGetProductItemById(Guid productItemId, Guid menuId)
+        {
+            var response = await _productItemService.CustomerGetProductItemById(productItemId, menuId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
         [SwaggerOperation(Summary = "Create Product Item For Product - FARMHUB - {Huu Tri}")]
         [HttpPost("product/{id}/product-item")]
         [Authorize(Roles = "FarmHub")]
