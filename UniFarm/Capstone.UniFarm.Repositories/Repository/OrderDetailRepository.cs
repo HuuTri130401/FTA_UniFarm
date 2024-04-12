@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Data;
+using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,19 @@ public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetai
 {
     public OrderDetailRepository(FTAScript_V1Context context) : base(context)
     {
+    }
+    
+
+    public new OrderDetail Delete(OrderDetail entity)
+    {
+        _dbSet.Remove(entity);
+        return entity;
+    }
+    
+    public new OrderDetail Remove(OrderDetail entity)
+    {
+        _dbSet.Remove(entity);
+        return entity;
     }
 
     //public async Task<decimal> CalculateCommissionFee(Guid farmHubId, Guid businessDayId)
@@ -41,4 +55,9 @@ public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetai
         return (decimal)commissionFees;
     }
 
+    public async Task<OrderDetail> RemoveAsync(OrderDetail entity)
+    {
+        _dbSet.Remove(entity);
+        return entity;
+    }
 }

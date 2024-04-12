@@ -10,11 +10,13 @@ public class CartController : BaseController
 {
     private readonly ICartService _cartService;
     private readonly IAccountService _accountService;
+    private readonly IOrderService _orderService;
 
-    public CartController(ICartService cartService, IAccountService accountService)
+    public CartController(ICartService cartService, IAccountService accountService, IOrderService orderService)
     {
         _cartService = cartService;
         _accountService = accountService;
+        _orderService = orderService;
     }
 
     [HttpPost("carts/check-exist-cart")]
@@ -26,8 +28,7 @@ public class CartController : BaseController
             request.StationId, request.BusinessDayId, request.IsPaid);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
-
-
+    
     [HttpPost("cart/upsert-to-cart")]
     [SwaggerOperation(Summary = "Thêm sản phẩm vào giỏ hoặc cập nhật sản phẩm trong giỏ hàng")]
     [Authorize(Roles = "Customer")]
@@ -79,6 +80,27 @@ public class CartController : BaseController
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+    
+    
+    [HttpPost("cart/Checkout")]
+    [Authorize]
+    [SwaggerOperation(Summary = "Create order - Tien")]
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest orderRequestCreate)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        var result = await _orderService.Checkout(defineUser.Payload.Id, orderRequestCreate);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+    }
+
+
     
     [HttpPost("carts/before-checkout")]
     [SwaggerOperation(Summary = "Thanh toán giỏ hàng")]

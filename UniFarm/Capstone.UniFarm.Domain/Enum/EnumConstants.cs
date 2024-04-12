@@ -249,4 +249,15 @@ public abstract record EnumConstants
         SUCCESS,
         DENIED
     }
+
+    public enum TransactionStatus
+    {
+        Success,
+        Failure
+    }
+
+    public record AdminWallet
+    {
+        public const string AdminWalletId = "5D76359B-9CD8-40D5-88E0-5F3498D49718";
+    }
 }

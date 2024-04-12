@@ -30,4 +30,6 @@ public interface IOrderService
             Expression<Func<Order, bool>>? filter = null,
             int pageIndex = 0, 
             int pageSize = 10);
+    
+    Task<OperationResult<IEnumerable<Order?>?>> Checkout(Guid customerId, CreateOrderRequest request);
 }

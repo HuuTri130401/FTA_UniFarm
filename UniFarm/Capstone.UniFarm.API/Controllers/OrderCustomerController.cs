@@ -36,6 +36,26 @@ public class OrderCustomerController : BaseController
         var result = await _orderService.CreateOrder(orderRequestCreate, defineUser.Payload.Id);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
+    
+    [HttpPost("order/Checkout")]
+    [Authorize]
+    [SwaggerOperation(Summary = "Create order - Tien")]
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest orderRequestCreate)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        var result = await _orderService.Checkout(defineUser.Payload.Id, orderRequestCreate);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+    }
+    
+    
 
     [HttpGet("orders/get-all")]
     [Authorize(Roles = "Customer")]

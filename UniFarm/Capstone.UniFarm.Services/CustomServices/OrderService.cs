@@ -155,7 +155,8 @@ public class OrderService : IOrderService
                     //5. Check số lượng trong lúc lên đơn hàng
                     var productInMenu = await _unitOfWork.ProductItemInMenuRepository
                         .FilterByExpression(
-                            x => x.ProductItemId == orderDetail.ProductItemId && x.Status == EnumConstants.CommonEnumStatus.Active.ToString())
+                            x => x.ProductItemId == orderDetail.ProductItemId &&
+                                 x.Status == EnumConstants.CommonEnumStatus.Active.ToString())
                         .FirstOrDefaultAsync();
                     if (productInMenu == null)
                     {
@@ -369,13 +370,13 @@ public class OrderService : IOrderService
                 }
 
                 var transferResponse = new TransferResponse.TransferResponseSimple();
-                
+
                 var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
-                
+
                 var customerResponse = new AboutMeResponse.CustomerResponseSimple();
                 if (customer != null)
                 {
-                    customerResponse= _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                    customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
                 }
 
                 if (order.TransferId != null)
@@ -447,7 +448,8 @@ public class OrderService : IOrderService
         try
         {
             var order = await _unitOfWork.OrderRepository
-                .FilterByExpression(x => x.Id == request.OrderId && x.TransferId == request.TransferId && x.StationId == request.StationId)
+                .FilterByExpression(x =>
+                    x.Id == request.OrderId && x.TransferId == request.TransferId && x.StationId == request.StationId)
                 .FirstOrDefaultAsync();
             if (order == null)
             {
@@ -456,7 +458,7 @@ public class OrderService : IOrderService
                 result.IsError = true;
                 return result;
             }
-            
+
             if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
             {
                 order.DeliveryStatus = EnumConstants.DeliveryStatus.AtStation.ToString();
@@ -464,12 +466,13 @@ public class OrderService : IOrderService
                 order.ExpiredDayInStation = DateTime.Now + TimeSpan.FromDays(2);
                 order.UpdatedAt = DateTime.Now;
             }
-            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived && order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
+            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived &&
+                     order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
             {
                 order.DeliveryStatus = EnumConstants.DeliveryStatus.StationNotReceived.ToString();
                 order.UpdatedAt = DateTime.Now;
             }
-            else if(request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
+            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
             {
                 order.DeliveryStatus = EnumConstants.DeliveryStatus.PickedUp.ToString();
                 order.CustomerStatus = EnumConstants.CustomerStatus.PickedUp.ToString();
@@ -519,7 +522,8 @@ public class OrderService : IOrderService
             var businessDay = await _unitOfWork.BusinessDayRepository
                 .FilterByExpression(x => x.Id == order.BusinessDayId)
                 .FirstOrDefaultAsync();
-            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId).FirstOrDefaultAsync();
+            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
+                .FirstOrDefaultAsync();
             var stationResponse = new StationResponse.StationResponseSimple();
             if (station != null)
             {
@@ -563,12 +567,12 @@ public class OrderService : IOrderService
                 transferResponse.Code = transfer.Code;
                 transferResponse.Status = transfer.Status;
             }
-            
+
             var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
             var customerResponse = new AboutMeResponse.CustomerResponseSimple();
             if (customer != null)
             {
-                customerResponse= _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
             }
 
             var orderResponse = new OrderResponse.OrderResponseForStaff()
@@ -606,13 +610,14 @@ public class OrderService : IOrderService
             result.IsError = true;
             throw;
         }
+
         return result;
     }
 
     public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer>>> GetAllOrdersOfCustomer(
-        bool? isAscending, 
-        string? orderBy, 
-        Expression<Func<Order, bool>>? filter = null, 
+        bool? isAscending,
+        string? orderBy,
+        Expression<Func<Order, bool>>? filter = null,
         int pageIndex = 0,
         int pageSize = 10)
     {
@@ -687,10 +692,10 @@ public class OrderService : IOrderService
                     StationResponse = stationResponse,
                     OrderDetailResponse = orderDetailResponses
                 };
-                
+
                 orderResponses.Add(orderResponse);
             }
-            
+
             result.Message = "Lấy danh sách đơn hàng thành công!";
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
@@ -700,6 +705,288 @@ public class OrderService : IOrderService
         {
             result.AddError(StatusCode.ServerError, e.Message);
             result.Message = "Lấy danh sách đơn hàng thất bại!";
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+
+    /// <summary>
+    /// Các bước thực hiện thanh toán đơn hàng
+    /// - Kiểm tra khách hàng có tồn tại không
+    /// - Duyệt qua từng order trong request
+    /// - Lấy ra tất cả order và order detail trong đơn hàng.
+    /// - So sánh số lượng sản phẩm trong order detail với số lượng sản phẩm trong productItemInMenu
+    /// - Nếu không đủ số lượng sản phẩm thì rollback và return
+    /// - Trừ số lượng sản phẩm trong productItemInMenu
+    /// - Tạo ra một ListNewOrder để chứa order mới
+    /// - So sánh order trong db và order trong request có đủ số lượng orderDetailId không
+    /// - Nếu không đủ số lượng orderDetailId trong 1 order 
+    /// -- Tạo ra order mới và thêm orderDetail vào order mới đó
+    /// -- cập nhật lại order cũ với số lượng orderDetail còn lại
+    /// -- cập nhật lại totalAmount của order cũ và order mới đó
+    /// -- Thêm order mới vào ListNewOrder
+    /// 
+    /// </summary>
+    public async Task<OperationResult<IEnumerable<Order?>?>> Checkout(Guid customerId,
+        CreateOrderRequest request)
+    {
+        var result = new OperationResult<IEnumerable<Order?>?>();
+        var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            // Kiểm tra khách hàng có tồn tại không
+            var customer = await _unitOfWork.AccountRepository.GetByIdAsync(customerId);
+            if (customer == null)
+            {
+                result.Errors.Add(
+                    new Error
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Không tìm thấy khách hàng!"
+                    }
+                );
+                result.Message = "Không tìm thấy khách hàng!";
+                result.IsError = true;
+                return result;
+            }
+
+            var listOrderDb = _unitOfWork.OrderRepository
+                .FilterByExpression(x => x.CustomerId == customerId
+                                         && x.IsPaid == false
+                    /*&& x.CreatedAt.Date == DateTime.Now.Date*/
+                );
+
+
+            var newListOrder = new List<Order>();
+            // Duyệt qua từng order trong request
+            foreach (var requestOrder in request.Orders)
+            {
+                var orderDb = await listOrderDb.Where(x => x.Id == requestOrder.OrderId).FirstOrDefaultAsync();
+
+                if (orderDb == null)
+                {
+                    result.Errors.Add(
+                        new Error
+                        {
+                            Code = StatusCode.NotFound,
+                            Message = "Không tìm thấy order!" + requestOrder.OrderId
+                        }
+                    );
+                    result.Message = "Không tìm thấy order!";
+                    result.IsError = true;
+                    return result;
+                }
+
+                // Lấy ra tất cả order detail trong 1 order
+                var listOrderDetailDbs = _unitOfWork.OrderDetailRepository
+                    .FilterByExpression(x => x.OrderId == requestOrder.OrderId);
+                var listOrderDetailDbId = listOrderDetailDbs.Select(x => x.Id).ToList();
+                var listOrderDetailRequestId = requestOrder.OrderDetailIds.ToList();
+
+                // So sánh số lượng OrderDetailId trong 2 list của 1 order
+                if (listOrderDetailDbId.Count == listOrderDetailRequestId.Count)
+                {
+                    foreach (var orderDetail in listOrderDetailRequestId)
+                    {
+                        var orderDetailDb =
+                            await listOrderDetailDbs.Where(x => x.Id == orderDetail).FirstOrDefaultAsync();
+                        if (orderDetailDb == null)
+                        {
+                            result.Errors.Add(
+                                new Error
+                                {
+                                    Code = StatusCode.NotFound,
+                                    Message = "Không tìm thấy order detail!" + orderDetail
+                                }
+                            );
+                            result.Message = "Không tìm thấy order detail!";
+                            result.IsError = true;
+                            return result;
+                        }
+                    }
+
+                    orderDb.TotalAmount = listOrderDetailDbs.Sum(x => x.TotalPrice);
+                    orderDb.FullName = request.FullName;
+                    orderDb.PhoneNumber = request.PhoneNumber;
+                    orderDb.CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString();
+                    orderDb.IsPaid = false;
+                    newListOrder.Add(orderDb);
+                }
+                else
+                {
+                    // Trường hợp số lượng orderDetailId trong 1 order không bằng nhau
+                    var listNewOrderDetail = new List<OrderDetail>();
+                    foreach (var orderDetailId in listOrderDetailRequestId)
+                    {
+                        var orderDetailDb =
+                            await listOrderDetailDbs.Where(x => x.Id == orderDetailId).FirstOrDefaultAsync();
+                        if (orderDetailDb == null)
+                        {
+                            await transaction.RollbackAsync();
+                            result.Errors.Add(
+                                new Error
+                                {
+                                    Code = StatusCode.NotFound,
+                                    Message = "Không tìm thấy order detail!" + orderDetailId
+                                }
+                            );
+                            result.Message = "Không tìm thấy order detail!";
+                            result.IsError = true;
+                            return result;
+                        }
+
+                        listNewOrderDetail.Add(orderDetailDb);
+                    }
+
+                    // Xóa OrderDetail của 1 order dựa vào listNewOrderDetail 
+                    foreach (var orderDetailRemove in listNewOrderDetail)
+                    {
+                        await _unitOfWork.OrderDetailRepository.RemoveAsync(orderDetailRemove);
+                        var count = await _unitOfWork.SaveChangesAsync();
+                        if (count == 0)
+                        {
+                            await transaction.RollbackAsync();
+                            result.IsError = true;
+                            result.Errors.Add(new Error()
+                            {
+                                Code = StatusCode.BadRequest,
+                                Message = "Remove orderDetail In Order Error" + orderDetailRemove.Id
+                            });
+                            return result;
+                        }
+                    }
+
+                    // set lại total amount 
+                    var orderDetailListAfterRemove =
+                        _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == requestOrder.OrderId);
+                    orderDb.TotalAmount = orderDetailListAfterRemove.Sum(x => x.TotalPrice);
+                    await _unitOfWork.OrderRepository.UpdateAsync(orderDb);
+                    var updateOrderCount = await _unitOfWork.SaveChangesAsync();
+                    if (updateOrderCount == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.IsError = true;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Remove Order Error" + orderDb.Id
+                        });
+                        return result;
+                    }
+
+                    var newId = Guid.NewGuid();
+                    listNewOrderDetail.ForEach(x => x.OrderId = newId);
+                    var order = new Order
+                    {
+                        Id = newId,
+                        FarmHubId = orderDb.FarmHubId,
+                        CustomerId = customerId,
+                        StationId = request.StationId,
+                        BusinessDayId = orderDb.BusinessDayId,
+                        TotalAmount = listNewOrderDetail.Sum(x => x.TotalPrice),
+                        Code = "OD" + Guid.NewGuid().ToString().Substring(0, 6),
+                        ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
+                        ShipAddress = orderDb.ShipAddress,
+                        OrderDetails = listNewOrderDetail,
+                        FullName = request.FullName,
+                        PhoneNumber = request.PhoneNumber,
+                        CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString(),
+                        IsPaid = false
+                    };
+                    newListOrder.Add(order);
+                }
+            }
+
+            // Check số lượng 
+
+
+            // loop qua listNewOrder
+            var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == customer.Id)
+                .FirstOrDefaultAsync();
+            foreach (var newOrder in newListOrder)
+            {
+                var checkExistOrder = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == newOrder.Id)
+                    .FirstOrDefaultAsync();
+                var newTransaction = new Transaction()
+                {
+                    Id = new Guid(),
+                    TransactionType = EnumConstants.TransactionEnum.Payment.ToString(),
+                    Amount = newOrder.TotalAmount,
+                    PaymentDate = DateTime.Now,
+                    Status = EnumConstants.TransactionStatus.Success.ToString(),
+                    PayerWalletId = wallet!.Id,
+                    PayeeWalletId = Guid.Parse(EnumConstants.AdminWallet.AdminWalletId),
+                    OrderId = newOrder.Id
+                };
+
+                await _unitOfWork.TransactionRepository.AddAsync(newTransaction);
+                var countTransaction = await _unitOfWork.SaveChangesAsync();
+                if (countTransaction == 0)
+                {
+                    await transaction.RollbackAsync();
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Create transaction failure!"
+                    });
+                    return result;
+                }
+
+                newOrder.IsPaid = true;
+                if (checkExistOrder == null)
+                {
+                    await _unitOfWork.OrderRepository.AddAsync(newOrder);
+                    var countInsert = await _unitOfWork.SaveChangesAsync();
+                    if (countInsert == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.IsError = true;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Create order failure!" + newOrder.Id
+                        });
+                        return result;
+                    }
+                }
+                else
+                {
+                    await _unitOfWork.OrderRepository.UpdateAsync(newOrder);
+                    var countUpdate = await _unitOfWork.SaveChangesAsync();
+                    if (countUpdate == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.IsError = true;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Create order failure!" + newOrder.Id
+                        });
+                        return result;
+                    }
+                }
+            }
+
+            await transaction.CommitAsync();
+            result.Payload = newListOrder;
+            result.IsError = false;
+            result.Message = "Create orders success";
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            result.Errors.Add(
+                new Error
+                {
+                    Code = StatusCode.ServerError,
+                    Message = "Thanh toán đơn hàng thất bại!"
+                }
+            );
+            result.Message = "Thanh toán đơn hàng thất bại!";
             result.IsError = true;
             throw;
         }

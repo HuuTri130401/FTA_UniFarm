@@ -51,5 +51,13 @@ public record FamHubAndProduct
         init { }
     }
 }
+
+public record CreateOrderRequest
+{
+    public Guid StationId { get; set; }
+    public string FullName { get; set; }
+    public string PhoneNumber { get; set; }
+    public List<CheckoutRequest> Orders { get; set; }
+}
     
     
