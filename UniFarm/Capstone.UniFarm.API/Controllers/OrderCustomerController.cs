@@ -83,6 +83,7 @@ public class OrderCustomerController : BaseController
             isAscending: isAscending,
             orderBy: orderBy,
             filter: x => x.CustomerId == defineUser.Payload.Id
+                         && x.IsPaid == true
                          && (string.IsNullOrEmpty(status.ToString()) || x.CustomerStatus == status.ToString()),
             pageIndex: pageIndex,
             pageSize: pageSize

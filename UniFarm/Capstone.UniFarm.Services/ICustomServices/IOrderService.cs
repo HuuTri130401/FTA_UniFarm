@@ -31,5 +31,5 @@ public interface IOrderService
             int pageIndex = 0, 
             int pageSize = 10);
     
-    Task<OperationResult<IEnumerable<Order?>?>> Checkout(Guid customerId, CreateOrderRequest request);
+    Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(Guid customerId, CreateOrderRequest request);
 }

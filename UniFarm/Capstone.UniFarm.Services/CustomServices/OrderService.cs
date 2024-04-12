@@ -663,6 +663,8 @@ public class OrderService : IOrderService
                     var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
+                        Id = item.Id,
+                        OrderId = item.OrderId,
                         ProductItemId = item.ProductItemId,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
@@ -670,6 +672,17 @@ public class OrderService : IOrderService
                         TotalPrice = item.TotalPrice,
                         ProductItemResponse = productItemResponse
                     };
+                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                    if (productInMenu == null)
+                    {
+                        orderDetailResponse.QuantityInStock = 0;
+                    }
+                    else
+                    {
+                        orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
+                    }
                     orderDetailResponses.Add(orderDetailResponse);
                 }
 
@@ -730,10 +743,10 @@ public class OrderService : IOrderService
     /// -- Thêm order mới vào ListNewOrder
     /// 
     /// </summary>
-    public async Task<OperationResult<IEnumerable<Order?>?>> Checkout(Guid customerId,
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(Guid customerId,
         CreateOrderRequest request)
     {
-        var result = new OperationResult<IEnumerable<Order?>?>();
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>();
         var transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
@@ -900,8 +913,58 @@ public class OrderService : IOrderService
                 }
             }
 
-            // Check số lượng 
+            // Check số lượng và trừ số lượng trong productItemInMenu
+            foreach (var order in newListOrder)
+            {
+                foreach (var orderDetail in order.OrderDetails)
+                {
+                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository
+                        .FilterByExpression(
+                            x => x.ProductItemId == orderDetail.ProductItemId
+                            && x.Status == EnumConstants.CommonEnumStatus.Active.ToString()
+                        )
+                        .FirstOrDefaultAsync();
+                    if (productInMenu == null)
+                    {
+                        await transaction.RollbackAsync();
+                        result.Message = "Sản phẩm không tìm thấy hoặc ngừng kinh doanh";
+                        result.StatusCode = StatusCode.NotFound;
+                        result.IsError = true;
+                        return result;
+                    }
+                    var checkQuantity = productInMenu.Quantity - orderDetail.Quantity;
 
+                    if(checkQuantity <= 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
+                        result.StatusCode = StatusCode.NotFound;
+                        result.IsError = true;
+                        return result;
+                    }
+                    
+                    if (checkQuantity < orderDetail.Quantity)
+                    {
+                        await transaction.RollbackAsync();
+                        result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
+                        result.StatusCode = StatusCode.NotFound;
+                        result.IsError = true;
+                        return result;
+                    }
+
+                    productInMenu.Sold += orderDetail.Quantity;
+                    await _unitOfWork.ProductItemInMenuRepository.UpdateAsync(productInMenu);
+                    var updateQuantity = await _unitOfWork.SaveChangesAsync();
+                    if (updateQuantity == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.Message = "Cập nhật số lượng sản phẩm trong menu không thành công";
+                        result.StatusCode = StatusCode.BadRequest;
+                        result.IsError = true;
+                        return result;
+                    }
+                }
+            }
 
             // loop qua listNewOrder
             var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == customer.Id)
@@ -931,12 +994,13 @@ public class OrderService : IOrderService
                     result.Errors.Add(new Error()
                     {
                         Code = StatusCode.BadRequest,
-                        Message = "Create transaction failure!"
+                        Message = "Tạo giao dịch thất bại!"
                     });
                     return result;
                 }
 
                 newOrder.IsPaid = true;
+                newOrder.ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1);
                 if (checkExistOrder == null)
                 {
                     await _unitOfWork.OrderRepository.AddAsync(newOrder);
@@ -948,7 +1012,7 @@ public class OrderService : IOrderService
                         result.Errors.Add(new Error()
                         {
                             Code = StatusCode.BadRequest,
-                            Message = "Create order failure!" + newOrder.Id
+                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
                         });
                         return result;
                     }
@@ -964,7 +1028,7 @@ public class OrderService : IOrderService
                         result.Errors.Add(new Error()
                         {
                             Code = StatusCode.BadRequest,
-                            Message = "Create order failure!" + newOrder.Id
+                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
                         });
                         return result;
                     }
@@ -972,9 +1036,72 @@ public class OrderService : IOrderService
             }
 
             await transaction.CommitAsync();
-            result.Payload = newListOrder;
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
+            foreach (var order in newListOrder)
+            {
+                var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+                var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+                var businessDay = await _unitOfWork.BusinessDayRepository
+                    .FilterByExpression(x => x.Id == order.BusinessDayId)
+                    .FirstOrDefaultAsync();
+                var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
+                    .FirstOrDefaultAsync();
+
+                var stationResponse = new StationResponse.StationResponseSimple();
+                if (station != null)
+                {
+                    stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+                }
+
+                var orderDetails = await _unitOfWork.OrderDetailRepository
+                    .FilterByExpression(x => x.OrderId == order.Id)
+                    .ToListAsync();
+
+                var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
+
+                foreach (var item in orderDetails)
+                {
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var orderDetailResponse = new OrderDetailResponseForCustomer()
+                    {
+                        Id = item.Id,
+                        OrderId = item.OrderId,
+                        ProductItemId = item.ProductItemId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        Unit = item.Unit,
+                        TotalPrice = item.TotalPrice,
+                        ProductItemResponse = productItemResponse
+                    };
+                    orderDetailResponses.Add(orderDetailResponse);
+                }
+
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    CustomerId = order.CustomerId,
+                    FarmHubId = order.FarmHubId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = order.TotalAmount,
+                    IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
+                    FarmHubResponse = farmHubResponse,
+                    BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailResponses
+                };
+                orderResponses.Add(orderResponse);
+            }
+            result.Payload = orderResponses;
+            result.StatusCode = StatusCode.Ok;
             result.IsError = false;
-            result.Message = "Create orders success";
+            result.Message = "Tạo đơn hàng thành công!";
         }
         catch (Exception e)
         {

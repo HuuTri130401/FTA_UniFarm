@@ -11,5 +11,6 @@ public record OrderDetailResponseForCustomer
     public decimal UnitPrice { get; set; }
     public string? Unit { get; set; }
     public decimal? TotalPrice { get; set; }
+    public double? QuantityInStock { get; set; }
     public ProductItemResponseForCustomer? ProductItemResponse { get; set; }
 }

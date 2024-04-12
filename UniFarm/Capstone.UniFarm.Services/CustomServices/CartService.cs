@@ -670,6 +670,17 @@ public class CartService : ICartService
 
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
+                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id
+                        && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                    if (productInMenu == null)
+                    {
+                        orderDetailResponse.QuantityInStock = 0;
+                    }
+                    else
+                    {
+                        orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
+                    }
                     var orderResponse = new OrderResponse.OrderResponseForCustomer()
                     {
                         Id = order.Id,
@@ -762,6 +773,17 @@ public class CartService : ICartService
 
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
+                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                    if (productInMenu == null)
+                    {
+                        orderDetailResponse.QuantityInStock = 0;
+                    }
+                    else
+                    {
+                        orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
+                    }
                     orderDetailList.Add(orderDetailResponse);
                 }
 

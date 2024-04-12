@@ -5,6 +5,7 @@ using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ThirdPartyService;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
@@ -75,8 +76,7 @@ public class TransferService : ITransferService
 
             var transfer = _mapper.Map<Transfer>(objectRequestCreate);
             transfer.CreatedBy = createdBy;
-            transfer.Code = "TRANSFER_BY" + createdBy + "_FROM_" + objectRequestCreate.CollectedId + "_" +
-                            DateTime.Now.ToString("yyyyMMddHHmmss");
+            transfer.Code = "TRA" + Utils.RandomString(5);
             await _unitOfWork.TransferRepository.AddAsync(transfer);
             var count = await _unitOfWork.SaveChangesAsync();
             if (count == 0)
@@ -141,22 +141,24 @@ public class TransferService : ITransferService
                 ).FirstOrDefaultAsync();
                 if (order != null)
                 {
-                    
                     var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
                         .FirstOrDefaultAsync();
-                    
-                    var orderDetail = await _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == order.Id)
+
+                    var orderDetail = await _unitOfWork.OrderDetailRepository
+                        .FilterByExpression(x => x.OrderId == order.Id)
                         .ToListAsync();
                     var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
                     foreach (var detail in orderDetail)
                     {
-                        var product = await _unitOfWork.ProductItemRepository.FilterByExpression(x => x.Id == detail.ProductItemId)
+                        var product = await _unitOfWork.ProductItemRepository
+                            .FilterByExpression(x => x.Id == detail.ProductItemId)
                             .FirstOrDefaultAsync();
                         var productItemResponse = new ProductItemResponseForCustomer();
                         if (product != null)
                         {
                             productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(product);
                         }
+
                         var orderDetailResponse = new OrderDetailResponseForCustomer
                         {
                             OrderId = detail.OrderId,
@@ -169,6 +171,7 @@ public class TransferService : ITransferService
                         };
                         orderDetailResponses.Add(orderDetailResponse);
                     }
+
                     var orderResponse = new OrderResponse.OrderResponseForCustomer()
                     {
                         Id = order.Id,
@@ -338,6 +341,7 @@ public class TransferService : ITransferService
                 transfer.ReceivedDate = DateTime.Now;
                 transfer.NoteReceived = request.NoteReceived;
             }
+
             await _unitOfWork.TransferRepository.UpdateAsync(transfer);
             var count = await _unitOfWork.SaveChangesAsync();
 
@@ -351,12 +355,17 @@ public class TransferService : ITransferService
                 return result;
             }
 
-            var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == request.Id)
+            var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == request.Id
+                && x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+                && x.CollectedHubId == transfer.CollectedId
+                && x.IsPaid == true
+                )
                 .ToListAsync();
-            
+
             var collected = await _unitOfWork.CollectedHubRepository
                 .FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
-            var station = _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId).FirstOrDefaultAsync();
+            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId)
+                .FirstOrDefaultAsync();
             var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
             var collectedResponse = _mapper.Map<CollectedHubResponse>(collected);
             var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
@@ -368,15 +377,18 @@ public class TransferService : ITransferService
                 var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
                 foreach (var detail in orderDetail)
                 {
-                    var product = await _unitOfWork.ProductItemRepository.FilterByExpression(x => x.Id == detail.ProductItemId)
+                    var product = await _unitOfWork.ProductItemRepository
+                        .FilterByExpression(x => x.Id == detail.ProductItemId)
                         .FirstOrDefaultAsync();
                     var productItemResponse = new ProductItemResponseForCustomer();
                     if (product != null)
                     {
                         productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(product);
                     }
+
                     var orderDetailResponse = new OrderDetailResponseForCustomer
                     {
+                        Id = detail.Id,
                         OrderId = detail.OrderId,
                         ProductItemId = detail.ProductItemId,
                         Quantity = detail.Quantity,
@@ -387,6 +399,7 @@ public class TransferService : ITransferService
                     };
                     orderDetailResponses.Add(orderDetailResponse);
                 }
+
                 var orderResponse = new OrderResponse.OrderResponseForCustomer()
                 {
                     Id = order.Id,
@@ -408,6 +421,7 @@ public class TransferService : ITransferService
                 };
                 orderResponses.Add(orderResponse);
             }
+
             var transferResponse = new TransferResponse(
                 transfer.Id,
                 transfer.CollectedId,
@@ -425,10 +439,10 @@ public class TransferService : ITransferService
                 collectedResponse,
                 stationResponse,
                 orderResponses);
+            await transaction.CommitAsync();
             result.Payload = transferResponse;
             result.StatusCode = StatusCode.Ok;
             result.Message = EnumConstants.TransferMessage.UPDATE_TRANSFER_STATUS_SUCCESS;
-            await transaction.CommitAsync();
         }
         catch (Exception e)
         {
@@ -438,6 +452,7 @@ public class TransferService : ITransferService
             result.StatusCode = StatusCode.ServerError;
             throw;
         }
+
         return result;
     }
 }
