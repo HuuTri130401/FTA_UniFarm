@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Linq;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Repositories.Repository;
 
@@ -14,6 +15,18 @@ public class TransactionRepository : GenericRepository<Transaction>, ITransactio
     {
     }
 
+    public async Task<bool> AlreadyRefundedAsync(Guid orderId)
+    {
+        return await Task.FromResult(AlreadyRefunded(orderId));
+    }
+
+    public async Task<List<Transaction>> GetAllTransactionPayments()
+    {
+        return await _dbSet
+            .Where(pst => pst.TransactionType == TransactionEnum.Payment.ToString())
+            .ToListAsync();
+    }
+
     public async Task<List<Transaction>> GetAllTransactions(Guid walletId)
     {
         return await _dbSet
@@ -21,6 +34,11 @@ public class TransactionRepository : GenericRepository<Transaction>, ITransactio
             .Include(w => w.PayerWallet)
             .ThenInclude(a => a.Account)
             .ToListAsync();
+    }
+
+    private bool AlreadyRefunded(Guid orderId)
+    {
+        return _dbSet.Any(t => t.OrderId == orderId && t.TransactionType == TransactionEnum.Refund.ToString());
     }
 }
 

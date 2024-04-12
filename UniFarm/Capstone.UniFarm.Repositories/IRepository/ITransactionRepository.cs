@@ -7,4 +7,6 @@ namespace Capstone.UniFarm.Repositories.IRepository;
 public interface ITransactionRepository : IGenericRepository<Transaction>
 {
     Task<List<Transaction>> GetAllTransactions(Guid walletId);
+    Task<List<Transaction>> GetAllTransactionPayments();
+    Task<bool> AlreadyRefundedAsync(Guid orderId);
 }
