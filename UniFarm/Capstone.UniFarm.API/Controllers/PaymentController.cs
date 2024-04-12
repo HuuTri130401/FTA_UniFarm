@@ -60,12 +60,12 @@ public class PaymentController : BaseController
     public IActionResult PaymentSuccess()
     {
         return Ok("Tạo giao dịch thành công!");
-    }
+    }*/
 
-    [HttpPost("payment/create-payment")]
+    [HttpPost("payment/deposit-test")]
     [Authorize]
-    [SwaggerOperation(Summary = "Create payment for fake data - Tien")]
-    public IActionResult CreatePayment([FromBody] PaymentRequestCreateModel model)
+    [SwaggerOperation(Summary = "Deposit payment testing - Tien")]
+    public async Task<IActionResult> CreatePayment([FromBody] PaymentRequestCreateModel model)
     {
         string authHeader = HttpContext.Request.Headers["Authorization"];
         if (string.IsNullOrEmpty(authHeader))
@@ -76,11 +76,9 @@ public class PaymentController : BaseController
         string token = authHeader.Replace("Bearer ", "");
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
-
-
-        var response = _vnPayService.CreatePayment(defineUser.Payload.Id, model).Result;
+        var response =await _paymentService.DepositMoneyTesting(defineUser.Payload.Id, model);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
-    }*/
+    }
 
     [HttpGet("payments")]
     [Authorize(Roles = "Admin")]

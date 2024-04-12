@@ -27,7 +27,6 @@ namespace Capstone.UniFarm.Services.CustomServices
         public string CreatePaymentUrl(HttpContext context, VnPaymentRequestModel model)
         {
             var tick = DateTime.Now.Ticks.ToString();
-
             var vnpay = new VnPayLibrary();
             vnpay.AddRequestData("vnp_Version", _config["VnPay:Version"]);
             vnpay.AddRequestData("vnp_Command", _config["VnPay:Command"]);
@@ -48,8 +47,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                 tick); // Mã tham chiếu của giao dịch tại hệ thống của merchant. Mã này là duy nhất dùng để phân biệt các đơn hàng gửi sang VNPAY. Không được trùng lặp trong ngày
 
             var paymentUrl = vnpay.CreateRequestUrl(_config["VnPay:BaseUrl"], _config["VnPay:HashSecret"]);
-
-
             return paymentUrl;
         }
 
@@ -92,7 +89,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             };
         }
 
-        public async Task<OperationResult<Payment>> SavePayment(VnPaymentResponseModel response)
+        public async Task<OperationResult<Payment>> DepositPayment(VnPaymentResponseModel response)
         {
             var result = new OperationResult<Payment>();
             var transaction = await _unitOfWork.BeginTransactionAsync();
@@ -118,12 +115,21 @@ namespace Capstone.UniFarm.Services.CustomServices
                     WalletId = response.WalletId,
                     From = EnumConstants.FromToWallet.BANK.ToString(),
                     To = EnumConstants.FromToWallet.WALLET.ToString(),
+                    BalanceBefore = wallet.Balance ?? 0,
                     Amount = Math.Round((decimal)response.Amount, 2),
                     PaymentDay = DateTime.Now,
                     Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
                     Type = response.PaymentMethod.ToString(),
                     Wallet = null,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    BankName = "VnPay",
+                    BankOwnerName = "VnPay",
+                    BankAccountNumber = "VnPay",
+                    Code = "DEP" + Utils.RandomString(7)
                 };
+                
+                // create random code start with DEP and 8 random characters and numbers
 
                 await _unitOfWork.PaymentRepository.AddAsync(payment);
                 var count = _unitOfWork.SaveChangesAsync();
@@ -145,21 +151,14 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 else
                 {
-                    if (wallet.Balance >= payment.Amount)
+                    result.Message = "For deposit money only";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
                     {
-                        wallet.Balance -= payment.Amount;
-                    }
-                    else
-                    {
-                        await transaction.RollbackAsync();
-                        result.Message = "Not enough money";
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.BadRequest,
-                            Message = "Not enough money"
-                        });
-                    }
+                        Code = StatusCode.NotFound,
+                        Message = "For deposit money only!"
+                    });
+                    return result;
                 }
 
                 wallet.UpdatedAt = DateTime.Now;
@@ -196,118 +195,5 @@ namespace Capstone.UniFarm.Services.CustomServices
 
             return result;
         }
-
-        public async Task<OperationResult<Payment>> CreatePayment(Guid? accountId,
-            PaymentRequestCreateModel requestModel)
-        {
-            var result = new OperationResult<Payment>();
-            var transaction = _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                var wallet = _unitOfWork.WalletRepository.FilterByExpression(x => x.Id == requestModel.WalletId)
-                    .FirstOrDefault();
-                if (wallet == null)
-                {
-                    wallet = _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == accountId)
-                        .FirstOrDefault();
-
-                    if (wallet == null)
-                    {
-                        await transaction.Result.RollbackAsync();
-                        result.Message = "Wallet not found";
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.NotFound,
-                            Message = "Wallet not found"
-                        });
-                        return result;
-                    }
-                }
-
-                var payment = new Payment
-                {
-                    Id = Guid.NewGuid(),
-                    WalletId = requestModel.WalletId,
-                    From = requestModel.From.ToString(),
-                    To = requestModel.To.ToString(),
-                    Amount = requestModel.Amount,
-                    PaymentDay = DateTime.Now,
-                    Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
-                    Type = requestModel.Type.ToString(),
-                    Wallet = null,
-                };
-                await _unitOfWork.PaymentRepository.AddAsync(payment);
-                var count = _unitOfWork.SaveChangesAsync();
-                if (count.Result == 0)
-                {
-                    await transaction.Result.RollbackAsync();
-                    result.Message = "Payment failed";
-                    result.IsError = true;
-                    result.Errors.Add(new Error()
-                    {
-                        Code = StatusCode.BadRequest,
-                        Message = "Payment failed"
-                    });
-                }
-
-                if (requestModel.Type.ToString() == EnumConstants.PaymentMethod.DEPOSIT.ToString())
-                {
-                    wallet.Balance += payment.Amount;
-                }
-                else
-                {
-                    if (wallet.Balance >= payment.Amount)
-                    {
-                        wallet.Balance -= payment.Amount;
-                    }
-                    else
-                    {
-                        await transaction.Result.RollbackAsync();
-                        result.Message = "Not enough money";
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.BadRequest,
-                            Message = "Not enough money"
-                        });
-                    }
-                }
-
-                wallet.UpdatedAt = DateTime.Now;
-                wallet.Payments = null;
-                await _unitOfWork.WalletRepository.UpdateAsync(wallet);
-                var countUpdate = _unitOfWork.SaveChangesAsync();
-                if (countUpdate.Result == 0)
-                {
-                    await transaction.Result.RollbackAsync();
-                    result.Message = "Payment failed";
-                    result.IsError = true;
-                    result.Errors.Add(new Error()
-                    {
-                        Code = StatusCode.BadRequest,
-                        Message = "Payment failed"
-                    });
-                }
-
-                await transaction.Result.CommitAsync();
-                payment.Wallet = null;
-                result.Payload = payment;
-            }
-            catch (Exception e)
-            {
-                await transaction.Result.RollbackAsync();
-                result.Message = e.Message;
-                result.IsError = true;
-                result.Errors.Add(new Error()
-                {
-                    Code = StatusCode.ServerError,
-                    Message = e.Message
-                });
-            }
-
-            return result;
-        }
-
     }
 }

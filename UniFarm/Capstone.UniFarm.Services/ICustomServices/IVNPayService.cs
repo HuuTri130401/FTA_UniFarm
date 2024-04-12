@@ -12,8 +12,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
         string CreatePaymentUrl(HttpContext context, VnPaymentRequestModel model);
         VnPaymentResponseModel PaymentExecute(IQueryCollection collections);
         
-        Task<OperationResult<Payment>> SavePayment(VnPaymentResponseModel response);
+        Task<OperationResult<Payment>> DepositPayment(VnPaymentResponseModel response);
         
-        Task<OperationResult<Payment>> CreatePayment(Guid? accountId, PaymentRequestCreateModel requestModel);
     }
 }

@@ -15,7 +15,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
     public class VnPaymentRequestModel
     {
         public Guid WalletId { get; set; }
-        public EnumConstants.PaymentMethod PaymentMethod { get; set; }
+        public string PaymentMethod { get; init; } = EnumConstants.PaymentMethod.DEPOSIT.ToString();
         public double Amount { get; set; }
         public DateTime CreatedDate { get; set; }
     }

@@ -17,6 +17,8 @@ namespace Capstone.UniFarm.Domain.Models
         [StringLength(255)]
         public string? To { get; set; }
         
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal BalanceBefore { get; set; }
         public string? BankName { get; set; }
         
         public string? BankOwnerName { get; set; }

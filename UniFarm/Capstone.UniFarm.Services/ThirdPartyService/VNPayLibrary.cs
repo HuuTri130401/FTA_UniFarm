@@ -145,6 +145,14 @@ namespace Capstone.UniFarm.Services.ThirdPartyService
 
             return "127.0.0.1";
         }
+
+        public static string RandomString(int i)
+        {
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, i)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
     }
 
     public class VnPayCompare : IComparer<string>

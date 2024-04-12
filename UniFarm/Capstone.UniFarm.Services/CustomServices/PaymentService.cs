@@ -5,6 +5,7 @@ using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ThirdPartyService;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
@@ -25,116 +26,6 @@ public class PaymentService : IPaymentService
         _mapper = mapper;
         _accountService = accountService;
         _walletService = walletService;
-    }
-
-    public async Task<OperationResult<IEnumerable<Payment>>> GetAll(
-        bool? isAscending,
-        string? orderBy = null,
-        Expression<Func<Wallet, bool>>? filterWallet = null,
-        Expression<Func<Account, bool>>? filterAccount = null,
-        Expression<Func<Payment, bool>>? filterPayment = null,
-        string[]? includeProperties = null,
-        int pageIndex = 0, int pageSize = 10)
-    {
-        var result = new OperationResult<IEnumerable<Payment>>();
-        try
-        {
-            var wallets = await _walletService.FindByExpression(filterWallet!);
-            if (wallets.Payload == null)
-            {
-                result.IsError = false;
-                result.Message = "Can not found wallet of account Id";
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
-            Expression<Func<Payment, bool>> filterPayment1 = x => x.WalletId == wallets.Payload.Id;
-
-            var parameter = Expression.Parameter(typeof(Payment), "x");
-            var body = Expression.AndAlso(
-                Expression.Invoke(filterPayment1, parameter),
-                Expression.Invoke(filterPayment!, parameter)
-            );
-            var combinedFilter = Expression.Lambda<Func<Payment, bool>>(body, parameter);
-
-            var payments = _unitOfWork.PaymentRepository.FilterAll(isAscending, orderBy, combinedFilter,
-                includeProperties, pageIndex, pageSize);
-            if (payments.Any())
-            {
-                result.IsError = false;
-                result.Message = "Payment not found";
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
-            result.Payload = payments;
-            result.IsError = false;
-            result.Message = "Get all payment successfully";
-        }
-        catch (Exception e)
-        {
-            result.IsError = false;
-            result.StatusCode = StatusCode.ServerError;
-            result.Message = e.Message;
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<IEnumerable<Payment>>> GetAllForCustomer(
-        bool? isAscending,
-        string? orderBy = null,
-        Expression<Func<Wallet, bool>>? filterWallet = null,
-        Expression<Func<Account, bool>>? filterAccount = null,
-        Expression<Func<Payment, bool>>? filterPayment = null,
-        string[]? includeProperties = null,
-        int pageIndex = 0, int pageSize = 10)
-    {
-        var result = new OperationResult<IEnumerable<Payment>>();
-
-        try
-        {
-            var accounts = await _accountService.GetAccountByExpression(filterAccount);
-            if (accounts.Payload == null)
-            {
-                result.IsError = false;
-                result.Message = "Account not found";
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
-            var wallets = await _walletService.FindByExpression(filterWallet);
-            if (wallets.Payload == null)
-            {
-                result.IsError = false;
-                result.Message = "Wallet not found";
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
-            var payments = _unitOfWork.PaymentRepository.FilterAll(isAscending, orderBy, filterPayment,
-                includeProperties, pageIndex, pageSize);
-
-            if (payments == null)
-            {
-                result.IsError = false;
-                result.Message = "Payment not found";
-                result.StatusCode = StatusCode.NotFound;
-                return result;
-            }
-
-            result.Payload = payments;
-            result.IsError = false;
-            result.Message = "Get all payment for customer successfully";
-        }
-        catch (Exception e)
-        {
-            result.IsError = false;
-            result.StatusCode = StatusCode.ServerError;
-            result.Message = e.Message;
-        }
-
-        return result;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreatePaymentWithdrawRequest(Guid? accountId,
@@ -176,6 +67,7 @@ public class PaymentService : IPaymentService
                 WalletId = wallet.Id,
                 From = EnumConstants.FromToWallet.WALLET.ToString(),
                 To = EnumConstants.FromToWallet.BANK.ToString(),
+                BalanceBefore = wallet.Balance ?? 0,
                 Amount = request.Amount,
                 Status = EnumConstants.PaymentEnum.PENDING.ToString(),
                 Type = EnumConstants.PaymentMethod.WITHDRAW.ToString(),
@@ -184,6 +76,8 @@ public class PaymentService : IPaymentService
                 BankOwnerName = request.BankOwnerName,
                 BankAccountNumber = request.BankAccountNumber,
                 Note = request.Note,
+                CreatedAt = DateTime.Now,
+                Code = "WDR"+ Utils.RandomString(7)
             };
 
             wallet.Balance -= request.Amount;
@@ -240,7 +134,7 @@ public class PaymentService : IPaymentService
             {
                 Id = payment.Id,
                 UserName = account!.UserName,
-                Balance = wallet.Balance ?? 0,
+                Balance = payment.BalanceBefore,
                 TransferAmount = payment.Amount,
                 From = payment.From!,
                 To = payment.To!,
@@ -298,7 +192,7 @@ public class PaymentService : IPaymentService
                 {
                     Id = payment.Id,
                     UserName = account!.UserName,
-                    Balance = wallet.Balance ?? 0,
+                    Balance = payment.BalanceBefore,
                     TransferAmount = payment.Amount,
                     From = payment.From!,
                     To = payment.To!,
@@ -334,7 +228,7 @@ public class PaymentService : IPaymentService
     }
 
     public async Task<OperationResult<IEnumerable<PaymentResponse>>> GetPaymentForUser(bool? isAscending,
-        string? orderBy,  Expression<Func<Payment, bool>>? filter, Expression<Func<Account, bool>> filterAccount,
+        string? orderBy, Expression<Func<Payment, bool>>? filter, Expression<Func<Account, bool>> filterAccount,
         int pageIndex,
         int pageSize)
     {
@@ -366,7 +260,7 @@ public class PaymentService : IPaymentService
 
             var paymentList = _unitOfWork.PaymentRepository
                 .GetAllWithoutPaging(isAscending, orderBy, filterPayment, null);
-            
+
             var payments = await paymentList.Where(filter!).ToListAsync();
             if (!payments.Any())
             {
@@ -383,7 +277,7 @@ public class PaymentService : IPaymentService
                 {
                     Id = payment.Id,
                     UserName = account!.UserName,
-                    Balance = wallet.Balance ?? 0,
+                    Balance = payment.BalanceBefore,
                     TransferAmount = payment.Amount,
                     From = payment.From!,
                     To = payment.To!,
@@ -520,7 +414,7 @@ public class PaymentService : IPaymentService
                 {
                     Id = payment.Id,
                     UserName = account!.UserName,
-                    Balance = wallet.Balance ?? 0,
+                    Balance = payment.BalanceBefore,
                     TransferAmount = payment.Amount,
                     From = payment.From!,
                     To = payment.To!,
@@ -542,6 +436,119 @@ public class PaymentService : IPaymentService
 
             result.Message = "Payment status is already updated";
             result.Payload = null;
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            result.Message = e.Message;
+            result.IsError = true;
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<Payment>> DepositMoneyTesting(Guid? accountId,
+        PaymentRequestCreateModel requestModel)
+    {
+        var result = new OperationResult<Payment>();
+        var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.Id == requestModel.WalletId)
+                .FirstOrDefaultAsync();
+            if (wallet == null)
+            {
+                wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (wallet == null)
+                {
+                    await transaction.RollbackAsync();
+                    result.Message = "Wallet not found";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Wallet not found"
+                    });
+                    return result;
+                }
+            }
+
+            var payment = new Payment
+            {
+                Id = Guid.NewGuid(),
+                WalletId = requestModel.WalletId,
+                From = requestModel.From.ToString(),
+                To = requestModel.To.ToString(),
+                BalanceBefore = wallet.Balance ?? 0,
+                Amount = requestModel.Amount,
+                PaymentDay = DateTime.Now,
+                Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
+                Type = requestModel.Type.ToString(),
+                Wallet = null,
+            };
+            await _unitOfWork.PaymentRepository.AddAsync(payment);
+            var count = _unitOfWork.SaveChangesAsync();
+            if (count.Result == 0)
+            {
+                await transaction.RollbackAsync();
+                result.Message = "Payment failed";
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Payment failed"
+                });
+            }
+
+            if (requestModel.Type.ToString() == EnumConstants.PaymentMethod.DEPOSIT.ToString())
+            {
+                wallet.Balance += payment.Amount;
+            }
+            else
+            {
+                if (wallet.Balance >= payment.Amount)
+                {
+                    wallet.Balance -= payment.Amount;
+                }
+                else
+                {
+                    await transaction.RollbackAsync();
+                    result.Message = "Not enough money";
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Not enough money"
+                    });
+                }
+            }
+
+            wallet.UpdatedAt = DateTime.Now;
+            wallet.Payments = null;
+            await _unitOfWork.WalletRepository.UpdateAsync(wallet);
+            var countUpdate = _unitOfWork.SaveChangesAsync();
+            if (countUpdate.Result == 0)
+            {
+                await transaction.RollbackAsync();
+                result.Message = "Payment failed";
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Payment failed"
+                });
+            }
+
+            await transaction.CommitAsync();
+            payment.Wallet = null;
+            result.Payload = payment;
         }
         catch (Exception e)
         {
