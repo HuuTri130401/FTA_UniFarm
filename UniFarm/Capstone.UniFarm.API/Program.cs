@@ -39,16 +39,16 @@ try
 
     //============ Config CORS =============//
     // Them CORS cho tat ca moi nguoi deu xai duoc apis
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(builder =>
-        {
-            builder.WithOrigins("http://localhost:3000")
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-    });
+    //builder.Services.AddCors(options =>
+    //{
+    //    options.AddDefaultPolicy(builder =>
+    //    {
+    //        builder.WithOrigins("http://localhost:3000")
+    //            .AllowAnyOrigin()
+    //            .AllowAnyHeader()
+    //            .AllowAnyMethod();
+    //    });
+    //});
 
     //============ Hangfire =============//
     builder.Services.AddHangfire(configuration => configuration
@@ -225,7 +225,7 @@ try
     {
         options.AddDefaultPolicy(builder =>
         {
-            builder.WithOrigins("http://localhost:3000")
+            builder.WithOrigins("https://fta-black.vercel.app")
                 .AllowAnyOrigin()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
@@ -247,7 +247,7 @@ try
 
     app.UseHangfireDashboard("/dashboard");
     RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
-        service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Hourly);
+        service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
     app.Run();
 
     /*static IEdmModel GetEdmModel()
