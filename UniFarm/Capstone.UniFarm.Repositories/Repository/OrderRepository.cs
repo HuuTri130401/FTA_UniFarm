@@ -143,6 +143,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
 
         return totalAmountAndNumOrder;
     }
+
     public async Task<(decimal? TotalAmount, int OrderCount)> CalculateTotalForBusinessDayOfOneFarmHub(Guid businessDayId, Guid farmHubId)
     {
         // Lấy tổng số lượng và tổng số tiền của các đơn hàng từ một FarmHub cụ thể trong một BusinessDay
@@ -163,4 +164,15 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
         return (result?.TotalAmount, result?.OrderCount ?? 0);
     }
 
+    public async Task<bool> IsOrderCancelledAsync(Order order)
+    {
+        return await Task.FromResult(IsOrderCancelled(order));
+    }
+
+    private bool IsOrderCancelled(Order order)
+    {
+        return order.CustomerStatus == CustomerStatus.CanceledByCustomer.ToString() ||
+               order.CustomerStatus == CustomerStatus.CanceledByFarmHub.ToString() ||
+               order.CustomerStatus == CustomerStatus.CanceledByCollectedHub.ToString();
+    }
 }

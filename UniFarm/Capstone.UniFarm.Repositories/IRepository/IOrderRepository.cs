@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Models;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.Repositories.IRepository;
 
@@ -14,4 +15,5 @@ public interface IOrderRepository : IGenericRepository<Order>
     //Task<Dictionary<Guid, decimal?>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId);
     Task<Dictionary<Guid, (decimal? TotalAmount, int OrderCount)>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId);
     Task<(decimal? TotalAmount, int OrderCount)> CalculateTotalForBusinessDayOfOneFarmHub(Guid businessDayId, Guid farmHubId);
+    Task<bool> IsOrderCancelledAsync(Order order);
 }
