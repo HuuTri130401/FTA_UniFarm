@@ -36,6 +36,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var businessDayStatusPaymentConfirm = await _unitOfWork.BusinessDayRepository.GetBusinessDayByIdAsync(businessDayId);
+                var systemWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(systemAcountId);
+
                 if (businessDayStatusPaymentConfirm.Status == CommonEnumStatus.PaymentConfirm.ToString())
                 {
                     var listFarmHubSettlement = await _unitOfWork.FarmHubSettlementRepository.GetAllFarmHubSettlementAsync(businessDayId);
@@ -54,7 +56,6 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                             var profit = farmHubSettlement.Profit;
                             var farmHubWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(accountId);
-                            var systemWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(systemAcountId);
                             if (farmHubWallet != null && systemWallet != null)
                             {
                                 var transaction = new Transaction()
@@ -80,9 +81,36 @@ namespace Capstone.UniFarm.Services.CustomServices
                         }
                     }
                 }
+
+                var listTransactions = await _unitOfWork.TransactionRepository.GetAllTransactionPayments();
+                if (listTransactions != null) 
+                {
+                    foreach (var transaction in listTransactions)
+                    {
+                        var order = await _unitOfWork.OrderRepository.GetByIdAsync((Guid)transaction.OrderId);
+                        if (order != null && await _unitOfWork.OrderRepository.IsOrderCancelledAsync(order) 
+                            && !await _unitOfWork.TransactionRepository.AlreadyRefundedAsync((Guid)transaction.OrderId))
+                        {
+                            var newTransaction = new Transaction()
+                            {
+                                Id = Guid.NewGuid(),
+                                Amount = transaction.Amount,
+                                PaymentDate = DateTime.UtcNow.AddHours(7),
+                                Status = "Success",
+                                PayerWalletId = systemWallet.Id,
+                                PayeeWalletId = transaction.PayeeWalletId,
+                                TransactionType = TransactionEnum.Refund.ToString(),
+                                OrderId = transaction.OrderId,
+                            };
+                            await _unitOfWork.TransactionRepository.AddAsync(newTransaction);
+                            await _unitOfWork.SaveChangesAsync();
+                        }
+                    }
+                }
+
                 businessDayStatusPaymentConfirm.Status = CommonEnumStatus.Completed.ToString();
                 await _unitOfWork.BusinessDayRepository.UpdateEntityAsync(businessDayStatusPaymentConfirm);
-                result.AddResponseStatusCode(StatusCode.Created, $"Payment Profit For FarmHub In BusinessDay: {businessDayId} Success!", true);
+                result.AddResponseStatusCode(StatusCode.Created, $"Payment Profit For FarmHub and Refund For Customer In BusinessDay: {businessDayId} Success!", true);
                 return result;
             }
             catch (Exception ex)
