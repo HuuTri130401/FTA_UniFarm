@@ -14,4 +14,5 @@ public record ProductItemResponseForCustomer
     public string? Unit { get; set; }
     public string? Status { get; set; }
     public string? ProductOrigin { get; set; }
+    public string? ImageUrl { get; set; }
 }

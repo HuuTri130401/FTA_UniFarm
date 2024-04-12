@@ -162,6 +162,7 @@ public abstract record EnumConstants
     {
         public static readonly string CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID = "Cart does not exist with same productItemId and farmHubId";
         public static readonly string CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID = "Cart exist with same productItemId and farmHubId";
+        public static readonly string ORDER_DOES_NOT_EXIST = "Order does not exist";
         public static readonly string ORDER_DETAIL_DOES_NOT_EXIST = "OrderDetail does not exist";
         public static readonly string PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST = "Product Item In Menu does not exist";
         public static readonly string PRODUCT_ITEM_DOES_NOT_EXIST_OR_INACTIVE = "Product Item does not exist or is not active";
@@ -180,6 +181,7 @@ public abstract record EnumConstants
         public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
         public static readonly string NOT_FOUND_ANY_ITEM_IN_CART = "Not found any item in cart";
         public static readonly string GET_CART_SUCCESS = "Get cart success";
+        
     }
     
     public abstract record OrderMessage

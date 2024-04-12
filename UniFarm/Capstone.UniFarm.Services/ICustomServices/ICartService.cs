@@ -14,4 +14,5 @@ public interface ICartService
     Task<OperationResult<OrderResponse.OrderResponseForCustomer?>> UpsertToCart(Guid customerId, AddToCartRequest request);
     
     Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> GetCart(Expression<Func<Order, bool>>? filter, string? orderBy, bool? isDesc, int pageIndex, int pageSize);
+    Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> BeforeCheckout(List<CheckoutRequest> request);
 }

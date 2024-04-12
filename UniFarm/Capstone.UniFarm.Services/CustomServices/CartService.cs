@@ -251,6 +251,7 @@ public class CartService : ICartService
                 IsError = true
             };
         }
+
         var customer = await _unitOfWork.AccountRepository.GetByIdAsync(customerId);
 
         try
@@ -538,7 +539,7 @@ public class CartService : ICartService
                         IsError = true
                     };
                 }
-                
+
                 await _unitOfWork.OrderRepository.UpdateAsync(order);
                 var countOrder = await _unitOfWork.SaveChangesAsync();
                 if (countOrder == 0)
@@ -556,12 +557,12 @@ public class CartService : ICartService
                 var farmHub = _unitOfWork.FarmHubRepository.GetByIdAsync(request.FarmHubId).Result;
                 var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
-                
+
                 var orderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     x => x.OrderId == order.Id
                          && x.IsDeleted == false
                 ).ToListAsync();
-                
+
                 List<OrderDetailResponseForCustomer> orderDetailResponseForCustomer = new();
                 foreach (var item in orderDetails)
                 {
@@ -573,7 +574,7 @@ public class CartService : ICartService
                     orderDetailResponse.ProductItemResponse = productItemResponseInOrderDetail;
                     orderDetailResponseForCustomer.Add(orderDetailResponse);
                 }
-                
+
                 await transaction.CommitAsync();
                 return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                 {
@@ -615,7 +616,7 @@ public class CartService : ICartService
 
         return result;
     }
-    
+
     public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> GetCart(
         Expression<Func<Order, bool>>? filter,
         string? orderBy,
@@ -660,6 +661,13 @@ public class CartService : ICartService
                 {
                     var productItem = _unitOfWork.ProductItemRepository.GetByIdAsync(orderDetail.ProductItemId).Result;
                     var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id && x.DisplayIndex == 1).FirstOrDefaultAsync();
+                    if (productImage != null)
+                    {
+                        productItemResponse.ImageUrl = productImage.ImageUrl;
+                    }
+
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
                     var orderResponse = new OrderResponse.OrderResponseForCustomer()
@@ -695,6 +703,116 @@ public class CartService : ICartService
             result.Message = e.Message;
             result.StatusCode = StatusCode.ServerError;
             result.Payload = null;
+        }
+
+        return result;
+    }
+
+
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> BeforeCheckout(
+        List<CheckoutRequest> request)
+    {
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>>();
+        try
+        {
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer?>();
+            foreach (var item in request)
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(item.OrderId);
+                if (order == null)
+                {
+                    result.Message = EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST;
+                    result.StatusCode = StatusCode.NotFound;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = item.OrderId + EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST
+                    });
+                    result.Payload = null;
+                    result.IsError = true;
+                    return result;
+                }
+
+                var orderDetailList = new List<OrderDetailResponseForCustomer>();
+                foreach (var detail in item.OrderDetailIds)
+                {
+                    var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIdAsync(detail);
+                    if (orderDetail == null)
+                    {
+                        result.Message = EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST;
+                        result.StatusCode = StatusCode.NotFound;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.NotFound,
+                            Message = detail + EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST
+                        });
+                        result.Payload = null;
+                        result.IsError = true;
+                        return result;
+                    }
+
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(orderDetail.ProductItemId);
+                    var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id && x.DisplayIndex == 1).FirstOrDefaultAsync();
+                    if (productImage != null)
+                    {
+                        productItemResponse.ImageUrl = productImage.ImageUrl;
+                    }
+
+                    var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
+                    orderDetailResponse.ProductItemResponse = productItemResponse;
+                    orderDetailList.Add(orderDetailResponse);
+                }
+
+                var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+                var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+                var station = await _unitOfWork.StationRepository.GetByIdAsync(order.StationId.GetValueOrDefault());
+                var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+                var businessDay =
+                    await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
+                var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
+                order.OrderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
+                    x => x.OrderId == order.Id).ToListAsync();
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    FarmHubId = order.FarmHubId,
+                    CustomerId = order.CustomerId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = orderDetailList.Sum(x => x.TotalPrice),
+                    IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
+                    FarmHubResponse = farmHubResponse,
+                    BusinessDayResponse = businessDayResponse,
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailList
+                };
+                orderResponses.Add(orderResponse);
+            }
+            
+            result.Message = "Get order and order detail success";
+            result.StatusCode = StatusCode.Ok;
+            result.Payload = orderResponses;
+            result.IsError = false;
+            
+        }
+        catch (Exception e)
+        {
+            result.Message = e.Message;
+            result.StatusCode = StatusCode.ServerError;
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.Payload = null;
+            throw;
         }
 
         return result;

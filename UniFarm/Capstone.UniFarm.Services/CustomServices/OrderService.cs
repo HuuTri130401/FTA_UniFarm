@@ -155,7 +155,7 @@ public class OrderService : IOrderService
                     //5. Check số lượng trong lúc lên đơn hàng
                     var productInMenu = await _unitOfWork.ProductItemInMenuRepository
                         .FilterByExpression(
-                            x => x.ProductItemId == orderDetail.ProductItemId && x.Status == "Preparing")
+                            x => x.ProductItemId == orderDetail.ProductItemId && x.Status == EnumConstants.CommonEnumStatus.Active.ToString())
                         .FirstOrDefaultAsync();
                     if (productInMenu == null)
                     {

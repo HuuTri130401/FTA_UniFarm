@@ -353,9 +353,7 @@ public class AdminDashboardService : IAdminDashboardService
 
             var paymentList = await _unitOfWork.PaymentRepository.GetAllWithoutPaging(null, null).ToListAsync();
             var accountList = await _unitOfWork.AccountRepository.GetAllWithoutPaging(null, null).ToListAsync();
-
             var revenueByMonths = new List<AdminDashboardResponse.RevenueByMonth>();
-            var months = orderList.Select(x => x.CreatedAt.Month).Distinct().ToList();
             for (int i = 1; i <= 12; i++)
             {
                 var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();

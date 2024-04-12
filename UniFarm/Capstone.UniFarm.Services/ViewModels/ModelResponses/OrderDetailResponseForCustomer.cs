@@ -4,6 +4,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses;
 
 public record OrderDetailResponseForCustomer
 {
+    public Guid? Id { get; init; }
     public Guid OrderId { get; init; }
     public Guid ProductItemId { get; set; }
     public double Quantity { get; set; }

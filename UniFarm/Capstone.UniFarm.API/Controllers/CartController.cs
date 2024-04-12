@@ -79,4 +79,22 @@ public class CartController : BaseController
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+    
+    [HttpPost("carts/before-checkout")]
+    [SwaggerOperation(Summary = "Thanh toán giỏ hàng")]
+    [Authorize]
+    public async Task<IActionResult> BeforeCheckOut([FromBody] List<CheckoutRequest> request)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        var response = await _cartService.BeforeCheckout(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
 }
