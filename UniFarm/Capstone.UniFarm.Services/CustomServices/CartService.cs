@@ -50,7 +50,7 @@ public class CartService : ICartService
                     .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID;
                 result.StatusCode = StatusCode.NotFound;
                 result.Payload = null;
-                result.IsError = true;
+                result.IsError = false;
                 return result;
             }
 
@@ -198,7 +198,7 @@ public class CartService : ICartService
                 Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST,
                 StatusCode = StatusCode.NotFound,
                 Payload = null,
-                IsError = true
+                IsError = false
             };
         }
 
@@ -215,7 +215,7 @@ public class CartService : ICartService
                 Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_AND_FARMHUBID_DOES_NOT_EXIST,
                 StatusCode = StatusCode.NotFound,
                 Payload = null,
-                IsError = true
+                IsError = false
             };
         }
 
@@ -232,7 +232,7 @@ public class CartService : ICartService
                 Message = EnumConstants.NotificationMessage.STATION_DOES_NOT_EXIST,
                 StatusCode = StatusCode.NotFound,
                 Payload = null,
-                IsError = true
+                IsError = false
             };
         }
 
@@ -248,7 +248,7 @@ public class CartService : ICartService
                 Message = EnumConstants.NotificationMessage.BUSINESSDAY_DOES_NOT_EXIST,
                 StatusCode = StatusCode.NotFound,
                 Payload = null,
-                IsError = true
+                IsError = false
             };
         }
 
@@ -292,7 +292,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.CREATE_CART_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -317,7 +317,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.CREATE_CART_ORDER_DETAIL_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -372,7 +372,7 @@ public class CartService : ICartService
                             .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -396,7 +396,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.CREATE_CART_ORDER_DETAIL_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -412,7 +412,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -478,7 +478,7 @@ public class CartService : ICartService
                             .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -494,7 +494,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.CREATE_CART_ORDER_DETAIL_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -536,7 +536,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.UPDATE_CART_ORDER_DETAIL_SUCCESS,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -550,7 +550,7 @@ public class CartService : ICartService
                         Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE,
                         StatusCode = StatusCode.NotFound,
                         Payload = null,
-                        IsError = true
+                        IsError = false
                     };
                 }
 
@@ -610,7 +610,7 @@ public class CartService : ICartService
                 Message = EnumConstants.NotificationMessage.ADD_TO_CART_FAILURE + e.Message,
                 StatusCode = StatusCode.ServerError,
                 Payload = null,
-                IsError = true
+                IsError = false
             };
         }
 
@@ -740,7 +740,7 @@ public class CartService : ICartService
                         Message = item.OrderId + EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST
                     });
                     result.Payload = null;
-                    result.IsError = true;
+                    result.IsError = false;
                     return result;
                 }
 
@@ -758,7 +758,7 @@ public class CartService : ICartService
                             Message = detail + EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST
                         });
                         result.Payload = null;
-                        result.IsError = true;
+                        result.IsError = false;
                         return result;
                     }
 
