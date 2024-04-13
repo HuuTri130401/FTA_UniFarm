@@ -624,7 +624,7 @@ public class CartService : ICartService
         int pageIndex,
         int pageSize)
     {
-        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>>();
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>();
         try
         {
             var orders = await _unitOfWork.OrderRepository.FilterAll(
@@ -639,8 +639,8 @@ public class CartService : ICartService
             {
                 result.Message = EnumConstants.NotificationMessage.NOT_FOUND_ANY_ITEM_IN_CART;
                 result.StatusCode = StatusCode.NotFound;
-                result.Payload = null;
-                result.IsError = true;
+                result.Payload = new List<OrderResponse.OrderResponseForCustomer>();
+                result.IsError = false;
                 return result;
             }
 

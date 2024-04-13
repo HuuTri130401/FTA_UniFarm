@@ -68,7 +68,11 @@ public class AccountRoleService : IAccountRoleService
         }
         catch (Exception ex)
         {
-            result.AddUnknownError(ex.Message);
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = ex.Message
+            });
             result.StatusCode = StatusCode.ServerError;
             result.Message = "AccountRole not found";
             result.IsError = true;

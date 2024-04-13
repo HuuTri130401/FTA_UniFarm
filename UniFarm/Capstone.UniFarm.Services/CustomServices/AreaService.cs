@@ -199,7 +199,11 @@ public class AreaService : IAreaService
         }
         catch (Exception ex)
         {
-            result.AddUnknownError(ex.Message);
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = ex.Message
+            });
             result.IsError = true;
             throw;
         }
