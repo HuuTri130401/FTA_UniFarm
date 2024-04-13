@@ -450,8 +450,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
                     var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                    
                     foreach(var pim in productItemsResponse)
                     {
+                        pim.BusinessDayId = currentBusinessDay.Id;
                         productItems.Add(pim);
                     }
                 }

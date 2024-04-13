@@ -998,7 +998,34 @@ public class OrderService : IOrderService
                     });
                     return result;
                 }
+                
+                if(wallet.Balance < newOrder.TotalAmount)
+                {
+                    await transaction.RollbackAsync();
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Ví không đủ tiền. Vui lòng nạp thêm tiền vào ví!"
+                    });
+                    return result;
+                }
 
+                wallet.Balance -= newOrder.TotalAmount;
+                await _unitOfWork.WalletRepository.UpdateAsync(wallet);
+                var countWallet = await _unitOfWork.SaveChangesAsync();
+                if (countWallet == 0)
+                {
+                    await transaction.RollbackAsync();
+                    result.IsError = true;
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Cập nhật ví không thành công!"
+                    });
+                    return result;
+                }
+                
                 newOrder.IsPaid = true;
                 newOrder.ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1);
                 if (checkExistOrder == null)
