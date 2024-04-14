@@ -447,19 +447,9 @@ public class OrderService : IOrderService
         var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff?>?>();
         try
         {
-            var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == request.TransferId
-                && x.Status != EnumConstants.StationUpdateTransfer.Processed.ToString()).FirstOrDefaultAsync();
-            if(transfer == null)
-            {
-                result.Errors.Add(new Error()
-                {
-                    Code = StatusCode.BadRequest,
-                    Message = "Phiếu chuyển hàng đã được xử lý trước đó!"
-                });
-                result.IsError = true;
-                return result;
-            }
-            
+            var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == request.TransferId)
+                .FirstOrDefaultAsync();
+
             if (transfer == null)
             {
                 result.Errors.Add(new Error()
@@ -470,7 +460,19 @@ public class OrderService : IOrderService
                 result.IsError = true;
                 return result;
             }
-            
+
+            if (transfer.Status == EnumConstants.StationUpdateTransfer.Processed.ToString() ||
+                transfer.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString())
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Phiếu chuyển hàng đã được xử lý trước đó!"
+                });
+                result.IsError = true;
+                return result;
+            }
+
             var orderResponses = new List<OrderResponse.OrderResponseForStaff>();
             foreach (var orderId in request.OrderIds)
             {
