@@ -81,6 +81,7 @@ public abstract record EnumConstants
         Pending,
         Received, // Station đã nhận Transfer từ CollectedHub
         NotReceived, // Station không nhận được Transfer từ CollectedHub
+        Processed // Station đã xử lý tất cả đơn hàng trong Transfer
     }
     
     [JsonConverter(typeof(JsonStringEnumConverter))]

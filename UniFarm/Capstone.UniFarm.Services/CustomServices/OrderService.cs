@@ -440,168 +440,228 @@ public class OrderService : IOrderService
     }
 
     // Update order status by station staff
-    public async Task<OperationResult<OrderResponse.OrderResponseForStaff?>> UpdateOrderStatusByStationStaff(
-        UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff?>?>>
+        UpdateOrderStatusByStationStaff(
+            UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
     {
-        var result = new OperationResult<OrderResponse.OrderResponseForStaff?>();
-
+        var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff?>?>();
         try
         {
-            var order = await _unitOfWork.OrderRepository
-                .FilterByExpression(x =>
-                    x.Id == request.OrderId && x.TransferId == request.TransferId && x.StationId == request.StationId)
-                .FirstOrDefaultAsync();
-            if (order == null)
+            var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == request.TransferId
+                && x.Status != EnumConstants.StationUpdateTransfer.Processed.ToString()).FirstOrDefaultAsync();
+            if(transfer == null)
             {
-                result.StatusCode = StatusCode.NotFound;
-                result.Message = "Không tìm thấy đơn hàng!";
-                result.IsError = true;
-                return result;
-            }
-
-            if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
-            {
-                order.DeliveryStatus = EnumConstants.DeliveryStatus.AtStation.ToString();
-                order.CustomerStatus = EnumConstants.CustomerStatus.ReadyForPickup.ToString();
-                order.ExpiredDayInStation = DateTime.Now + TimeSpan.FromDays(2);
-                order.UpdatedAt = DateTime.Now;
-            }
-            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived &&
-                     order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
-            {
-                order.DeliveryStatus = EnumConstants.DeliveryStatus.StationNotReceived.ToString();
-                order.UpdatedAt = DateTime.Now;
-            }
-            else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
-            {
-                order.DeliveryStatus = EnumConstants.DeliveryStatus.PickedUp.ToString();
-                order.CustomerStatus = EnumConstants.CustomerStatus.PickedUp.ToString();
-                order.UpdatedAt = DateTime.Now;
-                order.ShipByStationStaffId = defineUserPayload.Id;
-            }
-            else
-            {
-                result.StatusCode = StatusCode.BadRequest;
-                result.Message = "Trạng thái không hợp lệ!";
-                result.IsError = true;
-                return result;
-            }
-
-            await _unitOfWork.OrderRepository.UpdateAsync(order);
-            var count = await _unitOfWork.SaveChangesAsync();
-            if (count == 0)
-            {
-                result.StatusCode = StatusCode.BadRequest;
-                result.Message = "Cập nhật trạng thái đơn hàng không thành công!";
-                result.IsError = true;
-                return result;
-            }
-
-            var orderDetails = await _unitOfWork.OrderDetailRepository
-                .FilterByExpression(x => x.OrderId == order.Id)
-                .ToListAsync();
-            var orderDetailResponses = new List<OrderDetailResponse>();
-
-            foreach (var item in orderDetails)
-            {
-                var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
-                var orderDetailResponse = new OrderDetailResponse()
+                result.Errors.Add(new Error()
                 {
-                    ProductItemId = item.ProductItemId,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Unit = item.Unit,
-                    TotalPrice = item.TotalPrice,
-                    Title = productItem.Title
-                };
-                orderDetailResponses.Add(orderDetailResponse);
+                    Code = StatusCode.BadRequest,
+                    Message = "Phiếu chuyển hàng đã được xử lý trước đó!"
+                });
+                result.IsError = true;
+                return result;
             }
-
-            var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
-            var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
-            var businessDay = await _unitOfWork.BusinessDayRepository
-                .FilterByExpression(x => x.Id == order.BusinessDayId)
-                .FirstOrDefaultAsync();
-            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
-                .FirstOrDefaultAsync();
-            var stationResponse = new StationResponse.StationResponseSimple();
-            if (station != null)
+            
+            if (transfer == null)
             {
-                stationResponse.Id = station.Id;
-                stationResponse.Name = station.Name;
-                stationResponse.Address = station.Address;
-                stationResponse.Description = station.Description;
-                stationResponse.Image = station.Image;
-                stationResponse.CreatedAt = station.CreatedAt;
-                stationResponse.UpdatedAt = station.UpdatedAt;
-                stationResponse.Status = station.Status;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không tìm thấy phiếu chuyển hàng!"
+                });
+                result.IsError = true;
+                return result;
             }
-
-            var batchResponse = new BatchResponseSimple();
-            if (order.BatchId != null)
+            
+            var orderResponses = new List<OrderResponse.OrderResponseForStaff>();
+            foreach (var orderId in request.OrderIds)
             {
-                var batch = await _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId)
+                var order = await _unitOfWork.OrderRepository
+                    .FilterByExpression(x =>
+                        x.Id == orderId && x.TransferId == request.TransferId &&
+                        x.StationId == request.StationId)
                     .FirstOrDefaultAsync();
-                batchResponse.Id = batch.Id;
-                batchResponse.FarmShipDate = batch.FarmShipDate;
-                batchResponse.CollectedHubReceiveDate = batch.CollectedHubReceiveDate;
-                batchResponse.Status = batch.Status;
+                if (order == null)
+                {
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.NotFound,
+                        Message = "Không tìm thấy đơn hàng!" + orderId
+                    });
+                    result.IsError = true;
+                    return result;
+                }
+
+                if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString())
+                {
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Đơn hàng đã được lấy rồi!" + orderId
+                    });
+                    result.IsError = true;
+                    return result;
+                }
+
+                if (order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString())
+                {
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Đơn hàng đã ở trạng thái ở trạm!" + orderId
+                    });
+                    result.IsError = true;
+                    return result;
+                }
+
+                if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
+                {
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.AtStation.ToString();
+                    order.CustomerStatus = EnumConstants.CustomerStatus.ReadyForPickup.ToString();
+                    order.ExpiredDayInStation = DateTime.Now + TimeSpan.FromDays(2);
+                    order.UpdatedAt = DateTime.Now;
+                }
+                else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived &&
+                         order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
+                {
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.StationNotReceived.ToString();
+                    order.UpdatedAt = DateTime.Now;
+                }
+                else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
+                {
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.PickedUp.ToString();
+                    order.CustomerStatus = EnumConstants.CustomerStatus.PickedUp.ToString();
+                    order.UpdatedAt = DateTime.Now;
+                    order.ShipByStationStaffId = defineUserPayload.Id;
+                }
+                else
+                {
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Trạng thái không hợp lệ!"
+                    });
+                    result.IsError = true;
+                    return result;
+                }
+
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
+                var count = await _unitOfWork.SaveChangesAsync();
+                if (count == 0)
+                {
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Cập nhật trạng thái đơn hàng không thành công!"
+                    });
+                    result.IsError = true;
+                    return result;
+                }
+
+                var orderDetails = await _unitOfWork.OrderDetailRepository
+                    .FilterByExpression(x => x.OrderId == order.Id)
+                    .ToListAsync();
+                var orderDetailResponses = new List<OrderDetailResponse>();
+
+                foreach (var item in orderDetails)
+                {
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var orderDetailResponse = new OrderDetailResponse()
+                    {
+                        ProductItemId = item.ProductItemId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        Unit = item.Unit,
+                        TotalPrice = item.TotalPrice,
+                        Title = productItem.Title
+                    };
+                    orderDetailResponses.Add(orderDetailResponse);
+                }
+
+                var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+                var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+                var businessDay = await _unitOfWork.BusinessDayRepository
+                    .FilterByExpression(x => x.Id == order.BusinessDayId)
+                    .FirstOrDefaultAsync();
+                var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
+                    .FirstOrDefaultAsync();
+                var stationResponse = new StationResponse.StationResponseSimple();
+                if (station != null)
+                {
+                    stationResponse.Id = station.Id;
+                    stationResponse.Name = station.Name;
+                    stationResponse.Address = station.Address;
+                    stationResponse.Description = station.Description;
+                    stationResponse.Image = station.Image;
+                    stationResponse.CreatedAt = station.CreatedAt;
+                    stationResponse.UpdatedAt = station.UpdatedAt;
+                    stationResponse.Status = station.Status;
+                }
+
+                var batchResponse = new BatchResponseSimple();
+                if (order.BatchId != null)
+                {
+                    var batch = await _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId)
+                        .FirstOrDefaultAsync();
+                    batchResponse.Id = batch.Id;
+                    batchResponse.FarmShipDate = batch.FarmShipDate;
+                    batchResponse.CollectedHubReceiveDate = batch.CollectedHubReceiveDate;
+                    batchResponse.Status = batch.Status;
+                }
+
+                var transferResponse = new TransferResponse.TransferResponseSimple();
+                if (order.TransferId != null)
+                {
+                    transferResponse.Id = transfer.Id;
+                    transferResponse.CollectedId = transfer.CollectedId;
+                    transferResponse.StationId = transfer.StationId;
+                    transferResponse.CreatedAt = transfer.CreatedAt;
+                    transferResponse.UpdatedAt = transfer.UpdatedAt;
+                    transferResponse.ExpectedReceiveDate = transfer.ExpectedReceiveDate;
+                    transferResponse.ReceivedDate = transfer.ReceivedDate;
+                    transferResponse.CreatedBy = transfer.CreatedBy;
+                    transferResponse.UpdatedBy = transfer.UpdatedBy;
+                    transferResponse.NoteSend = transfer.NoteSend;
+                    transferResponse.NoteReceived = transfer.NoteReceived;
+                    transferResponse.Code = transfer.Code;
+                    transferResponse.Status = transfer.Status;
+                }
+
+                var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
+                var customerResponse = new AboutMeResponse.CustomerResponseSimple();
+                if (customer != null)
+                {
+                    customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
+                }
+
+                var orderResponse = new OrderResponse.OrderResponseForStaff()
+                {
+                    Id = order.Id,
+                    Code = order.Code,
+                    CustomerId = order.CustomerId,
+                    FarmHubId = order.FarmHubId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    TotalAmount = order.TotalAmount,
+                    CreatedAt = order.CreatedAt,
+                    ExpectedReceiveDate = order.ExpectedReceiveDate,
+                    ShipAddress = order.ShipAddress,
+                    DeliveryStatus = order.DeliveryStatus,
+                    CustomerStatus = order.CustomerStatus,
+                    FarmHubResponse = farmHubResponse,
+                    BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailResponses,
+                    BatchResponse = batchResponse,
+                    TransferResponse = transferResponse,
+                    CustomerResponse = customerResponse
+                };
+                orderResponses.Add(orderResponse);
             }
 
-            var transferResponse = new TransferResponse.TransferResponseSimple();
-            if (order.TransferId != null)
-            {
-                var transfer = await _unitOfWork.TransferRepository
-                    .FilterByExpression(x => x.Id == order.TransferId).FirstOrDefaultAsync();
-                transferResponse.Id = transfer.Id;
-                transferResponse.CollectedId = transfer.CollectedId;
-                transferResponse.StationId = transfer.StationId;
-                transferResponse.CreatedAt = transfer.CreatedAt;
-                transferResponse.UpdatedAt = transfer.UpdatedAt;
-                transferResponse.ExpectedReceiveDate = transfer.ExpectedReceiveDate;
-                transferResponse.ReceivedDate = transfer.ReceivedDate;
-                transferResponse.CreatedBy = transfer.CreatedBy;
-                transferResponse.UpdatedBy = transfer.UpdatedBy;
-                transferResponse.NoteSend = transfer.NoteSend;
-                transferResponse.NoteReceived = transfer.NoteReceived;
-                transferResponse.Code = transfer.Code;
-                transferResponse.Status = transfer.Status;
-            }
-
-            var customer = await _unitOfWork.AccountRepository.GetByIdAsync(order.CustomerId);
-            var customerResponse = new AboutMeResponse.CustomerResponseSimple();
-            if (customer != null)
-            {
-                customerResponse = _mapper.Map<AboutMeResponse.CustomerResponseSimple>(customer);
-            }
-
-            var orderResponse = new OrderResponse.OrderResponseForStaff()
-            {
-                Id = order.Id,
-                Code = order.Code,
-                CustomerId = order.CustomerId,
-                FarmHubId = order.FarmHubId,
-                StationId = order.StationId,
-                BusinessDayId = order.BusinessDayId,
-                TotalAmount = order.TotalAmount,
-                CreatedAt = order.CreatedAt,
-                ExpectedReceiveDate = order.ExpectedReceiveDate,
-                ShipAddress = order.ShipAddress,
-                DeliveryStatus = order.DeliveryStatus,
-                CustomerStatus = order.CustomerStatus,
-                FarmHubResponse = farmHubResponse,
-                BusinessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay),
-                StationResponse = stationResponse,
-                OrderDetailResponse = orderDetailResponses,
-                BatchResponse = batchResponse,
-                TransferResponse = transferResponse,
-                CustomerResponse = customerResponse
-            };
-
+            await AutoUpdateTransferStatus(request.TransferId);
             result.Message = "Cập nhật trạng thái đơn hàng thành công!";
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
-            result.Payload = orderResponse;
+            result.Payload = orderResponses;
         }
         catch (Exception e)
         {
@@ -612,6 +672,32 @@ public class OrderService : IOrderService
         }
 
         return result;
+    }
+
+    private async Task AutoUpdateTransferStatus(Guid requestTransferId)
+    {
+        var orders = _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == requestTransferId).ToList();
+        var count = 0;
+        foreach (var order in orders)
+        {
+            if (order.DeliveryStatus != EnumConstants.DeliveryStatus.AtStation.ToString()
+                || order.DeliveryStatus != EnumConstants.DeliveryStatus.StationNotReceived.ToString())
+            {
+                count++;
+            }
+        }
+
+        if (count == 0)
+        {
+            var transfer = _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == requestTransferId)
+                .FirstOrDefault();
+            if (transfer != null)
+            {
+                transfer.Status = EnumConstants.StationUpdateTransfer.Processed.ToString();
+                _unitOfWork.TransferRepository.Update(transfer);
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
     }
 
     public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer>>> GetAllOrdersOfCustomer(
@@ -683,6 +769,7 @@ public class OrderService : IOrderService
                     {
                         orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
                     }
+
                     orderDetailResponses.Add(orderDetailResponse);
                 }
 
@@ -743,7 +830,8 @@ public class OrderService : IOrderService
     /// -- Thêm order mới vào ListNewOrder
     /// 
     /// </summary>
-    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(Guid customerId,
+    public async Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(
+        Guid customerId,
         CreateOrderRequest request)
     {
         var result = new OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>();
@@ -874,7 +962,8 @@ public class OrderService : IOrderService
 
                     // set lại total amount 
                     var orderDetailListAfterRemove =
-                        _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == requestOrder.OrderId);
+                        _unitOfWork.OrderDetailRepository.FilterByExpression(x =>
+                            x.OrderId == requestOrder.OrderId);
                     orderDb.TotalAmount = orderDetailListAfterRemove.Sum(x => x.TotalPrice);
                     await _unitOfWork.OrderRepository.UpdateAsync(orderDb);
                     var updateOrderCount = await _unitOfWork.SaveChangesAsync();
@@ -921,7 +1010,7 @@ public class OrderService : IOrderService
                     var productInMenu = await _unitOfWork.ProductItemInMenuRepository
                         .FilterByExpression(
                             x => x.ProductItemId == orderDetail.ProductItemId
-                            && x.Status == EnumConstants.CommonEnumStatus.Active.ToString()
+                                 && x.Status == EnumConstants.CommonEnumStatus.Active.ToString()
                         )
                         .FirstOrDefaultAsync();
                     if (productInMenu == null)
@@ -932,9 +1021,10 @@ public class OrderService : IOrderService
                         result.IsError = true;
                         return result;
                     }
+
                     var checkQuantity = productInMenu.Quantity - orderDetail.Quantity;
 
-                    if(checkQuantity <= 0)
+                    if (checkQuantity <= 0)
                     {
                         await transaction.RollbackAsync();
                         result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
@@ -942,7 +1032,7 @@ public class OrderService : IOrderService
                         result.IsError = true;
                         return result;
                     }
-                    
+
                     if (checkQuantity < orderDetail.Quantity)
                     {
                         await transaction.RollbackAsync();
@@ -998,8 +1088,8 @@ public class OrderService : IOrderService
                     });
                     return result;
                 }
-                
-                if(wallet.Balance < newOrder.TotalAmount)
+
+                if (wallet.Balance < newOrder.TotalAmount)
                 {
                     await transaction.RollbackAsync();
                     result.IsError = true;
@@ -1025,7 +1115,7 @@ public class OrderService : IOrderService
                     });
                     return result;
                 }
-                
+
                 newOrder.IsPaid = true;
                 newOrder.ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1);
                 if (checkExistOrder == null)
@@ -1125,6 +1215,7 @@ public class OrderService : IOrderService
                 };
                 orderResponses.Add(orderResponse);
             }
+
             result.Payload = orderResponses;
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
@@ -1144,6 +1235,7 @@ public class OrderService : IOrderService
             result.IsError = true;
             throw;
         }
+
         return result;
     }
 }

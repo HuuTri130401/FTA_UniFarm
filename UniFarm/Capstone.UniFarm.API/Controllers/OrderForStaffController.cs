@@ -205,10 +205,7 @@ public class OrderForStaffController : BaseController
         return Unauthorized("You are not allowed to view this transfer's orders");
     }
 
-
-    /// <summary>
-    ///
-    /// </summary>
+    
     [HttpPut]
     [Route("station/orders/update-status")]
     [Authorize(Roles = "StationStaff, Admin")]

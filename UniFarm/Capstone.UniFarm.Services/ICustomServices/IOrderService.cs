@@ -21,7 +21,7 @@ public interface IOrderService
             int pageIndex = 0, 
             int pageSize = 10);
 
-    Task<OperationResult<OrderResponse.OrderResponseForStaff?>> UpdateOrderStatusByStationStaff(UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload);
+    Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForStaff?>?>> UpdateOrderStatusByStationStaff(UpdateOrderStatus.UpdateOrderStatusByTransfer request, AboutMeResponse.AboutMeRoleAndID defineUserPayload);
     
     Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer>>>
         GetAllOrdersOfCustomer(

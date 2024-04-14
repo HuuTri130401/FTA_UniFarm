@@ -411,6 +411,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
                     foreach (var pim in productItemsResponse)
                     {
+                        pim.BusinessDayId = currentBusinessDay.Id;
                         productItems.Add(pim);
                     }
                 }
