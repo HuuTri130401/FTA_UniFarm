@@ -15,4 +15,5 @@ public interface ITransferService
         int pageSize = 10);
 
     Task<OperationResult<TransferResponse?>> UpdateStatus(AboutMeResponse.AboutMeRoleAndID defineUser, TransferRequestUpdate request);
+    Task<OperationResult<TransferResponse>>  ResendTransfer(Guid createdBy, Guid transferId);
 }

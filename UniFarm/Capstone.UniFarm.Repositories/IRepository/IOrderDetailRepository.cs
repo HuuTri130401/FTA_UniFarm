@@ -7,4 +7,5 @@ public interface IOrderDetailRepository : IGenericRepository<OrderDetail>
     Task<decimal> CalculateCommissionFee(Guid farmHubId, Guid businessDayId);
 
     Task<OrderDetail> RemoveAsync(OrderDetail entity);
+    Task DeleteAsync(OrderDetail orderDetail);
 }

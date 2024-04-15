@@ -43,6 +43,35 @@ public class TransferController : BaseController
         var result = await _transferService.Create(createdBy, request);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
+    
+    
+    // Resend transfer 
+    [HttpPost("transfer/resend{transferId}")]
+    [Authorize(Roles = "CollectedStaff, Admin")]
+    [SwaggerOperation(Summary = "Resend transfer request - CollectedStaff - Done {Tien}")]
+    public async Task<IActionResult> Resend(Guid transferId)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        if (defineUser.Payload.Role != EnumConstants.RoleEnumString.COLLECTEDSTAFF && defineUser.Payload.Role != EnumConstants.RoleEnumString.ADMIN)
+        {
+            return Unauthorized("You are not allowed to access this resource");
+        }
+
+        var createdBy = defineUser.Payload.Id;
+        var result = await _transferService.ResendTransfer(createdBy, transferId);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+    }
+    
+    
 
     [HttpGet("transfers/getall")]
     [SwaggerOperation(Summary = "Get all transfer request - Admin, CollectedStaff, StationStaff - Done {Tien}")]

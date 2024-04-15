@@ -14,10 +14,10 @@ public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetai
     }
     
 
-    public new OrderDetail Delete(OrderDetail entity)
+    public new Task DeleteAsync(OrderDetail entity)
     {
         _dbSet.Remove(entity);
-        return entity;
+        return Task.CompletedTask;
     }
     
     public new OrderDetail Remove(OrderDetail entity)

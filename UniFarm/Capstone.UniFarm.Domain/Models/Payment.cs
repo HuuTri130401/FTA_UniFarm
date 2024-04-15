@@ -19,14 +19,16 @@ namespace Capstone.UniFarm.Domain.Models
         
         [Column(TypeName = "decimal(18, 2)")]
         public decimal BalanceBefore { get; set; }
+        [StringLength(100)]
         public string? BankName { get; set; }
+        [StringLength(100)]
         
         public string? BankOwnerName { get; set; }
-        
+        [StringLength(100)]
         public string? BankAccountNumber { get; set; }
-        
+        [StringLength(100)]
         public string? Code { get; set; }
-        
+        [StringLength(255)]
         public string? Note { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
@@ -36,7 +38,7 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? PaymentDay { get; set; }
         [StringLength(100)]
         public string? Status { get; set; }
-        
+        [StringLength(100)]
         public string Type { get; set; }
 
         [ForeignKey(nameof(WalletId))]

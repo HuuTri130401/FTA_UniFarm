@@ -60,4 +60,10 @@ public record CreateOrderRequest
     public List<CheckoutRequest> Orders { get; set; }
 }
     
+
+public record UpdateQuantityRequest
+{
+    public Guid OrderDetailId { get; set; }
+    public double Quantity { get; set; }
+}
     

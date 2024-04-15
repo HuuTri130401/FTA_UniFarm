@@ -119,4 +119,23 @@ public class CartController : BaseController
         var response = await _cartService.BeforeCheckout(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+    
+    // Update quantity of OrderDetailId
+    [HttpPut("cart/update-quantity")]
+    [SwaggerOperation(Summary = "Cập nhật số lượng sản phẩm trong giỏ hàng")]
+    [Authorize]
+    public async Task<IActionResult> UpdateQuantity([FromBody] UpdateQuantityRequest request)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        var response = await _cartService.UpdateQuantity(defineUser.Payload.Id, request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
 }

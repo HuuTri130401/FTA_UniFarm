@@ -16,4 +16,5 @@ public interface IOrderRepository : IGenericRepository<Order>
     Task<Dictionary<Guid, (decimal? TotalAmount, int OrderCount)>> CalculateTotalForBusinessDayByFarmHub(Guid businessDayId);
     Task<(decimal? TotalAmount, int OrderCount)> CalculateTotalForBusinessDayOfOneFarmHub(Guid businessDayId, Guid farmHubId);
     Task<bool> IsOrderCancelledAsync(Order order);
+    Task DeleteAsync(Order order);
 }

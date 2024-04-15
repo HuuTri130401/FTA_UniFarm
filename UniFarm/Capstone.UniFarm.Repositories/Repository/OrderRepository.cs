@@ -169,6 +169,12 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
         return await Task.FromResult(IsOrderCancelled(order));
     }
 
+    public Task DeleteAsync(Order order)
+    {
+        _dbSet.Remove(order);
+        return Task.CompletedTask;
+    }
+
     private bool IsOrderCancelled(Order order)
     {
         return order.CustomerStatus == CustomerStatus.CanceledByCustomer.ToString() ||

@@ -33,6 +33,18 @@ public class TransferService : ITransferService
         var transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
+            if (objectRequestCreate.OrderIds.Length == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "OrderIds is required"
+                });
+                result.IsError = true;
+                result.StatusCode = StatusCode.BadRequest;
+                return result;
+            }
+
             foreach (var orderId in objectRequestCreate.OrderIds)
             {
                 var order = await _unitOfWork.OrderRepository.FilterByExpression(
@@ -324,10 +336,26 @@ public class TransferService : ITransferService
                 return result;
             }
 
-            if (transfer.Status == request.Status.ToString())
+            if (transfer.Status == EnumConstants.StationUpdateTransfer.Resend.ToString())
             {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "This transfer is already sent to station"
+                });
+                result.IsError = true;
                 result.StatusCode = StatusCode.BadRequest;
-                result.Message = "Status of transfer is already " + request.Status;
+                return result;
+            }
+
+            if (transfer.Status == EnumConstants.StationUpdateTransfer.Received.ToString() ||
+                transfer.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString())
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Status of transfer is already updated!"
+                });
                 result.IsError = true;
                 result.Payload = null;
                 return result;
@@ -356,9 +384,9 @@ public class TransferService : ITransferService
             }
 
             var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == request.Id
-                && x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
-                && x.CollectedHubId == transfer.CollectedId
-                && x.IsPaid == true
+                    && x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+                    && x.CollectedHubId == transfer.CollectedId
+                    && x.IsPaid == true
                 )
                 .ToListAsync();
 
@@ -448,6 +476,152 @@ public class TransferService : ITransferService
         {
             await transaction.RollbackAsync();
             result.AddUnknownError(e.Message);
+            result.IsError = true;
+            result.StatusCode = StatusCode.ServerError;
+            throw;
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<TransferResponse>> ResendTransfer(Guid createdBy, Guid transferId)
+    {
+        var result = new OperationResult<TransferResponse>();
+        try
+        {
+            var transfer = await _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == transferId)
+                .FirstOrDefaultAsync();
+            if (transfer == null)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = EnumConstants.TransferMessage.TRANSFER_NOT_FOUND + transferId
+                });
+                result.IsError = true;
+                result.StatusCode = StatusCode.NotFound;
+                return result;
+            }
+
+            if (transfer.Status != EnumConstants.StationUpdateTransfer.NotReceived.ToString())
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "This transfer is already sent to station"
+                });
+                result.IsError = true;
+                result.StatusCode = StatusCode.BadRequest;
+                return result;
+            }
+
+            transfer.Status = EnumConstants.StationUpdateTransfer.Resend.ToString();
+            transfer.UpdatedAt = DateTime.Now;
+            transfer.UpdatedBy = createdBy;
+            await _unitOfWork.TransferRepository.UpdateAsync(transfer);
+            var count = await _unitOfWork.SaveChangesAsync();
+            if (count == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Resend transfer failed"
+                });
+                result.IsError = true;
+                result.StatusCode = StatusCode.BadRequest;
+                return result;
+            }
+
+            var collected = await _unitOfWork.CollectedHubRepository
+                .FilterByExpression(x => x.Id == transfer.CollectedId).FirstOrDefaultAsync();
+            var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == transfer.StationId)
+                .FirstOrDefaultAsync();
+            var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+            var collectedResponse = _mapper.Map<CollectedHubResponse>(collected);
+            var orders = await _unitOfWork.OrderRepository.FilterByExpression(x => x.TransferId == transfer.Id)
+                .ToListAsync();
+            var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
+
+            foreach (var order in orders)
+            {
+                var orderDetail = await _unitOfWork.OrderDetailRepository.FilterByExpression(x => x.OrderId == order.Id)
+                    .ToListAsync();
+                var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
+                foreach (var detail in orderDetail)
+                {
+                    var product = await _unitOfWork.ProductItemRepository
+                        .FilterByExpression(x => x.Id == detail.ProductItemId)
+                        .FirstOrDefaultAsync();
+                    var productItemResponse = new ProductItemResponseForCustomer();
+                    if (product != null)
+                    {
+                        productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(product);
+                    }
+
+                    var orderDetailResponse = new OrderDetailResponseForCustomer
+                    {
+                        Id = detail.Id,
+                        OrderId = detail.OrderId,
+                        ProductItemId = detail.ProductItemId,
+                        Quantity = detail.Quantity,
+                        UnitPrice = detail.UnitPrice,
+                        Unit = detail.Unit,
+                        TotalPrice = detail.TotalPrice,
+                        ProductItemResponse = productItemResponse
+                    };
+                    orderDetailResponses.Add(orderDetailResponse);
+                }
+
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    FarmHubId = order.FarmHubId,
+                    CustomerId = order.CustomerId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = order.TotalAmount,
+                    IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
+                    FarmHubResponse = _mapper.Map<FarmHubResponse>(order.FarmHub),
+                    BusinessDayResponse = _mapper.Map<BusinessDayResponse>(order.BusinessDay),
+                    StationResponse = stationResponse,
+                    OrderDetailResponse = orderDetailResponses
+                };
+                orderResponses.Add(orderResponse);
+            }
+
+            result.StatusCode = StatusCode.Ok;
+            result.Message = EnumConstants.TransferMessage.RESEND_TRANSFER_SUCCESS;
+            result.IsError = false;
+            result.Payload = new TransferResponse(
+                transfer.Id,
+                transfer.CollectedId,
+                transfer.StationId,
+                transfer.CreatedAt,
+                transfer.UpdatedAt,
+                transfer.ExpectedReceiveDate,
+                transfer.ReceivedDate,
+                transfer.CreatedBy,
+                transfer.UpdatedBy,
+                transfer.NoteSend,
+                transfer.NoteReceived,
+                transfer.Code,
+                transfer.Status,
+                collectedResponse,
+                stationResponse,
+                orderResponses);
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
             result.IsError = true;
             result.StatusCode = StatusCode.ServerError;
             throw;

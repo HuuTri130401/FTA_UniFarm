@@ -26,8 +26,6 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ExpectedReceiveDate { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? TotalAmount { get; set; }
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal? TotalBenefit { get; set; }
         public Guid? BatchId { get; set; }
         public Guid? CollectedHubId { get; set; }
         public Guid? TransferId { get; set; }
@@ -40,8 +38,9 @@ namespace Capstone.UniFarm.Domain.Models
         public DateTime? ShippedDate { get; set; }
         public Guid? ShipByStationStaffId { get; set; }
         public bool? IsPaid { get; set; }
-        public bool? IsDeleted { get; set; }
+        [StringLength(12)]
         public string? PhoneNumber { get; set; }
+        [StringLength(50)]
         public string? FullName { get; set; }
 
         [ForeignKey(nameof(BusinessDayId))]

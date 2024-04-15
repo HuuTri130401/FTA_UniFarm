@@ -79,6 +79,7 @@ public abstract record EnumConstants
     public enum StationUpdateTransfer
     {
         Pending,
+        Resend, 
         Received, // Station đã nhận Transfer từ CollectedHub
         NotReceived, // Station không nhận được Transfer từ CollectedHub
         Processed // Station đã xử lý tất cả đơn hàng trong Transfer
@@ -202,6 +203,7 @@ public abstract record EnumConstants
     public abstract record TransferMessage
     {
         public static readonly string TRANSFER_NOT_FOUND = "Transfer not found with id ";
+        public static readonly string RESEND_TRANSFER_SUCCESS = "Resend transfer success";
         public static readonly string CREATE_TRANSFER_SUCCESS = "Create transfer success";
         public static readonly string GET_ALL_TRANSFER_SUCCESS = "Get all transfer success";
         public static readonly string UPDATE_TRANSFER_STATUS_SUCCESS = "Update transfer status success";

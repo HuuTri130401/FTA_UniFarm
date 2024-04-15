@@ -42,7 +42,6 @@ public class CartService : ICartService
                                 && x.IsPaid == isPaid
                                 && x.StationId == stationId
                                 && x.BusinessDayId == businessDayId
-                                && x.IsDeleted == false
             ).FirstOrDefaultAsync();
             if (order == null)
             {
@@ -270,15 +269,13 @@ public class CartService : ICartService
                     Code = "Order" + DateTime.Now.ToString("yyyyMMddHHmmss") + customerId,
                     UpdatedAt = DateTime.Now,
                     TotalAmount = (decimal?)(productItemInMenu.SalePrice * request.Quantity),
-                    TotalBenefit = 0,
                     CustomerStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,
                     DeliveryStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,
                     IsPaid = false,
                     ShipAddress = customer!.Address,
                     BusinessDayId = request.BusinessDayId,
                     FullName = customer!.FirstName + " " + customer!.LastName,
-                    PhoneNumber = customer!.PhoneNumber,
-                    IsDeleted = false
+                    PhoneNumber = customer!.PhoneNumber
                 };
 
                 var orderResponse = await _unitOfWork.OrderRepository.AddAsync(order);
@@ -303,8 +300,7 @@ public class CartService : ICartService
                     Quantity = request.Quantity,
                     UnitPrice = (decimal)productItemInMenu.SalePrice!,
                     TotalPrice = (decimal)(productItemInMenu.SalePrice * request.Quantity),
-                    Order = orderResponse,
-                    IsDeleted = false
+                    Order = orderResponse
                 };
 
                 await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
@@ -421,7 +417,6 @@ public class CartService : ICartService
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
                 var orderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     x => x.OrderId == order.Id
-                         && x.IsDeleted == false
                 ).ToListAsync();
 
                 List<OrderDetailResponseForCustomer> orderDetailResponseForCustomer = new();
@@ -485,7 +480,6 @@ public class CartService : ICartService
                 var orderDetail = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     predicate: x => x.OrderId == order.Id
                                     && x.ProductItemId == request.ProductItemId
-                                    && x.IsDeleted == false
                 ).FirstOrDefaultAsync();
                 if (orderDetail == null)
                 {
@@ -510,7 +504,6 @@ public class CartService : ICartService
                     // Nếu số lượng sản phẩm = 0 thì xóa orderDetail
                     if (request.Quantity == 0)
                     {
-                        orderDetail.IsDeleted = true;
                         orderDetail.TotalPrice = 0;
                         // cập nhật lại order
                         order.TotalAmount -= orderDetail.TotalPrice;
@@ -560,7 +553,6 @@ public class CartService : ICartService
 
                 var orderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     x => x.OrderId == order.Id
-                         && x.IsDeleted == false
                 ).ToListAsync();
 
                 List<OrderDetailResponseForCustomer> orderDetailResponseForCustomer = new();
@@ -672,7 +664,7 @@ public class CartService : ICartService
                     orderDetailResponse.ProductItemResponse = productItemResponse;
                     var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
                         x => x.ProductItemId == productItem!.Id
-                        && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
                     if (productInMenu == null)
                     {
                         orderDetailResponse.QuantityInStock = 0;
@@ -681,6 +673,7 @@ public class CartService : ICartService
                     {
                         orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
                     }
+
                     var orderResponse = new OrderResponse.OrderResponseForCustomer()
                     {
                         Id = order.Id,
@@ -784,6 +777,7 @@ public class CartService : ICartService
                     {
                         orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
                     }
+
                     orderDetailList.Add(orderDetailResponse);
                 }
 
@@ -817,12 +811,11 @@ public class CartService : ICartService
                 };
                 orderResponses.Add(orderResponse);
             }
-            
+
             result.Message = "Get order and order detail success";
             result.StatusCode = StatusCode.Ok;
             result.Payload = orderResponses;
             result.IsError = false;
-            
         }
         catch (Exception e)
         {
@@ -834,6 +827,202 @@ public class CartService : ICartService
                 Message = e.Message
             });
             result.Payload = null;
+            throw;
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<OrderResponse.OrderResponseForCustomer?>?> UpdateQuantity(Guid payloadId,
+        UpdateQuantityRequest request)
+    {
+        var result = new OperationResult<OrderResponse.OrderResponseForCustomer?>();
+        try
+        {
+            var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIdAsync(request.OrderDetailId);
+            if (orderDetail == null)
+            {
+                result.Message = EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST;
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = payloadId + EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST
+                });
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+            
+            var order = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == orderDetail.OrderId 
+                    && x.IsPaid == false
+                    && x.CustomerId == payloadId)
+                .FirstOrDefaultAsync();
+            if (order == null)
+            {
+                result.Message = EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST;
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST
+                });
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+
+            var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(orderDetail.ProductItemId);
+            var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+            var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(
+                x => x.ProductItemId == productItem!.Id && x.DisplayIndex == 1).FirstOrDefaultAsync();
+            if (productImage != null)
+            {
+                productItemResponse.ImageUrl = productImage.ImageUrl;
+            }
+
+            var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                x => x.ProductItemId == productItem!.Id
+                     && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+            if (productInMenu == null)
+            {
+                result.Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST;
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST
+                });
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+
+            var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
+            var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
+            var station = await _unitOfWork.StationRepository.GetByIdAsync(order.StationId.GetValueOrDefault());
+            var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
+            var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
+            var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
+
+            if (request.Quantity > productInMenu.Quantity - productInMenu.Sold)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Số lượng sản phẩm trong kho không đủ"
+                });
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+
+            if (request.Quantity <= 0)
+            {
+                order.TotalAmount -= orderDetail.TotalPrice;
+            }
+            else
+            {
+                order.TotalAmount -= orderDetail.TotalPrice;
+                orderDetail.Quantity = request.Quantity;
+                orderDetail.TotalPrice = orderDetail.UnitPrice * (decimal)request.Quantity;
+                order.TotalAmount += orderDetail.TotalPrice;
+            }
+
+            if (request.Quantity <= 0)
+            {
+                await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
+            } else {
+                await _unitOfWork.OrderDetailRepository.UpdateAsync(orderDetail);
+            }
+            
+            var countOrderDetail = await _unitOfWork.SaveChangesAsync();
+            if (countOrderDetail == 0)
+            {
+                result.Message = "Update order detail failure";
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Update order detail failure"
+                });
+                result.Payload = null;
+                result.IsError = true;
+                return result;
+            }
+
+            var isDeleted = false;
+            if(order.TotalAmount <= 0)
+            {
+                await _unitOfWork.OrderRepository.DeleteAsync(order);
+                isDeleted = true;
+            } else {
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
+            }
+            
+            var countOrder = await _unitOfWork.SaveChangesAsync();
+            
+            if(isDeleted)
+            {
+                result.Message = "Delete order success";
+                result.StatusCode = StatusCode.Ok;
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+            
+            if (countOrder == 0)
+            {
+                result.Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE;
+                result.StatusCode = StatusCode.BadRequest;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE
+                });
+                result.Payload = null;
+                result.IsError = false;
+                return result;
+            }
+
+            var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
+            orderDetailResponse.ProductItemResponse = productItemResponse;
+            var orderResponse = new OrderResponse.OrderResponseForCustomer()
+            {
+                Id = order.Id,
+                FarmHubId = order.FarmHubId,
+                CustomerId = order.CustomerId,
+                StationId = order.StationId,
+                BusinessDayId = order.BusinessDayId,
+                CreatedAt = order.CreatedAt,
+                Code = order.Code,
+                ShipAddress = order.ShipAddress,
+                TotalAmount = order.TotalAmount,
+                IsPaid = order.IsPaid,
+                FullName = order.FullName,
+                PhoneNumber = order.PhoneNumber,
+                FarmHubResponse = farmHubResponse,
+                BusinessDayResponse = businessDayResponse,
+                StationResponse = stationResponse,
+                OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponse }
+            };
+
+            result.Message = EnumConstants.NotificationMessage.UPDATE_CART_SUCCESS;
+            result.StatusCode = StatusCode.Ok;
+            result.Payload = orderResponse;
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Message = e.Message;
+            result.StatusCode = StatusCode.ServerError;
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.Payload = null;
+            result.IsError = false;
             throw;
         }
 

@@ -32,4 +32,5 @@ public interface IOrderService
             int pageSize = 10);
     
     Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(Guid customerId, CreateOrderRequest request);
+    Task<OperationResult<OrderResponse.OrderResponseForCustomer>> CancelOrderByCustomer(Guid orderId, Guid payloadId);
 }

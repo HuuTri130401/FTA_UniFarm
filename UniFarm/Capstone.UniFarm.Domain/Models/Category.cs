@@ -20,7 +20,6 @@ namespace Capstone.UniFarm.Domain.Models
         public string Name { get; set; } = null!;
         [StringLength(1000)]
         public string? Description { get; set; }
-        [StringLength(255)]
         public string? Image { get; set; }
         [StringLength(100)]
         public string? Code { get; set; }

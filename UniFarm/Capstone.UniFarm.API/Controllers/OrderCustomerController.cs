@@ -61,7 +61,6 @@ public class OrderCustomerController : BaseController
     [Authorize(Roles = "Customer")]
     [SwaggerOperation(Summary = "Get all order of customer - Tien")]
     public async Task<IActionResult> GetAllOrder(
-        [FromQuery] string? searchWord,
         [FromQuery] EnumConstants.CustomerStatus? status,
         [FromQuery] bool? isAscending = false,
         [FromQuery] string? orderBy = "CreatedAt",
@@ -90,4 +89,26 @@ public class OrderCustomerController : BaseController
             );
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
     }
+    
+    // cancel order
+    [HttpPut("order/cancel/{orderId}")]
+    [Authorize(Roles = "Customer")]
+    [SwaggerOperation(Summary = "Cancel order - Tien")]
+    public async Task<IActionResult> CancelOrder(Guid orderId)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        var result = await _orderService.CancelOrderByCustomer(orderId,defineUser.Payload.Id);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+    }
+    
+    
 }
