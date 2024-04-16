@@ -46,7 +46,7 @@ public class TransferController : BaseController
     
     
     // Resend transfer 
-    [HttpPost("transfer/resend{transferId}")]
+    [HttpPost("transfer/resend/{transferId}")]
     [Authorize(Roles = "CollectedStaff, Admin")]
     [SwaggerOperation(Summary = "Resend transfer request - CollectedStaff - Done {Tien}")]
     public async Task<IActionResult> Resend(Guid transferId)

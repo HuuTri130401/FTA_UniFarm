@@ -360,11 +360,18 @@ public class AdminDashboardService : IAdminDashboardService
                 var payments = paymentList.Where(x => x.PaymentDay?.Month == i).ToList();
                 var accountCustomer = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
                 var accountFarmHub = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
+                var businessDayIds = orders.Select(x => x.BusinessDayId).ToList();
+                var totalRevenue = _unitOfWork.FarmHubSettlementRepository
+                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId))
+                    .Sum(x => x.TotalSales);
+                var totalBenefit = _unitOfWork.FarmHubSettlementRepository
+                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId))
+                    .Sum(x => x.AmountToBePaid);
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
                 {
                     Month = i.ToString(),
-                    TotalRevenue = orders.Sum(x => x.TotalAmount ?? 0),
-                    TotalBenefit = orders.Sum(x => x.TotalAmount ?? 0),
+                    TotalRevenue = totalRevenue,
+                    TotalBenefit = totalBenefit,
                     TotalOrder = orders.Count,
                     TotalOrderSuccess = orders.Count(x =>
                         x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()),

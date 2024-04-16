@@ -42,6 +42,8 @@ public abstract record OrderResponse
         public bool? IsPaid { get; set; }
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? DeliveryStatus { get; set; }
+        public string? CustomerStatus { get; set; }
         public FarmHubResponse? FarmHubResponse { get; set; }
         public BusinessDayResponse? BusinessDayResponse { get; set; }
         public StationResponse.StationResponseSimple? StationResponse { get; set; }
