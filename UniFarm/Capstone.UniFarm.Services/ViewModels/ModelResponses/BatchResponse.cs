@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
 {
@@ -19,6 +20,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public string CollectedHubName { get; set; }
         public string CollectedHubAddress { get; set; }
         public DateTime CollectedHubReceiveDate { get; set; }
+        public string ReceivedDescription { get; set; }
+        public string FeedBackImage { get; set; }
         public string Status { get; set; }
     }
 
