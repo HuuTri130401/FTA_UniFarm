@@ -220,7 +220,6 @@ public abstract record EnumConstants
     {
         CreatedAt,
         Code,
-        ShipAddress,
         ExpectedReceiveDate,
         TotalAmount,
         ExpiredDayInStation,

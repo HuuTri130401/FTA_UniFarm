@@ -18,18 +18,19 @@ public class OrderForStaffController : BaseController
         _accountService = accountService;
     }
 
+
     [HttpGet]
-    [Route("collect-hub/orders")]
-    [Authorize(Roles = "CollectedStaff, Admin")]
-    [SwaggerOperation(Summary = "Get all orders of a collected hub - CollectedStaff , Admin Role - Tien")]
-    public async Task<IActionResult> GetAllOrdersOfACollectedHub(
+    [Route("admin/orders")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerOperation(Summary = "Get all orders - Admin Role - Tien")]
+    public async Task<IActionResult> GetAllOrdersForAdmin(
         [FromQuery] string? keyword,
         [FromQuery] Guid? stationId,
         [FromQuery] Guid? transferId,
         [FromQuery] Guid? collectedHubId,
-        [FromQuery] string? customerStatus,
-        [FromQuery] string? deliveryStatus,
-        [FromQuery] string? orderBy = "CreatedAt",
+        [FromQuery] EnumConstants.CustomerStatus? customerStatus,
+        [FromQuery] EnumConstants.DeliveryStatus? deliveryStatus,
+        [FromQuery] EnumConstants.FilterOrder? orderBy = EnumConstants.FilterOrder.CreatedAt,
         [FromQuery] bool isAscending = false,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10
@@ -45,16 +46,58 @@ public class OrderForStaffController : BaseController
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
 
-        if (defineUser.Payload.Role == "Admin")
+
+        var result = await _orderService.GetAllOrdersOfStaff(
+            isAscending: isAscending,
+            orderBy: orderBy!.Value.ToString(),
+            filter: x => (!stationId.HasValue || x.StationId == stationId) &&
+                         (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
+                         (!transferId.HasValue || x.TransferId == transferId) &&
+                         (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                         (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+            pageIndex: pageIndex,
+            pageSize: pageSize);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+    }
+
+
+    [HttpGet]
+    [Route("collect-hub/orders")]
+    [Authorize(Roles = "CollectedStaff, Admin")]
+    [SwaggerOperation(Summary = "Get all orders of a collected hub - CollectedStaff , Admin Role - Tien")]
+    public async Task<IActionResult> GetAllOrdersOfACollectedHub(
+        [FromQuery] string? keyword,
+        [FromQuery] Guid? stationId,
+        [FromQuery] Guid? transferId,
+        [FromQuery] Guid? collectedHubId,
+        [FromQuery] EnumConstants.CustomerStatus? customerStatus,
+        [FromQuery] EnumConstants.DeliveryStatus? deliveryStatus,
+        [FromQuery] EnumConstants.FilterOrder? orderBy = EnumConstants.FilterOrder.CreatedAt,
+        [FromQuery] bool isAscending = false,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+    )
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        if (defineUser.Payload.Role == EnumConstants.RoleEnumString.ADMIN)
         {
             var result = await _orderService.GetAllOrdersOfStaff(
                 isAscending: isAscending,
-                orderBy: orderBy,
+                orderBy: orderBy!.Value.ToString(),
                 filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
-                             (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -63,12 +106,12 @@ public class OrderForStaffController : BaseController
         {
             var result = await _orderService.GetAllOrdersOfStaff(
                 isAscending: isAscending,
-                orderBy: orderBy,
+                orderBy: orderBy!.Value.ToString(),
                 filter: x => (x.CollectedHubId.ToString() == defineUser.Payload.AuthorizationDecision) &&
                              (!stationId.HasValue || x.StationId == stationId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
-                             (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -81,6 +124,63 @@ public class OrderForStaffController : BaseController
     [Authorize(Roles = "StationStaff, Admin")]
     [SwaggerOperation(Summary = "Get all orders of a station - Station, Admin Role - Tien")]
     public async Task<IActionResult> GetAllOrdersOfStation(
+        [FromQuery] string? keyword,
+        [FromQuery] Guid? stationId,
+        [FromQuery] Guid? transferId,
+        [FromQuery] Guid? collectedHubId,
+        [FromQuery] EnumConstants.CustomerStatus? customerStatus,
+        [FromQuery] EnumConstants.DeliveryStatus? deliveryStatus,
+        [FromQuery] EnumConstants.FilterOrder? orderBy = EnumConstants.FilterOrder.CreatedAt,
+        [FromQuery] bool? isAscending = false,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 10
+    )
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        if (defineUser.Payload.Role == EnumConstants.RoleEnumString.ADMIN)
+        {
+            var result = await _orderService.GetAllOrdersOfStaff(
+                isAscending: isAscending,
+                orderBy: orderBy!.Value.ToString(),
+                filter: x => (!stationId.HasValue || x.StationId == stationId) &&
+                             (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
+                             (!transferId.HasValue || x.TransferId == transferId) &&
+                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                pageIndex: pageIndex,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+        }
+        else
+        {
+            var result = await _orderService.GetAllOrdersOfStaff(
+                isAscending: isAscending,
+                orderBy: orderBy!.Value.ToString(),
+                filter: x => (x.StationId.ToString() == defineUser.Payload.AuthorizationDecision) &&
+                             (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
+                             (!transferId.HasValue || x.TransferId == transferId) &&
+                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                pageIndex: pageIndex,
+                pageSize: pageSize);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+        }
+    }
+
+    [HttpGet]
+    [Route("station/orders-contain-transfer")]
+    [Authorize(Roles = "StationStaff, Admin")]
+    [SwaggerOperation(Summary = "Get all orders of a station - Station, Admin Role - Tien")]
+    public async Task<IActionResult> GetAllOrdersOfStationContainTransfer(
         [FromQuery] string? keyword,
         [FromQuery] Guid? stationId,
         [FromQuery] Guid? transferId,
@@ -111,7 +211,6 @@ public class OrderForStaffController : BaseController
                 filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (x.TransferId != null) &&
                              (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
                              (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
                 pageIndex: pageIndex,
@@ -126,6 +225,7 @@ public class OrderForStaffController : BaseController
                 filter: x => (x.StationId.ToString() == defineUser.Payload.AuthorizationDecision) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
+                             (x.TransferId != null) &&
                              (string.IsNullOrEmpty(customerStatus) || x.CustomerStatus!.Contains(customerStatus)) &&
                              (string.IsNullOrEmpty(deliveryStatus) || x.DeliveryStatus!.Contains(deliveryStatus)),
                 pageIndex: pageIndex,
@@ -175,7 +275,8 @@ public class OrderForStaffController : BaseController
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
-        } else if (defineUser.Payload.Role == EnumConstants.RoleEnumString.COLLECTEDSTAFF)
+        }
+        else if (defineUser.Payload.Role == EnumConstants.RoleEnumString.COLLECTEDSTAFF)
         {
             var result = await _orderService.GetAllOrdersOfStaff(
                 isAscending: isAscending,
@@ -188,7 +289,8 @@ public class OrderForStaffController : BaseController
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
-        } else
+        }
+        else
         {
             var result = await _orderService.GetAllOrdersOfStaff(
                 isAscending: isAscending,
@@ -202,10 +304,11 @@ public class OrderForStaffController : BaseController
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
         }
+
         return Unauthorized("You are not allowed to view this transfer's orders");
     }
 
-    
+
     [HttpPut]
     [Route("station/orders/update-status")]
     [Authorize(Roles = "StationStaff, Admin")]
