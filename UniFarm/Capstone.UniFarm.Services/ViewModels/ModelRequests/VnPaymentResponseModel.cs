@@ -6,7 +6,9 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
     {
         public bool Success { get; set; }
         public Guid WalletId { get; set; }
-        public string PaymentMethod { get; set; }
+        public string BankCode { get; set; }
+        public string BankTranNo { get; set; }
+        public string CardType { get; set; }
         public double Amount { get; set; }
         public string Token { get; set; }
         public string VnPayResponseCode { get; set; }

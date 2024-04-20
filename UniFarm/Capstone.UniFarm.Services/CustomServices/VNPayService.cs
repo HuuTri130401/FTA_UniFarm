@@ -66,8 +66,13 @@ namespace Capstone.UniFarm.Services.CustomServices
             var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
             var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
             var vnp_OrderInfo = vnpay.GetResponseData("vnp_OrderInfo");
+            /*
             var vnp_OrderType = vnpay.GetResponseData("vnp_OrderType");
+            */
             var vnp_Amount = Convert.ToDouble(vnpay.GetResponseData("vnp_Amount")) / 100;
+            var vnp_BankCode = vnpay.GetResponseData("vnp_BankCode");
+            var vnp_BankTranNo = vnpay.GetResponseData("vnp_BankTranNo");
+            var vnp_CardType = vnpay.GetResponseData("vnp_CardType");
 
             bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _config["VnPay:HashSecret"]);
             if (!checkSignature)
@@ -82,7 +87,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             {
                 Success = true,
                 WalletId = Guid.Parse(vnp_OrderInfo),
-                PaymentMethod = vnp_OrderType,
+                BankCode = vnp_BankCode,
+                BankTranNo = vnp_BankTranNo,
+                CardType = vnp_CardType,
                 Amount = vnp_Amount,
                 Token = vnp_SecureHash,
                 VnPayResponseCode = vnp_ResponseCode
@@ -119,16 +126,16 @@ namespace Capstone.UniFarm.Services.CustomServices
                     Amount = Math.Round((decimal)response.Amount, 2),
                     PaymentDay = DateTime.Now,
                     Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
-                    Type = response.PaymentMethod.ToString(),
+                    Type = EnumConstants.PaymentMethod.DEPOSIT.ToString(),
                     Wallet = null,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
-                    BankName = "VnPay",
-                    BankOwnerName = "VnPay",
-                    BankAccountNumber = "VnPay",
+                    BankName = response.BankCode,
+                    BankOwnerName = response.BankTranNo,
+                    BankAccountNumber = response.CardType,
                     Code = "DEP" + Utils.RandomString(7)
                 };
-                
+
                 // create random code start with DEP and 8 random characters and numbers
 
                 await _unitOfWork.PaymentRepository.AddAsync(payment);
@@ -145,22 +152,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     });
                 }
 
-                if (response.PaymentMethod.ToString() == EnumConstants.PaymentMethod.DEPOSIT.ToString())
-                {
-                    wallet.Balance += payment.Amount;
-                }
-                else
-                {
-                    result.Message = "For deposit money only";
-                    result.IsError = true;
-                    result.Errors.Add(new Error()
-                    {
-                        Code = StatusCode.NotFound,
-                        Message = "For deposit money only!"
-                    });
-                    return result;
-                }
-
+                wallet.Balance += payment.Amount;
                 wallet.UpdatedAt = DateTime.Now;
                 wallet.Payments = null;
                 await _unitOfWork.WalletRepository.UpdateAsync(wallet);
@@ -180,6 +172,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 await transaction.CommitAsync();
                 payment.Wallet = null;
                 result.Payload = payment;
+                result.IsError = false;
             }
             catch (Exception e)
             {
