@@ -22,7 +22,7 @@ public class PaymentController : BaseController
         _paymentService = paymentService;
     }
 
-    /*[HttpPost("payment/create-payment-url")]
+    [HttpPost("payment/create-payment-url")]
     public IActionResult CreatePaymentUrl([FromBody] VnPaymentRequestModel model)
     {
         var url = _vnPayService.CreatePaymentUrl(HttpContext, model);
@@ -40,7 +40,7 @@ public class PaymentController : BaseController
         }
 
         // save payment
-        var responsePayment = _vnPayService.SavePayment(response).Result;
+        var responsePayment = _vnPayService.DepositPayment(response).Result;
 
         if (responsePayment.IsError)
         {
@@ -60,7 +60,7 @@ public class PaymentController : BaseController
     public IActionResult PaymentSuccess()
     {
         return Ok("Tạo giao dịch thành công!");
-    }*/
+    }
 
     [HttpPost("payment/deposit-test")]
     [Authorize]
