@@ -177,6 +177,46 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
+        public async Task<OperationResult<bool>> StopSellingDay(Guid businessDayId)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
+                if (businessDay != null)
+                {
+                    if(businessDay.Status == "Active")
+                    {
+                        businessDay.Status = "StopSellingDay";
+                        businessDay.StopSellingDay = DateTime.UtcNow.AddHours(7);
+                        _unitOfWork.BusinessDayRepository.Update(businessDay);
+                        var checkResult = _unitOfWork.Save();
+                        if (checkResult > 0)
+                        {
+                            result.AddResponseStatusCode(StatusCode.Ok, $"Stop Selling BusinessDay have Id: {businessDayId} Success.", true);
+                        }
+                        else
+                        {
+                            result.AddError(StatusCode.BadRequest, "Stop Selling BusinessDay Failed!"); 
+                        }
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Stop Selling in BusinessDay Only Update Status Active!");
+                    }
+                }
+                else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find BusinessDay have Id: {businessDayId}. Stop Selling BusinessDay Faild!.", false);
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId, Guid businessDayId)
         {
             var result = new OperationResult<BusinessDayResponse>();

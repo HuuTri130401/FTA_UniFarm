@@ -17,6 +17,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId, Guid businessDayId);
         Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest);
         Task<OperationResult<bool>> DeleteBusinessDay(Guid businessDayId);
+        Task<OperationResult<bool>> StopSellingDay(Guid businessDayId);
         Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId, BusinessDayRequestUpdate businessDayRequestUpdate);
         Task UpdateEndOfDayForAllBusinessDays();
     }

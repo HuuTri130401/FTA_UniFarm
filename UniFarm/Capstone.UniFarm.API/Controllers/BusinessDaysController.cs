@@ -72,6 +72,18 @@ namespace Capstone.UniFarm.API.Controllers
             return BadRequest("Model is invalid");
         }
 
+        [SwaggerOperation(Summary = "Stop Selling in Business Day - ADMIN - {Huu Tri}")]
+        [HttpPut("business-day/{businessDayId}")]
+        public async Task<IActionResult> StopSellingDay(Guid businessDayId)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _businessDayService.StopSellingDay(businessDayId);
+                return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+            }
+            return BadRequest("Model is invalid");
+        }
+
         [SwaggerOperation(Summary = "InActive BusinessDay - ADMIN - {Huu Tri}")]
         [HttpDelete("business-day/{id}")]
         public async Task<IActionResult> DeleteBusinessDay(Guid id)

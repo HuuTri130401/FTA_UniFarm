@@ -4,6 +4,7 @@ using Capstone.UniFarm.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Capstone.UniFarm.Domain.Migrations
 {
     [DbContext(typeof(FTAScript_V1Context))]
-    partial class FTAScript_V1ContextModelSnapshot : ModelSnapshot
+    [Migration("20240421113016_UpdateFieldInBusinessDay")]
+    partial class UpdateFieldInBusinessDay
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -339,6 +341,9 @@ namespace Capstone.UniFarm.Domain.Migrations
                     b.Property<DateTime?>("EndOfRegister")
                         .HasColumnType("datetime2");
 
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("time");
+
                     b.Property<string>("Name")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -348,6 +353,9 @@ namespace Capstone.UniFarm.Domain.Migrations
 
                     b.Property<DateTime?>("RegiterDay")
                         .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan?>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Status")
                         .HasMaxLength(100)

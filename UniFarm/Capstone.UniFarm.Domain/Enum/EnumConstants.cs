@@ -109,7 +109,8 @@ public abstract record EnumConstants
         Active,
         PaymentConfirm,
         Completed,
-        Inactive
+        Inactive,
+        StopSellingDay
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
