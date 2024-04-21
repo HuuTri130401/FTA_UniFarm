@@ -751,6 +751,12 @@ public class OrderService : IOrderService
                 {
                     var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
                     var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id && x.DisplayIndex == 1).FirstOrDefaultAsync();
+                    if (productImage != null)
+                    {
+                        productItemResponse.ImageUrl = productImage.ImageUrl;
+                    }
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
@@ -798,7 +804,6 @@ public class OrderService : IOrderService
                     StationResponse = stationResponse,
                     OrderDetailResponse = orderDetailResponses
                 };
-
                 orderResponses.Add(orderResponse);
             }
 

@@ -117,4 +117,17 @@ public class AdminDashboardController : BaseController
         var result = await _adminDashboardService.GetOrderDetail(businessDayId, orderId);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
+    
+    [HttpGet("admin/dashboard/report-by-month")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerOperation(Summary = "Get report by month - Tien")]
+    public async Task<IActionResult> GetReportByMonth([FromQuery] int? month)
+    {
+        if (month == null)
+        {
+            month = DateTime.Now.Month;
+        }
+        var result = await _adminDashboardService.GetReportByMonth(month);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+    }
 }

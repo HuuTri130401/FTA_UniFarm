@@ -358,8 +358,10 @@ public class AdminDashboardService : IAdminDashboardService
             {
                 var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();
                 var payments = paymentList.Where(x => x.PaymentDay?.Month == i).ToList();
-                var accountCustomer = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
-                var accountFarmHub = accountList.Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
+                var accountCustomer = accountList.Where(x =>
+                    x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
+                var accountFarmHub = accountList
+                    .Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
                 var businessDayIds = orders.Select(x => x.BusinessDayId).ToList();
                 var totalRevenue = _unitOfWork.FarmHubSettlementRepository
                     .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId))
@@ -651,15 +653,17 @@ public class AdminDashboardService : IAdminDashboardService
                 {
                     month = i,
                     TotalDepositMoney = payments
-                        .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() && x.PaymentDay?.Month == i)
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.DEPOSIT.ToString() &&
+                                    x.PaymentDay?.Month == i)
                         .Sum(x => x.Amount),
                     TotalWithdrawMoney = payments
-                        .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() && x.PaymentDay?.Month == i)
+                        .Where(x => x.Type == EnumConstants.PaymentMethod.WITHDRAW.ToString() &&
+                                    x.PaymentDay?.Month == i)
                         .Sum(x => x.Amount)
                 };
                 balanceFluctuations.Add(balanceFluctuation);
             }
-            
+
             result.Payload = balanceFluctuations;
             result.StatusCode = StatusCode.Ok;
             result.Message = "Lấy biến động số dư thành công!";
@@ -674,6 +678,80 @@ public class AdminDashboardService : IAdminDashboardService
             });
             result.StatusCode = StatusCode.ServerError;
             result.Message = "Lấy biến động số dư thất bại!";
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<IEnumerable<AdminDashboardResponse.ReportByDays>>> GetReportByMonth(int? month)
+    {
+        var result = new OperationResult<IEnumerable<AdminDashboardResponse.ReportByDays>>();
+        try
+        {
+            var businessDays = _unitOfWork.BusinessDayRepository.FilterByExpression(x => x.OpenDay.Month == month).OrderBy(x => x.OpenDay)
+                .ToList();
+            if (businessDays.Count == 0)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không có ngày kinh doanh nào!"
+                });
+                result.StatusCode = StatusCode.NotFound;
+                result.Message = "Không có ngày kinh doanh nào!";
+                result.IsError = true;
+                return result;
+            }
+
+            var reportByDays = new List<AdminDashboardResponse.ReportByDays>();
+            foreach (var businessDay in businessDays)
+            {
+                var orders = _unitOfWork.OrderRepository.FilterByExpression(x => x.BusinessDayId == businessDay.Id).ToList();
+                var totalRevenue = orders.Sum(x => x.TotalAmount ?? 0);
+                var totalOrder = orders.Count;
+                var totalOrderSuccess =
+                    orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
+                var totalOrderCancel = orders.Count(x =>
+                    x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
+                    || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
+                    || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCollectedHub.ToString());
+                var totalOrderExpired =
+                    orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString());
+                var reportByDay = new AdminDashboardResponse.ReportByDays()
+                {
+                    Day = businessDay.OpenDay.Day,
+                    Month = businessDay.OpenDay.Month,
+                    TotalOrder = totalOrder,
+                    TotalOrderSuccess = totalOrderSuccess,
+                    TotalOrderCancel = totalOrderCancel,
+                    TotalOrderExpired = totalOrderExpired,
+                    TotalRevenue = totalRevenue,
+                    TotalPayForFarmHub = _unitOfWork.FarmHubSettlementRepository
+                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
+                        .Sum(x => x.Profit),
+                    TotalBenefit = _unitOfWork.FarmHubSettlementRepository
+                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
+                        .Sum(x => x.AmountToBePaid)
+                };
+                reportByDays.Add(reportByDay);
+            }
+
+            result.Payload = reportByDays;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Lấy báo cáo theo tháng thành công!";
+            result.IsError = false;
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = e.Message
+            });
+            result.StatusCode = StatusCode.ServerError;
+            result.Message = "Lấy báo cáo theo tháng thất bại!";
             result.IsError = true;
             throw;
         }

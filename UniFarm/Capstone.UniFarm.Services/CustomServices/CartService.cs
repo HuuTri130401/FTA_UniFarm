@@ -665,6 +665,7 @@ public class CartService : ICartService
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
                 order.OrderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     x => x.OrderId == order.Id).ToListAsync();
+                var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
                 foreach (var orderDetail in order.OrderDetails)
                 {
                     var productItem = _unitOfWork.ProductItemRepository.GetByIdAsync(orderDetail.ProductItemId).Result;
@@ -689,28 +690,29 @@ public class CartService : ICartService
                     {
                         orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
                     }
-
-                    var orderResponse = new OrderResponse.OrderResponseForCustomer()
-                    {
-                        Id = order.Id,
-                        FarmHubId = order.FarmHubId,
-                        CustomerId = order.CustomerId,
-                        StationId = order.StationId,
-                        BusinessDayId = order.BusinessDayId,
-                        CreatedAt = order.CreatedAt,
-                        Code = order.Code,
-                        ShipAddress = order.ShipAddress,
-                        TotalAmount = order.TotalAmount,
-                        IsPaid = order.IsPaid,
-                        FullName = order.FullName,
-                        PhoneNumber = order.PhoneNumber,
-                        FarmHubResponse = farmHubResponse,
-                        BusinessDayResponse = businessDayResponse,
-                        StationResponse = stationResponse,
-                        OrderDetailResponse = new List<OrderDetailResponseForCustomer> { orderDetailResponse }
-                    };
-                    orderResponses.Add(orderResponse);
+                    orderDetailResponses.Add(orderDetailResponse);
                 }
+                
+                var orderResponse = new OrderResponse.OrderResponseForCustomer()
+                {
+                    Id = order.Id,
+                    FarmHubId = order.FarmHubId,
+                    CustomerId = order.CustomerId,
+                    StationId = order.StationId,
+                    BusinessDayId = order.BusinessDayId,
+                    CreatedAt = order.CreatedAt,
+                    Code = order.Code,
+                    ShipAddress = order.ShipAddress,
+                    TotalAmount = order.TotalAmount,
+                    IsPaid = order.IsPaid,
+                    FullName = order.FullName,
+                    PhoneNumber = order.PhoneNumber,
+                    FarmHubResponse = farmHubResponse,
+                    BusinessDayResponse = businessDayResponse,
+                    StationResponse = stationResponse,
+                    OrderDetailResponse =  orderDetailResponses
+                };
+                orderResponses.Add(orderResponse);
             }
 
             result.Message = EnumConstants.NotificationMessage.GET_CART_SUCCESS;

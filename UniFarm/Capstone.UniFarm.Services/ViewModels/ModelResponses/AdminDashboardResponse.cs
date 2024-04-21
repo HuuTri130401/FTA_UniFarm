@@ -103,4 +103,17 @@ public record AdminDashboardResponse
         public string Status { get; set; }
         public string Type { get; set; }
     }
+
+    public record ReportByDays
+    {
+        public int Day { get; set; }
+        public int Month { get; set; }
+        public int TotalOrder { get; set; }
+        public int TotalOrderSuccess { get; set; }
+        public int TotalOrderCancel { get; set; }
+        public int TotalOrderExpired { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public decimal TotalPayForFarmHub { get; set; }
+        public decimal TotalBenefit { get; set; }
+    }
 }

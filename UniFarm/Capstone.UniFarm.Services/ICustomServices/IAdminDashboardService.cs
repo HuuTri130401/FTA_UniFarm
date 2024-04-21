@@ -25,4 +25,8 @@ public interface IAdminDashboardService
     Task<OperationResult<IEnumerable<AdminDashboardResponse.TopFarmHub>>> GetTopFarmHub(DateTime? fromDate, DateTime? toDate, int? top);
 
     Task<OperationResult<IEnumerable<AdminDashboardResponse.BalanceFluctuations>>> GetBalanceFluctuations();
+    
+    Task<OperationResult<IEnumerable<AdminDashboardResponse.ReportByDays>>>
+        GetReportByMonth(int? month);
+    
 }
