@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,9 @@ public class PaymentController : BaseController
         _paymentService = paymentService;
     }
 
-    /*[HttpPost("payment/create-payment-url")]
+    [HttpPost("payment/create-payment-url")]
+    [Authorize]
+    [SwaggerOperation(Summary = "Create payment url - Tien")]
     public IActionResult CreatePaymentUrl([FromBody] VnPaymentRequestModel model)
     {
         var url = _vnPayService.CreatePaymentUrl(HttpContext, model);
@@ -30,6 +33,7 @@ public class PaymentController : BaseController
     }
 
     [HttpGet("payment/payment-callback")] // Unique route for PaymentCallBack
+    [SwaggerOperation(Summary = "Payment callback - Tien")]
     public IActionResult PaymentCallBack()
     {
         var response = _vnPayService.PaymentExecute(Request.Query);
@@ -40,7 +44,7 @@ public class PaymentController : BaseController
         }
 
         // save payment
-        var responsePayment = _vnPayService.SavePayment(response).Result;
+        var responsePayment = _vnPayService.DepositPayment(response).Result;
 
         if (responsePayment.IsError)
         {
@@ -51,16 +55,30 @@ public class PaymentController : BaseController
     }
 
     [HttpGet("payment/fail")]
+    [SwaggerOperation(Summary = "Payment fail - Tien")]
     public IActionResult PaymentFail()
     {
-        return BadRequest("Tạo giao dịch thất bại!");
+        var response = new OperationResult<bool>()
+        {
+            StatusCode = Services.Commons.StatusCode.BadRequest,
+            Payload = false,
+            Message = "Nạp tiền thất bại!"
+        };
+        return BadRequest(response);
     }
 
     [HttpGet("payment/success")]
+    [SwaggerOperation(Summary = "Payment success - Tien")]
     public IActionResult PaymentSuccess()
     {
-        return Ok("Tạo giao dịch thành công!");
-    }*/
+        var response = new OperationResult<bool>()
+        {
+            StatusCode = Services.Commons.StatusCode.Ok,
+            Payload = true,
+            Message = "Nạp tiền thành công!"
+        };
+        return Ok(response);
+    }
 
     [HttpPost("payment/deposit-test")]
     [Authorize]

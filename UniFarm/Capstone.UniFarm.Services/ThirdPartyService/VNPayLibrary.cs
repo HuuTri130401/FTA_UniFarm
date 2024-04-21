@@ -153,6 +153,39 @@ namespace Capstone.UniFarm.Services.ThirdPartyService
             return new string(Enumerable.Repeat(chars, i)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        
+        private const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        private const int baseNumber = 34;
+        public static string GenerateOrderCode(string farmHubCode)
+        {
+            DateTime startDate = new DateTime(DateTime.Now.Year, 1, 1);
+            long ticksSinceStart = DateTime.Now.Ticks - startDate.Ticks;
+            long ticksPerCharacter = ticksSinceStart / baseNumber;
+
+            Random random = new Random();
+
+            char[] codeChars = new char[6];
+            // First two characters from FarmHub code
+            for (int i = 0; i < 2; i++)
+            {
+                if (i < farmHubCode.Length)
+                {
+                    codeChars[i] = farmHubCode[i];
+                }
+                else
+                {
+                    codeChars[i] = '0';
+                }
+            }
+            for (int i = 2; i < 6; i++)
+            {
+                long randomNumber = ticksPerCharacter * i + random.Next((int)ticksPerCharacter);
+                int characterIndex = (int)(randomNumber % baseNumber);
+                codeChars[i] = characters[characterIndex];
+            }
+
+            return new string(codeChars);
+        }
     }
 
     public class VnPayCompare : IComparer<string>

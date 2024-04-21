@@ -50,9 +50,7 @@ public class CartController : BaseController
 
     [HttpGet("carts")]
     [SwaggerOperation(Summary = "Lấy thông tin giỏ hàng của khách hàng")]
-    /*
     [Authorize(Roles = "Customer")]
-    */
     public async Task<IActionResult> GetCart(
         [FromQuery] string? searchWord,
         [FromQuery] string? orderBy,

@@ -8,7 +8,9 @@ using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.CompilerServices;
 using static Capstone.UniFarm.Domain.Enum.EnumConstants;
+using Utils = Capstone.UniFarm.Services.ThirdPartyService.Utils;
 
 namespace Capstone.UniFarm.Services.CustomServices;
 
@@ -749,6 +751,12 @@ public class OrderService : IOrderService
                 {
                     var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
                     var productItemResponse = _mapper.Map<ProductItemResponseForCustomer>(productItem);
+                    var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(
+                        x => x.ProductItemId == productItem!.Id && x.DisplayIndex == 1).FirstOrDefaultAsync();
+                    if (productImage != null)
+                    {
+                        productItemResponse.ImageUrl = productImage.ImageUrl;
+                    }
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
@@ -796,7 +804,6 @@ public class OrderService : IOrderService
                     StationResponse = stationResponse,
                     OrderDetailResponse = orderDetailResponses
                 };
-
                 orderResponses.Add(orderResponse);
             }
 
@@ -985,6 +992,7 @@ public class OrderService : IOrderService
 
                     var newId = Guid.NewGuid();
                     listNewOrderDetail.ForEach(x => x.OrderId = newId);
+                    var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(orderDb.FarmHubId);
                     var order = new Order
                     {
                         Id = newId,
@@ -993,7 +1001,7 @@ public class OrderService : IOrderService
                         StationId = request.StationId,
                         BusinessDayId = orderDb.BusinessDayId,
                         TotalAmount = listNewOrderDetail.Sum(x => x.TotalPrice),
-                        Code = "OD" + Guid.NewGuid().ToString().Substring(0, 6),
+                        Code = Utils.GenerateOrderCode(farmHub?.Code!),
                         ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
                         ShipAddress = orderDb.ShipAddress,
                         OrderDetails = listNewOrderDetail,
@@ -1006,7 +1014,7 @@ public class OrderService : IOrderService
                 }
             }
 
-            // Check số lượng và trừ số lượng trong productItemInMenu
+            // Check số lượng và tăng số lượng sold trong productItemInMenu
             foreach (var order in newListOrder)
             {
                 foreach (var orderDetail in order.OrderDetails)
