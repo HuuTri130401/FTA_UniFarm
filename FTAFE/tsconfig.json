@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "strictPropertyInitialization": false,
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": [
+        "./src/core/components/*"
+      ],
+      "@context/*": [
+        "./src/core/contexts/*"
+      ],
+      "@hooks/*": [
+        "./src/core/hooks/*"
+      ],
+      "@models/*": [
+        "./src/core/models/*"
+      ],
+      "@store/*": [
+        "./src/core/store/*"
+      ],
+      "@styles/*": [
+        "./src/core/styles/*"
+      ],
+      "@utils/*": [
+        "./src/core/utils/*"
+      ],
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@public/*": [
+        "./public/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "pages/farmhub/product"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
