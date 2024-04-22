@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "FTA-Unifarm-Project_Base",
+    "slug": "FTA-Unifarm-Project_Base",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/backgrounds/Logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/backgrounds/LogoWithTitle.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.FTAUnifarm"
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.googleusercontent.apps.FTAUnifarm"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.googleusercontent.apps.FTAUnifarm"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
