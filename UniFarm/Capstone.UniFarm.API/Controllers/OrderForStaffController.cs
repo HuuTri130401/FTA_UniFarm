@@ -53,8 +53,11 @@ public class OrderForStaffController : BaseController
             filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                          (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                          (!transferId.HasValue || x.TransferId == transferId) &&
-                         (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
-                         (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                         (string.IsNullOrEmpty(customerStatus.ToString()) ||
+                          x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                         (string.IsNullOrEmpty(deliveryStatus.ToString()) ||
+                          x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)) &&
+                         x.IsPaid == true,
             pageIndex: pageIndex,
             pageSize: pageSize);
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -96,8 +99,11 @@ public class OrderForStaffController : BaseController
                 filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
-                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) ||
+                              x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) ||
+                              x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)) &&
+                             x.IsPaid == true,
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -110,8 +116,11 @@ public class OrderForStaffController : BaseController
                 filter: x => (x.CollectedHubId.ToString() == defineUser.Payload.AuthorizationDecision) &&
                              (!stationId.HasValue || x.StationId == stationId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
-                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) ||
+                              x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) ||
+                              x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)) &&
+                             x.IsPaid == true,
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -154,8 +163,11 @@ public class OrderForStaffController : BaseController
                 filter: x => (!stationId.HasValue || x.StationId == stationId) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
-                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) ||
+                              x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) ||
+                              x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)) &&
+                             x.IsPaid == true,
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
@@ -168,8 +180,11 @@ public class OrderForStaffController : BaseController
                 filter: x => (x.StationId.ToString() == defineUser.Payload.AuthorizationDecision) &&
                              (!collectedHubId.HasValue || x.CollectedHubId == collectedHubId) &&
                              (!transferId.HasValue || x.TransferId == transferId) &&
-                             (string.IsNullOrEmpty(customerStatus.ToString()) || x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
-                             (string.IsNullOrEmpty(deliveryStatus.ToString()) || x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)),
+                             (string.IsNullOrEmpty(customerStatus.ToString()) ||
+                              x.CustomerStatus!.Contains(customerStatus.ToString()!)) &&
+                             (string.IsNullOrEmpty(deliveryStatus.ToString()) ||
+                              x.DeliveryStatus!.Contains(deliveryStatus.ToString()!)) &&
+                             x.IsPaid == true,
                 pageIndex: pageIndex,
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);

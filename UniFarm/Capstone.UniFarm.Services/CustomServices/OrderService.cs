@@ -924,6 +924,7 @@ public class OrderService : IOrderService
                     orderDb.FullName = request.FullName;
                     orderDb.PhoneNumber = request.PhoneNumber;
                     orderDb.CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString();
+                    orderDb.DeliveryStatus = EnumConstants.CustomerStatus.Pending.ToString();
                     orderDb.IsPaid = false;
                     newListOrder.Add(orderDb);
                 }
@@ -1008,6 +1009,7 @@ public class OrderService : IOrderService
                         FullName = request.FullName,
                         PhoneNumber = request.PhoneNumber,
                         CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString(),
+                        DeliveryStatus = EnumConstants.CustomerStatus.Pending.ToString(),
                         IsPaid = false
                     };
                     newListOrder.Add(order);
