@@ -1,0 +1,9 @@
+version: '3'
+services:
+  frontend:
+    container_name: frontend
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 80:3000
