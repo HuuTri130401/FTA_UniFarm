@@ -8,7 +8,7 @@ namespace Capstone.UniFarm.Services.ICustomServices;
 
 public interface ITransactionService
 {
-    Task<OperationResult<IEnumerable<Transaction>>> GetAll(bool? isAscending, string? orderBy = null,
+    Task<OperationResult<IEnumerable<TransactionResponseContainOrderCode>>> GetAll(bool? isAscending, string? orderBy = null,
         Expression<Func<Transaction, bool>>? filter = null, string[]? includeProperties = null, int pageIndex = 0,
         int pageSize = 10);
 

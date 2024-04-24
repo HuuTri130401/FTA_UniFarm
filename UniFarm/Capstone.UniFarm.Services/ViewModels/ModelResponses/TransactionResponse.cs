@@ -18,11 +18,18 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public DateTime PaymentDate { get; set; }
         public string Status { get; set; }
         public Guid PayerWalletId { get; set; }
+
         public string PayerName { get; set; }
+
         // public virtual Wallet PayerWallet { get; set; } = null!;
         public Guid PayeeWalletId { get; set; }
         public string PayeeName { get; set; }
         public Guid? OrderId { get; set; }
         public virtual Order? Order { get; set; }
+    }
+
+    public class TransactionResponseContainOrderCode : TransactionResponse
+    {
+        public string? OrderCode { get; set; }
     }
 }

@@ -289,6 +289,7 @@ public class PaymentService : IPaymentService
                     BankName = payment.BankName,
                     BankOwnerName = payment.BankOwnerName,
                     BankAccountNumber = payment.BankAccountNumber,
+                    Code = payment.Code,
                     Note = payment.Note
                 };
                 paymentResponses.Add(paymentResponse);
@@ -426,6 +427,7 @@ public class PaymentService : IPaymentService
                     BankName = payment.BankName,
                     BankOwnerName = payment.BankOwnerName,
                     BankAccountNumber = payment.BankAccountNumber,
+                    Code = payment.Code,
                     Note = payment.Note
                 };
                 result.Message = "Update status success!";

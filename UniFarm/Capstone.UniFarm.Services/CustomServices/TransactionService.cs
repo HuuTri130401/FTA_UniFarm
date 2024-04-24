@@ -5,6 +5,7 @@ using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Capstone.UniFarm.Services.CustomServices;
@@ -21,7 +22,7 @@ public class TransactionService : ITransactionService
         _mapper = mapper;
         _logger = logger;
     }
-    public async Task<OperationResult<IEnumerable<Transaction>>> GetAll(
+    public async Task<OperationResult<IEnumerable<TransactionResponseContainOrderCode>>> GetAll(
     bool? isAscending,
     string? orderBy = null,
     Expression<Func<Transaction, bool>>? filter = null,
@@ -29,7 +30,7 @@ public class TransactionService : ITransactionService
     int pageIndex = 0,
     int pageSize = 10)
     {
-        var result = new OperationResult<IEnumerable<Transaction>>();
+        var result = new OperationResult<IEnumerable<TransactionResponseContainOrderCode>>();
         try
         {
             var transactions = _unitOfWork.TransactionRepository.FilterAll(
@@ -47,7 +48,21 @@ public class TransactionService : ITransactionService
                 return result;
             }
 
-            result.Payload = transactions;
+            var transactionResponses = new List<TransactionResponseContainOrderCode>();
+            foreach (var transaction in transactions)
+            {
+                
+                var transactionResponse = _mapper.Map<TransactionResponseContainOrderCode>(transaction);
+                var order = await _unitOfWork.OrderRepository.FilterByExpression(x =>
+                    transactionResponse.OrderId == x.Id).FirstOrDefaultAsync();
+                if (order != null)
+                {
+                    transactionResponse.OrderCode = order.Code;
+                }
+                transactionResponses.Add(transactionResponse);
+
+            }
+            result.Payload = transactionResponses;
             result.Message = "Lấy danh sách giao dịch thành công.";
             result.StatusCode = StatusCode.Ok;
             result.IsError = false;
