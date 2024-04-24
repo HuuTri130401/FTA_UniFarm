@@ -648,7 +648,12 @@ public class CartService : ICartService
                 result.Message = EnumConstants.NotificationMessage.NOT_FOUND_ANY_ITEM_IN_CART;
                 result.StatusCode = StatusCode.NotFound;
                 result.Payload = new List<OrderResponse.OrderResponseForCustomer>();
-                result.IsError = false;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = EnumConstants.NotificationMessage.NOT_FOUND_ANY_ITEM_IN_CART
+                });
+                result.IsError = true;
                 return result;
             }
 
@@ -751,7 +756,7 @@ public class CartService : ICartService
                         Message = item.OrderId + EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST
                     });
                     result.Payload = null;
-                    result.IsError = false;
+                    result.IsError = true;
                     return result;
                 }
 
@@ -769,7 +774,7 @@ public class CartService : ICartService
                             Message = detail + EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST
                         });
                         result.Payload = null;
-                        result.IsError = false;
+                        result.IsError = true;
                         return result;
                     }
 
@@ -868,7 +873,7 @@ public class CartService : ICartService
                     Message = payloadId + EnumConstants.NotificationMessage.ORDER_DETAIL_DOES_NOT_EXIST
                 });
                 result.Payload = null;
-                result.IsError = false;
+                result.IsError = true;
                 return result;
             }
             
@@ -886,7 +891,7 @@ public class CartService : ICartService
                     Message = EnumConstants.NotificationMessage.ORDER_DOES_NOT_EXIST
                 });
                 result.Payload = null;
-                result.IsError = false;
+                result.IsError = true;
                 return result;
             }
 
@@ -912,7 +917,7 @@ public class CartService : ICartService
                     Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST
                 });
                 result.Payload = null;
-                result.IsError = false;
+                result.IsError = true;
                 return result;
             }
 
@@ -931,7 +936,7 @@ public class CartService : ICartService
                     Message = "Số lượng sản phẩm trong kho không đủ"
                 });
                 result.Payload = null;
-                result.IsError = false;
+                result.IsError = true;
                 return result;
             }
 
@@ -999,7 +1004,7 @@ public class CartService : ICartService
                     Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE
                 });
                 result.Payload = null;
-                result.IsError = false;
+                result.IsError = true;
                 return result;
             }
 
@@ -1040,7 +1045,7 @@ public class CartService : ICartService
                 Message = e.Message
             });
             result.Payload = null;
-            result.IsError = false;
+            result.IsError = true;
             throw;
         }
 

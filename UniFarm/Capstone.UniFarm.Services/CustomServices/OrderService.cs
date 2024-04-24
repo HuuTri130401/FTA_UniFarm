@@ -1212,9 +1212,9 @@ public class OrderService : IOrderService
                 {
                     Id = order.Id,
                     CustomerId = order.CustomerId,
+                    BusinessDayId = order.BusinessDayId,
                     FarmHubId = order.FarmHubId,
                     StationId = order.StationId,
-                    BusinessDayId = order.BusinessDayId,
                     CreatedAt = order.CreatedAt,
                     Code = order.Code,
                     ShipAddress = order.ShipAddress,
