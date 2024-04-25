@@ -354,4 +354,71 @@ public class StationService : IStationService
 
         return result;
     }
+
+    public async Task<OperationResult<StationResponse.StationDashboardResponse?>?> ShowDashboard(DateTime addDays, DateTime today, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
+    {
+        var result = new OperationResult<StationResponse.StationDashboardResponse?>();
+        try
+        {
+            var station = await _unitOfWork.StationRepository.GetByIdAsync(Guid.Parse(defineUserPayload.AuthorizationDecision));
+            if (station == null)
+            {
+                result.Message = "Station not found";
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Station not found"
+                });
+                return result;
+            }
+            
+            var orders = await _unitOfWork.OrderRepository.GetAllWithoutPaging(null, "CreatedAt", x => x.StationId == station.Id && x.CreatedAt.Date <= today.Date && x.CreatedAt >= addDays.Date && x.IsPaid == true, null).ToListAsync();
+            var totalOrderOnTheWayToStation = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString());
+            var totalOrderAtStation = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString());
+            var totalOrderReadyForPickup = orders.Count(x => x.CustomerStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString());
+            var totalOrderStationNotReceived = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.StationNotReceived.ToString());
+            var totalOrderPickedUp = orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
+            var totalOrderExpired = orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString() || x.DeliveryStatus == EnumConstants.CustomerStatus.Expired.ToString());
+            var totalOrderStaffHandled = orders.Count(x => x.ShipByStationStaffId == defineUserPayload.Id);
+            
+            var transfers = await _unitOfWork.TransferRepository.GetAllWithoutPaging(null, null, x => x.StationId == station.Id && x.CreatedAt <= today.Date && x.CreatedAt >= addDays.Date, null).ToListAsync();
+
+            var totalTransferPending = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Pending.ToString() || x.Status == EnumConstants.StationUpdateTransfer.Resend.ToString());
+            var totalTransferReceived = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Received.ToString());
+            var totalTransferNotReceived = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString());
+            var totalTransferProcessed = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Processed.ToString());
+            
+            var stationDashboardResponse = new StationResponse.StationDashboardResponse
+            {
+                TotalOrder = orders.Count,
+                TotalOrderOnTheWayToStation = totalOrderOnTheWayToStation,
+                TotalOrderAtStation = totalOrderAtStation,
+                TotalOrderReadyForPickup = totalOrderReadyForPickup,
+                TotalOrderStationNotReceived = totalOrderStationNotReceived,
+                TotalOrderPickedUp = totalOrderPickedUp,
+                TotalOrderExpired = totalOrderExpired,
+                TotalOrderStaffHandled = totalOrderStaffHandled,
+                TotalTransferPending = totalTransferPending,
+                TotalTransferReceived = totalTransferReceived,
+                TotalTransferNotReceived = totalTransferNotReceived,
+                TotalTransferProcessed = totalTransferProcessed
+            };
+
+            result.Payload = stationDashboardResponse;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Get dashboard success";
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError("Get dashboard error " + ex.Message);
+            result.StatusCode = StatusCode.ServerError;
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+
+    }
 }

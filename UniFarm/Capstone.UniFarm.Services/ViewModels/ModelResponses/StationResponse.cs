@@ -29,4 +29,20 @@ public record StationResponse
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
     }
+    
+    public record StationDashboardResponse
+    {
+        public int TotalOrder { get; set; }
+        public int TotalOrderOnTheWayToStation { get; set; }
+        public int TotalOrderAtStation { get; set; }
+        public int TotalOrderStationNotReceived { get; set; }
+        public int TotalOrderReadyForPickup { get; set; }
+        public int TotalOrderPickedUp { get; set; }
+        public int TotalOrderExpired { get; set; }
+        public int TotalOrderStaffHandled { get; set; }
+        public int TotalTransferPending { get; set; }
+        public int TotalTransferReceived { get; set; }
+        public int TotalTransferNotReceived { get; set; }
+        public int TotalTransferProcessed { get; set; }
+    }
 }

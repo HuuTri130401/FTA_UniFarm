@@ -41,4 +41,6 @@ public interface IStationService
             string[]? includeProperties,
             int pageIndex = 0,
             int pageSize = 10);
+
+    Task<OperationResult<StationResponse.StationDashboardResponse?>?> ShowDashboard(DateTime addDays, DateTime now, AboutMeResponse.AboutMeRoleAndID defineUserPayload);
 }
