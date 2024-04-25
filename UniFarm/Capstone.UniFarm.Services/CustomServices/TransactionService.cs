@@ -33,13 +33,13 @@ public class TransactionService : ITransactionService
         var result = new OperationResult<IEnumerable<TransactionResponseContainOrderCode>>();
         try
         {
-            var transactions = _unitOfWork.TransactionRepository.FilterAll(
+            var transactions = await _unitOfWork.TransactionRepository.FilterAll(
                 isAscending,
                 orderBy,
                 filter,
                 includeProperties,
                 pageIndex,
-                pageSize);
+                pageSize).ToListAsync();
 
             if (!transactions.Any())
             {

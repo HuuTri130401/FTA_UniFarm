@@ -225,6 +225,8 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.HasValue ? src.Amount.Value : 0))
                 .ForMember(dest => dest.PayerName, opt => opt.MapFrom(src => src.PayerWallet.Account.UserName))
                 .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order));
+
+            CreateMap<Transaction, TransactionResponseContainOrderCode>();
         }
     }
 }
