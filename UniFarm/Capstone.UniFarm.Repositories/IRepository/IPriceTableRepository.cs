@@ -10,5 +10,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
     public interface IPriceTableRepository : IGenericRepository<PriceTable>
     {
         Task<PriceTable> GetPriceTable();
+        Task<List<PriceTable>> GetAllPrice();
     }
 }

@@ -16,6 +16,13 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
         }
 
+        public async Task<List<PriceTable>> GetAllPrice()
+        {
+            return await _dbSet
+                .Include(p => p.PriceTableItems)
+                .ToListAsync();
+        }
+
         public async Task<PriceTable> GetPriceTable()
         {
             return await _dbSet
