@@ -85,8 +85,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in CreateProductItemForProduct service method");
                 throw;
             }
         }
@@ -117,8 +118,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteProductItem service method");
                 throw;
             }
         }
@@ -159,7 +161,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByProductId Service Method");
+                _logger.LogError(ex, $"Error occurred in CustomerGetAllProductItemsByProductId Service Method");
                 throw;
             }
         }
@@ -216,7 +218,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByFarmhubId Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByFarmHubAccountId Service Method");
                 throw;
             }
         }
@@ -356,13 +358,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingProductItem.Unit = productItemRequestUpdate.Unit;
                         isAnyFieldUpdated = true;
                     }
-                    //if (productItemRequestUpdate.Status != null && (productItemRequestUpdate.Status == "Active"
-                    //    || productItemRequestUpdate.Status == "Inactive"
-                    //    || productItemRequestUpdate.Status == "Available"))
-                    //{
-                    //    existingProductItem.Status = productItemRequestUpdate.Status;
-                    //    isAnyFieldUpdated = true;
-                    //}
 
                     if (isAnyFieldUpdated)
                     {
@@ -383,9 +378,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
-            {
-                throw;
+            catch (Exception ex) { 
+                _logger.LogError(ex, $"Error occurred in UpdateProductItem service method"); 
+                throw; 
             }
         }
 
@@ -426,7 +421,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllProductItems Service Method");
+                _logger.LogError(ex, $"Error occurred in SearchProductItems Service Method");
                 throw;
             }
         }
@@ -492,7 +487,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllProductItemsByProductId Service Method");
+                _logger.LogError(ex, $"Error occurred in FarmHubGetAllProductItemsByProductId Service Method");
                 throw;
             }
         }
