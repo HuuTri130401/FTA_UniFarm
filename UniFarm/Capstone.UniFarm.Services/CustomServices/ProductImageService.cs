@@ -60,8 +60,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in CreateProductImage service method");
                 throw;
             }
         }
@@ -92,8 +93,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteProductImage service method for productImage ID: {productImageId}");
                 throw;
             }
         }
@@ -117,7 +119,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllProductImagesByProductId Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllProductImagesByProductItemId Service Method");
                 throw;
             }
         }
@@ -159,10 +161,6 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 if (existingProductImage != null)
                 {
-                    if (productImageRequestUpdate.Caption != null)
-                    {
-                        existingProductImage.Caption = productImageRequestUpdate.Caption;
-                    }
                     if (productImageRequestUpdate.ImageUrl != null)
                     {
                         var imageUrl = await _cloudinaryService.UploadImageAsync(productImageRequestUpdate.ImageUrl);
@@ -177,15 +175,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                             return result;
                         }
                     }
-                    if (productImageRequestUpdate.DisplayIndex != null)
-                    {
-                        existingProductImage.DisplayIndex = productImageRequestUpdate.DisplayIndex;
-                    }
-                    if (productImageRequestUpdate.Status != null && (productImageRequestUpdate.Status == "Active" || productImageRequestUpdate.Status == "Inactive"))
-                    {
-                        existingProductImage.Status = productImageRequestUpdate.Status;
-                    }
-
                     _unitOfWork.ProductImageRepository.Update(existingProductImage);
 
                     var checkResult = _unitOfWork.Save();
@@ -197,11 +186,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         result.AddError(StatusCode.BadRequest, "Update ProductImage Failed!");
                     }
+                } else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find Product Image have Id: {productImageId}!", false);
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in UpdateProductImage service method");
                 throw;
             }
         }
