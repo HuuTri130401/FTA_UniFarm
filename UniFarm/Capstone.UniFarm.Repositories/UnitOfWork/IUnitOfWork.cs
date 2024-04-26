@@ -37,7 +37,6 @@ namespace Capstone.UniFarm.Repositories.UnitOfWork
         IPriceTableItemRepository PriceTableItemRepository { get; }
         ITransactionRepository TransactionRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();
-        
         int Save();
         Task<int> SaveChangesAsync();
     }
