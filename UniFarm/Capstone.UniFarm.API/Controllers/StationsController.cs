@@ -182,7 +182,7 @@ public class StationsController : BaseController
     }
 
 
-    [HttpPost("station/dashboards")]
+    [HttpGet("station/dashboards")]
     [SwaggerOperation(Summary = "Show dashboard - StationStaff - Done {Tien}")]
     [Authorize(Roles = "StationStaff")]
     public async Task<IActionResult> ShowDashboard(
