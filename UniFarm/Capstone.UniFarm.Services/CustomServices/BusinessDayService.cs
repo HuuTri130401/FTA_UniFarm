@@ -51,15 +51,18 @@ namespace Capstone.UniFarm.Services.CustomServices
                     CreatedAt = DateTime.UtcNow.AddHours(7)
                 };
 
+                int checkResult;
                 bool isUnique = await _unitOfWork.BusinessDayRepository.IsUniqueOpenDay(businessDay.OpenDay);
                 if (!isUnique)
                 {
-                    result.AddError(StatusCode.BadRequest, "BusinessDay with this OpenDay already exists!");
+                    _unitOfWork.BusinessDayRepository.Update(businessDay);
+                    checkResult = _unitOfWork.Save();
+                    result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
                     return result;
                 }
 
                 await _unitOfWork.BusinessDayRepository.AddAsync(businessDay);
-                var checkResult = _unitOfWork.Save();
+                checkResult = _unitOfWork.Save();
                 if (checkResult > 0)
                 {
                     result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
@@ -71,79 +74,12 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred in CreateBusinessDay Service Method");
                 throw;
             }
         }
-
-
-        //public async Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest)
-        //{
-        //    var result = new OperationResult<bool>();
-        //    try
-        //    {
-        //        if (!IsValidBusinessDay(businessDayRequest))
-        //        {
-        //            result.AddError(StatusCode.BadRequest, "Invalid BusinessDay configuration! " +
-        //               "\r\nEndOfRegister = RegisterDay + 2 days " +
-        //               "\r\nOpenDay = EndOfRegister + 1 day!");
-        //        }
-        //        else
-        //        {
-        //            var businessDay = _mapper.Map<BusinessDay>(businessDayRequest);
-        //            businessDay.Status = "Active";
-        //            //businessDay.Status = "Pending";
-        //            businessDay.CreatedAt = DateTime.Now;
-        //            await _unitOfWork.BusinessDayRepository.AddAsync(businessDay);
-        //            var checkResult = _unitOfWork.Save();
-        //            if (checkResult > 0)
-        //            {
-        //                result.AddResponseStatusCode(StatusCode.Created, "Add BusinessDay Success!", true);
-        //            }
-        //            else
-        //            {
-        //                result.AddError(StatusCode.BadRequest, "Add BusinessDay Failed!"); ;
-        //            }
-        //        }
-        //        return result;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //private async void UpdateBusinessDayStatus(object state)
-        //{
-        //    try
-        //    {
-        //        var listBusinessDays = _unitOfWork.BusinessDayRepository.GetAllBusinessDay();
-        //        var checkResult = _unitOfWork.Save();
-        //        if (checkResult > 0)
-        //        {
-        //            foreach (var businessDay in listBusinessDays)
-        //            {
-        //                if (businessDay.OpenDay == DateTime.Today)
-        //                {
-        //                    await _unitOfWork.BusinessDayRepository.UpdateBusinessDayStatus(businessDay.Id, "Active");
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //public bool IsValidBusinessDay(BusinessDayRequest businessDayRequest)
-        //{
-        //    if (businessDayRequest.EndOfRegister <= businessDayRequest.RegiterDay.AddDays(2) 
-        //        && businessDayRequest.OpenDay == businessDayRequest.EndOfRegister.AddDays(1))
-        //        return true;
-        //    return false;
-        //}
 
         public async Task<OperationResult<bool>> DeleteBusinessDay(Guid businessDayId)
         {
