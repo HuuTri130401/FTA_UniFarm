@@ -14,6 +14,7 @@ public record StationResponse
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string? Status { get; set; }
+    public int? TotalOrderPending { get; set; }
     public Area? Area { get; set; }
 
     public record StationResponseSimple

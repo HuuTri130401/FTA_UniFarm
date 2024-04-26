@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 using Capstone.UniFarm.Domain.Enum;
+using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -24,6 +26,7 @@ public class StationsController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [SwaggerOperation(Summary = "Get all stations - Admin - Done {Tien}")]
+    [Authorize(Roles = "Admin, CollectedStaff, StationStaff, FarmHub")]
     public async Task<IActionResult> GetAllStationsForAdmin(
         [FromQuery] string? keyword,
         [FromQuery] Guid? id,
@@ -39,6 +42,65 @@ public class StationsController : BaseController
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10)
     {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+
+        if (defineUser.Payload.Role == EnumConstants.RoleEnumString.COLLECTEDSTAFF)
+        {
+            var responseCollected = await _stationService.GetAll(
+                isAscending: isAscending,
+                filter: x => (!id.HasValue || x.Id == id) &&
+                             (!areaId.HasValue || x.AreaId == areaId) &&
+                             (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) || x.Name!.Contains(keyword) ||
+                              x.Address!.Contains(keyword) || x.Status!.Contains(keyword)) &&
+                             (string.IsNullOrEmpty(code) || x.Code!.Contains(code)) &&
+                             (string.IsNullOrEmpty(name) || x.Name!.Contains(name)) &&
+                             (string.IsNullOrEmpty(description) || x.Description!.Contains(description)) &&
+                             (string.IsNullOrEmpty(address) || x.Address!.Contains(address)) &&
+                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)),
+                filterOrder: x => x.CollectedHubId == Guid.Parse(defineUser.Payload.AuthorizationDecision)
+                                  && x.IsPaid == true
+                                  && x.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString(),
+                orderBy: orderBy,
+                includeProperties: includeProperties,
+                pageIndex: pageIndex,
+                pageSize: pageSize
+            );
+            return responseCollected.IsError ? HandleErrorResponse(responseCollected.Errors) : Ok(responseCollected);
+        }
+        else if (defineUser.Payload.Role == EnumConstants.RoleEnumString.FARMHUB)
+        {
+            var responseFarmHub = await _stationService.GetAll(
+                isAscending: isAscending,
+                filter: x => (!id.HasValue || x.Id == id) &&
+                             (!areaId.HasValue || x.AreaId == areaId) &&
+                             (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) || x.Name!.Contains(keyword) ||
+                              x.Address!.Contains(keyword) || x.Status!.Contains(keyword)) &&
+                             (string.IsNullOrEmpty(code) || x.Code!.Contains(code)) &&
+                             (string.IsNullOrEmpty(name) || x.Name!.Contains(name)) &&
+                             (string.IsNullOrEmpty(description) || x.Description!.Contains(description)) &&
+                             (string.IsNullOrEmpty(address) || x.Address!.Contains(address)) &&
+                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)),
+                filterOrder: x => x.FarmHubId == Guid.Parse(defineUser.Payload.AuthorizationDecision)
+                                  && x.IsPaid == true
+                                  && (x.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+                                      || x.DeliveryStatus ==
+                                      EnumConstants.DeliveryStatus.OnTheWayToCollectedHub.ToString()),
+                orderBy: orderBy,
+                includeProperties: includeProperties,
+                pageIndex: pageIndex,
+                pageSize: pageSize
+            );
+            return responseFarmHub.IsError ? HandleErrorResponse(responseFarmHub.Errors) : Ok(responseFarmHub);
+        }
+
         var response = await _stationService.GetAll(
             isAscending: isAscending,
             filter: x => (!id.HasValue || x.Id == id) &&
@@ -50,7 +112,8 @@ public class StationsController : BaseController
                          (string.IsNullOrEmpty(description) || x.Description!.Contains(description)) &&
                          (string.IsNullOrEmpty(address) || x.Address!.Contains(address)) &&
                          (string.IsNullOrEmpty(status) || x.Status!.Contains(status)),
-            orderBy: orderBy, // Pass the string representation of the property name
+            filterOrder: null,
+            orderBy: orderBy,
             includeProperties: includeProperties,
             pageIndex: pageIndex,
             pageSize: pageSize
@@ -164,6 +227,7 @@ public class StationsController : BaseController
                          (string.IsNullOrEmpty(description) || x.Description!.Contains(description)) &&
                          (string.IsNullOrEmpty(address) || x.Address!.Contains(address)) &&
                          x.Status!.Equals(EnumConstants.ActiveInactiveEnum.ACTIVE),
+            filterOrder: null,
             orderBy: orderBy,
             includeProperties: includeProperties,
             pageIndex: pageIndex,
@@ -198,9 +262,10 @@ public class StationsController : BaseController
         string token = authHeader.Replace("Bearer ", "");
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
-        
-        
-        var response = await _stationService.ShowDashboard(DateTime.Now.AddDays(-dayBack), DateTime.Now, defineUser.Payload);
+
+
+        var response =
+            await _stationService.ShowDashboard(DateTime.Now.AddDays(-dayBack), DateTime.Now, defineUser.Payload);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 }

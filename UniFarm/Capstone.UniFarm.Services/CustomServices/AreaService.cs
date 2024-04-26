@@ -185,7 +185,7 @@ public class AreaService : IAreaService
                 result.Message = "Area not found";
                 return result;
             }
-            var stations = await _stationService.GetAll(isAscending, orderBy, filterStation, includeProperties, pageIndex, pageSize);
+            var stations = await _stationService.GetAll(isAscending, orderBy, filterStation, null, includeProperties, pageIndex, pageSize);
             if(stations.Payload == null)
             {
                 result.StatusCode = StatusCode.Ok;

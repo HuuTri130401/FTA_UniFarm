@@ -9,7 +9,7 @@ namespace Capstone.UniFarm.Services.ICustomServices;
 public interface IStationService
 {
     Task<OperationResult<IEnumerable<StationResponse>>> GetAll(bool? isAscending, string? orderBy = null,
-        Expression<Func<Station, bool>>? filter = null, string[]? includeProperties = null, int pageIndex = 0,
+        Expression<Func<Station, bool>>? filter = null, Expression<Func<Order, bool>>? filterOrder = null, string[]? includeProperties = null, int pageIndex = 0,
         int pageSize = 10);
     
     Task<OperationResult<IEnumerable<StationResponse>>> GetAllWithoutPaging(bool? isAscending, string? orderBy = null, Expression<Func<Station, bool>>? filter = null, string[]? includeProperties = null);

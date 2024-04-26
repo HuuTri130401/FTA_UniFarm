@@ -32,23 +32,52 @@ public class StationService : IStationService
         _userManager = userManager;
     }
 
-    public Task<OperationResult<IEnumerable<StationResponse>>> GetAll(bool? isAscending, string? orderBy = null,
-        Expression<Func<Station, bool>>? filter = null, string[]? includeProperties = null,
+    public async Task<OperationResult<IEnumerable<StationResponse>>> GetAll(bool? isAscending, string? orderBy = null,
+        Expression<Func<Station, bool>>? filter = null,
+        Expression<Func<Order, bool>>? filterOrder = null,
+        string[]? includeProperties = null,
         int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<IEnumerable<StationResponse>>();
         try
         {
-            var stations = _unitOfWork.StationRepository.FilterAll(isAscending, orderBy, filter, includeProperties,
-                pageIndex, pageSize);
+            var stations = await _unitOfWork.StationRepository.FilterAll(isAscending, orderBy, filter,
+                includeProperties,
+                pageIndex, pageSize).ToListAsync();
             if (!stations.Any())
             {
                 result.Message = "station not found";
                 result.StatusCode = StatusCode.NotFound;
-                return Task.FromResult(result);
+                return result;
             }
-            
-            result.Payload = _mapper.Map<IEnumerable<StationResponse>>(stations);
+
+            var stationResponse = _mapper.Map<IEnumerable<StationResponse>>(stations);
+            foreach (var station in stationResponse)
+            {
+                Expression<Func<Order, bool>> expression2 = order => order.StationId == station.Id;
+                if (filterOrder != null)
+                {
+                    ParameterExpression parameter = Expression.Parameter(typeof(Order), "Order");
+                    var combinedExpression = Expression.Lambda<Func<Order, bool>>(
+                        Expression.AndAlso(
+                            Expression.Invoke(filterOrder, parameter),
+                            Expression.Invoke(expression2, parameter)
+                        ),
+                        parameter
+                    );
+                    station.TotalOrderPending = _unitOfWork.OrderRepository.GetAllWithoutPaging(false, null,
+                        combinedExpression).ToListAsync().Result.Count;
+                }
+                else
+                {
+                    station.TotalOrderPending = _unitOfWork.OrderRepository.GetAllWithoutPaging(false, null,
+                        x => x.StationId == station.Id
+                             && x.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+                             && x.IsPaid == true).ToListAsync().Result.Count;
+                }
+            }
+
+            result.Payload = stationResponse;
             result.StatusCode = StatusCode.Ok;
         }
         catch (Exception ex)
@@ -58,16 +87,18 @@ public class StationService : IStationService
             throw;
         }
 
-        return Task.FromResult(result);
+        return result;
     }
 
-    public Task<OperationResult<IEnumerable<StationResponse>>> GetAllWithoutPaging(bool? isAscending, string? orderBy = null, Expression<Func<Station, bool>>? filter = null,
+    public Task<OperationResult<IEnumerable<StationResponse>>> GetAllWithoutPaging(bool? isAscending,
+        string? orderBy = null, Expression<Func<Station, bool>>? filter = null,
         string[]? includeProperties = null)
     {
         var result = new OperationResult<IEnumerable<StationResponse>>();
         try
         {
-            var stations = _unitOfWork.StationRepository.GetAllWithoutPaging(isAscending, orderBy, filter, includeProperties);
+            var stations =
+                _unitOfWork.StationRepository.GetAllWithoutPaging(isAscending, orderBy, filter, includeProperties);
             if (!stations.Any())
             {
                 result.Message = "station not found";
@@ -208,7 +239,8 @@ public class StationService : IStationService
         return result;
     }
 
-    public async Task<OperationResult<StationResponse.StationResponseSimple>> Update(Guid id, StationRequestUpdate objectRequestUpdate)
+    public async Task<OperationResult<StationResponse.StationResponseSimple>> Update(Guid id,
+        StationRequestUpdate objectRequestUpdate)
     {
         var result = new OperationResult<StationResponse.StationResponseSimple>();
         try
@@ -250,9 +282,9 @@ public class StationService : IStationService
 
     public async Task<OperationResult<IEnumerable<AboutMeResponse.StaffResponse>>>
         GetStationStaffsData(
-            Guid id, 
-            bool? isAscending, 
-            string? orderBy, 
+            Guid id,
+            bool? isAscending,
+            string? orderBy,
             Expression<Func<Account, bool>>? filter,
             string[]? includeProperties, int pageIndex = 0, int pageSize = 10)
     {
@@ -300,7 +332,7 @@ public class StationService : IStationService
 
         return result;
     }
-    
+
     public async Task<OperationResult<IEnumerable<AboutMeResponse.StaffResponse>>>
         GetStationStaffsNotWorking(
             bool? isAscending,
@@ -355,12 +387,14 @@ public class StationService : IStationService
         return result;
     }
 
-    public async Task<OperationResult<StationResponse.StationDashboardResponse?>?> ShowDashboard(DateTime addDays, DateTime today, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
+    public async Task<OperationResult<StationResponse.StationDashboardResponse?>?> ShowDashboard(DateTime addDays,
+        DateTime today, AboutMeResponse.AboutMeRoleAndID defineUserPayload)
     {
         var result = new OperationResult<StationResponse.StationDashboardResponse?>();
         try
         {
-            var station = await _unitOfWork.StationRepository.GetByIdAsync(Guid.Parse(defineUserPayload.AuthorizationDecision));
+            var station =
+                await _unitOfWork.StationRepository.GetByIdAsync(Guid.Parse(defineUserPayload.AuthorizationDecision));
             if (station == null)
             {
                 result.Message = "Station not found";
@@ -372,23 +406,39 @@ public class StationService : IStationService
                 });
                 return result;
             }
-            
-            var orders = await _unitOfWork.OrderRepository.GetAllWithoutPaging(null, "CreatedAt", x => x.StationId == station.Id && x.CreatedAt.Date <= today.Date && x.CreatedAt >= addDays.Date && x.IsPaid == true, null).ToListAsync();
-            var totalOrderOnTheWayToStation = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString());
-            var totalOrderAtStation = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString());
-            var totalOrderReadyForPickup = orders.Count(x => x.CustomerStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString());
-            var totalOrderStationNotReceived = orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.StationNotReceived.ToString());
-            var totalOrderPickedUp = orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
-            var totalOrderExpired = orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString() || x.DeliveryStatus == EnumConstants.CustomerStatus.Expired.ToString());
-            var totalOrderStaffHandled = orders.Count(x => x.ShipByStationStaffId == defineUserPayload.Id);
-            
-            var transfers = await _unitOfWork.TransferRepository.GetAllWithoutPaging(null, null, x => x.StationId == station.Id && x.CreatedAt <= today.Date && x.CreatedAt >= addDays.Date, null).ToListAsync();
 
-            var totalTransferPending = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Pending.ToString() || x.Status == EnumConstants.StationUpdateTransfer.Resend.ToString());
-            var totalTransferReceived = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Received.ToString());
-            var totalTransferNotReceived = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString());
-            var totalTransferProcessed = transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Processed.ToString());
-            
+            var orders = await _unitOfWork.OrderRepository.GetAllWithoutPaging(null, "CreatedAt",
+                x => x.StationId == station.Id && x.CreatedAt.Date <= today.Date && x.CreatedAt >= addDays.Date &&
+                     x.IsPaid == true, null).ToListAsync();
+            var totalOrderOnTheWayToStation = orders.Count(x =>
+                x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString());
+            var totalOrderAtStation =
+                orders.Count(x => x.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString());
+            var totalOrderReadyForPickup = orders.Count(x =>
+                x.CustomerStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString());
+            var totalOrderStationNotReceived = orders.Count(x =>
+                x.DeliveryStatus == EnumConstants.DeliveryStatus.StationNotReceived.ToString());
+            var totalOrderPickedUp =
+                orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
+            var totalOrderExpired = orders.Count(x =>
+                x.CustomerStatus == EnumConstants.CustomerStatus.Expired.ToString() ||
+                x.DeliveryStatus == EnumConstants.CustomerStatus.Expired.ToString());
+            var totalOrderStaffHandled = orders.Count(x => x.ShipByStationStaffId == defineUserPayload.Id);
+
+            var transfers = await _unitOfWork.TransferRepository.GetAllWithoutPaging(null, null,
+                    x => x.StationId == station.Id && x.CreatedAt <= today.Date && x.CreatedAt >= addDays.Date, null)
+                .ToListAsync();
+
+            var totalTransferPending = transfers.Count(x =>
+                x.Status == EnumConstants.StationUpdateTransfer.Pending.ToString() ||
+                x.Status == EnumConstants.StationUpdateTransfer.Resend.ToString());
+            var totalTransferReceived =
+                transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Received.ToString());
+            var totalTransferNotReceived =
+                transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString());
+            var totalTransferProcessed =
+                transfers.Count(x => x.Status == EnumConstants.StationUpdateTransfer.Processed.ToString());
+
             var stationDashboardResponse = new StationResponse.StationDashboardResponse
             {
                 TotalOrder = orders.Count,
@@ -419,6 +469,5 @@ public class StationService : IStationService
         }
 
         return result;
-
     }
 }

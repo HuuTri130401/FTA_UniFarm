@@ -37,7 +37,6 @@ public class PaymentController : BaseController
     public IActionResult PaymentCallBack()
     {
         var response = _vnPayService.PaymentExecute(Request.Query);
-
         if (response == null || response.VnPayResponseCode != "00")
         {
             return RedirectToAction(nameof(PaymentFail));
