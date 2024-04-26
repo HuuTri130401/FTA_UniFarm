@@ -227,6 +227,10 @@ namespace Capstone.UniFarm.Services.Commons
                 .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order));
 
             CreateMap<Transaction, TransactionResponseContainOrderCode>();
+
+            CreateMap<PriceTable, PriceTableResponse>();
+
+            CreateMap<PriceTableItem, PriceTableItemResponse>();
         }
     }
 }
