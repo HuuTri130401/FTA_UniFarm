@@ -20,6 +20,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(b => b.BusinessDay)
+                .Include(c => c.Collected)
                 .Where(bd => bd.BusinessDayId == businessDayId)
                 .Where(ch => ch.CollectedId == collectedHubId)
                 .OrderByDescending(fs => fs.FarmShipDate)
@@ -62,6 +63,16 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Include(b => b.BusinessDay)
                 .Include(f => f.Collected)
                 .Where(fr => fr.FarmHubId == farmhubId && fr.BusinessDayId == businessDayId)
+                .OrderByDescending(fs => fs.FarmShipDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<Batch>> GetAllBatches(Guid collectedHubId)
+        {
+            return await _dbSet
+                .Include(b => b.BusinessDay)
+                .Include(c => c.Collected)
+                .Where(ch => ch.CollectedId == collectedHubId)
                 .OrderByDescending(fs => fs.FarmShipDate)
                 .ToListAsync();
         }
