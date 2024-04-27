@@ -356,19 +356,27 @@ public class AdminDashboardService : IAdminDashboardService
             var revenueByMonths = new List<AdminDashboardResponse.RevenueByMonth>();
             for (int i = 1; i <= 12; i++)
             {
-                var orders = orderList.Where(x => x.CreatedAt.Month == i).ToList();
+                var orders = orderList.Where(x => x.CreatedAt.Month == i && x.IsPaid == true).ToList();
                 var payments = paymentList.Where(x => x.PaymentDay?.Month == i).ToList();
                 var accountCustomer = accountList.Where(x =>
                     x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.CUSTOMER).ToList();
                 var accountFarmHub = accountList
                     .Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
                 var businessDayIds = orders.Select(x => x.BusinessDayId).ToList();
-                var totalRevenue = _unitOfWork.FarmHubSettlementRepository
-                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId))
-                    .Sum(x => x.TotalSales);
-                var totalBenefit = _unitOfWork.FarmHubSettlementRepository
-                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId))
-                    .Sum(x => x.AmountToBePaid);
+
+                decimal totalRevenue = 0;
+                decimal totalBenefit = 0;
+                foreach (var businessId in businessDayIds)
+                {
+                    var farmHubSettlement = await _unitOfWork.FarmHubSettlementRepository
+                        .FilterByExpression(x => x.BusinessDayId == businessId && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
+                        .FirstOrDefaultAsync();
+                    if (farmHubSettlement != null)
+                    {
+                        totalRevenue += farmHubSettlement.TotalSales;
+                        totalBenefit += farmHubSettlement.AmountToBePaid;
+                    }
+                }
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
                 {
                     Month = i.ToString(),
@@ -376,7 +384,8 @@ public class AdminDashboardService : IAdminDashboardService
                     TotalBenefit = totalBenefit,
                     TotalOrder = orders.Count,
                     TotalOrderSuccess = orders.Count(x =>
-                        x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()),
+                        x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString() 
+                        || x.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()),
                     TotalOrderCancel = orders.Count(x =>
                         x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
                         || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
@@ -708,11 +717,13 @@ public class AdminDashboardService : IAdminDashboardService
             var reportByDays = new List<AdminDashboardResponse.ReportByDays>();
             foreach (var businessDay in businessDays)
             {
-                var orders = _unitOfWork.OrderRepository.FilterByExpression(x => x.BusinessDayId == businessDay.Id).ToList();
-                var totalRevenue = orders.Sum(x => x.TotalAmount ?? 0);
+                var orders = _unitOfWork.OrderRepository.FilterByExpression(x => x.BusinessDayId == businessDay.Id && x.IsPaid == true).ToList();
+                var listFS = _unitOfWork.FarmHubSettlementRepository
+                    .FilterByExpression(x => x.BusinessDayId == businessDay.Id
+                                             && x.PaymentStatus ==
+                                             EnumConstants.FarmHubSettlementPayment.Paid.ToString()).ToList();
                 var totalOrder = orders.Count;
-                var totalOrderSuccess =
-                    orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
+                var totalOrderSuccess = orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
                 var totalOrderCancel = orders.Count(x =>
                     x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
                     || x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
@@ -727,13 +738,9 @@ public class AdminDashboardService : IAdminDashboardService
                     TotalOrderSuccess = totalOrderSuccess,
                     TotalOrderCancel = totalOrderCancel,
                     TotalOrderExpired = totalOrderExpired,
-                    TotalRevenue = totalRevenue,
-                    TotalPayForFarmHub = _unitOfWork.FarmHubSettlementRepository
-                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
-                        .Sum(x => x.Profit),
-                    TotalBenefit = _unitOfWork.FarmHubSettlementRepository
-                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
-                        .Sum(x => x.AmountToBePaid)
+                    TotalRevenue = listFS.Sum(x => x.TotalSales),
+                    TotalPayForFarmHub = listFS.Sum(x => x.Profit),
+                    TotalBenefit = listFS.Sum(x => x.AmountToBePaid)
                 };
                 reportByDays.Add(reportByDay);
             }
