@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
@@ -70,9 +71,9 @@ namespace Capstone.UniFarm.API.Controllers
         [SwaggerOperation(Summary = "CollectedHub Get All Batches - COLLECTED_HUB - {Huu Tri}")]
         [HttpGet("batches/collected-hub/{collectedHubId}")]
         //[Authorize(Roles = "CollectedStaff")]
-        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId)
+        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId, [FromQuery] BatchParameters batchParameters)
         {
-            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId);
+            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId, batchParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

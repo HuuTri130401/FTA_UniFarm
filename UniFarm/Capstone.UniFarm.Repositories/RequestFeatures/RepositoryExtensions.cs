@@ -26,5 +26,14 @@ namespace Capstone.UniFarm.Repositories.RequestFeatures
             var lowerCaseTerm = searchTerm.Trim().ToLower();
             return productItemsInMenu.Where(e => e.ProductItem.Title.ToLower().Contains(lowerCaseTerm));
         }
+
+        //public static IQueryable<Batch> SearchBatches(this IQueryable<Batch> batches,
+        //     string searchTerm)
+        //{
+        //    if (string.IsNullOrWhiteSpace(searchTerm))
+        //        return batches;
+        //    var lowerCaseTerm = searchTerm.Trim().ToLower();
+        //    return batches.Where(e => e.Title.ToLower().Contains(lowerCaseTerm));
+        //}
     }
 }
