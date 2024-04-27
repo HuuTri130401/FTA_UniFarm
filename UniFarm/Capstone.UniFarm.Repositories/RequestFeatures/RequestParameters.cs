@@ -25,13 +25,9 @@ namespace Capstone.UniFarm.Repositories.RequestFeatures
         public string? SearchTerm { get; set; }
     }
 
-    public class ProductItemParameters : RequestParameters
-    {
+    public class ProductItemParameters : RequestParameters { }
 
-    }
+    public class ProductItemInMenuParameters : RequestParameters { }
 
-    public class ProductItemInMenuParameters : RequestParameters
-    {
-
-    }
+    public class BatchParameters : RequestParameters { }
 }

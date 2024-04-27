@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
@@ -63,7 +64,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var listOrdersInBatch = await _unitOfWork.BatchesRepository.GetAllOrdersInBatch(batchId);
 
                 var listOrdersInBatchResponse = _mapper.Map<BatchDetailResponse>(listOrdersInBatch);
-
                 if (listOrdersInBatchResponse == null)
                 {
                     result.AddResponseStatusCode(StatusCode.Ok, $"List Orders with Batch Id {batchId} is Empty!", listOrdersInBatchResponse);
@@ -295,7 +295,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId)
+        public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId)
         {
             var result = new OperationResult<List<BatchResponse>>();
             try
@@ -305,6 +305,28 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (listBatchesResponse == null || !listBatchesResponse.Any())
                 {
                     result.AddResponseStatusCode(StatusCode.Ok, $"List Batches with BusinessDayId: {businessDayId} is Empty!", listBatchesResponse);
+                    return result;
+                }
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List Batches Done.", listBatchesResponse);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in CollectedHubGetAllBatches Service!");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, BatchParameters batchParameters)
+        {
+            var result = new OperationResult<List<BatchResponse>>();
+            try
+            {
+                var listBatches = await _unitOfWork.BatchesRepository.GetAllBatches(collectedHubId, batchParameters);
+                var listBatchesResponse = _mapper.Map<List<BatchResponse>>(listBatches);
+                if (listBatchesResponse == null || !listBatchesResponse.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, $"List Batches is Empty!", listBatchesResponse);
                     return result;
                 }
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Batches Done.", listBatchesResponse);

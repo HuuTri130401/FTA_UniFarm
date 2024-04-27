@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Services.CustomServices;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
@@ -58,12 +59,21 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "CollectedHub Get All Batches - COLLECTED_HUB - {Huu Tri}")]
+        [SwaggerOperation(Summary = "CollectedHub Get All Batches In BusinessDay - COLLECTED_HUB - {Huu Tri}")]
         [HttpGet("batches/collected-hub/{collectedHubId}/business-day/{businessDayId}")]
         //[Authorize(Roles = "CollectedStaff")]
-        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId)
+        public async Task<IActionResult> CollectedHubGetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId)
         {
-            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId, businessDayId);
+            var response = await _batchService.CollectedHubGetAllBatchesInBusinessDay(collectedHubId, businessDayId);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "CollectedHub Get All Batches - COLLECTED_HUB - {Huu Tri}")]
+        [HttpGet("batches/collected-hub/{collectedHubId}")]
+        //[Authorize(Roles = "CollectedStaff")]
+        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId, [FromQuery] BatchParameters batchParameters)
+        {
+            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId, batchParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 

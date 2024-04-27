@@ -1,4 +1,5 @@
 ﻿using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
@@ -20,7 +21,8 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<bool>> CreateBatch(Guid farmHubId, BatchRequest batchRequest);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatches(Guid farmHubId);
         Task<OperationResult<List<BatchResponse>>> FarmHubGetAllBatchesInBusinessDay(Guid farmHubId, Guid businessDayId);
-        Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, Guid businessDayId);
+        Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatchesInBusinessDay(Guid collectedHubId, Guid businessDayId);
+        Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, BatchParameters batchParameters);
         Task<OperationResult<BatchDetailResponse>> GetAllOrdersInBatch(Guid batchId);
     }
 }
