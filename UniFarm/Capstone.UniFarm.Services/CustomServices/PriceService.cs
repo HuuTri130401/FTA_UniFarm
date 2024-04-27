@@ -3,6 +3,7 @@ using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
+using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using Microsoft.Extensions.Logging;
 using System;
@@ -45,6 +46,51 @@ namespace Capstone.UniFarm.Services.CustomServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred in GetAllPrice Service Method");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<bool>> UpdatePrice(Guid priceTableId, PriceTableRequestUpdate priceTableRequestUpdate)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var existingPriceTable = await _unitOfWork.PriceTableRepository.GetByIdAsync(priceTableId);
+                if (existingPriceTable != null)
+                {
+                    if (priceTableRequestUpdate.Name != null)
+                    {
+                        existingPriceTable.Name = priceTableRequestUpdate.Name;
+                    }
+                    if (priceTableRequestUpdate.FromDate != null)
+                    {
+                        existingPriceTable.FromDate = (DateTime)priceTableRequestUpdate.FromDate;
+                    }
+                    if (priceTableRequestUpdate.ToDate != null)
+                    {
+                        existingPriceTable.ToDate = (DateTime)priceTableRequestUpdate.ToDate;
+                    }
+                    _unitOfWork.PriceTableRepository.Update(existingPriceTable);
+
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.NoContent, $"Update Price Table have Id: {priceTableId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Update Price Table Failed!"); ;
+                    }
+                } 
+                else
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found Price Table with Id: {priceTableId}");
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred in UpdatePrice Service Method");
                 throw;
             }
         }
