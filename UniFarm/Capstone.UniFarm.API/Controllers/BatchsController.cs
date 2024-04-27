@@ -68,12 +68,20 @@ namespace Capstone.UniFarm.API.Controllers
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
-        [SwaggerOperation(Summary = "CollectedHub Get All Batches - COLLECTED_HUB - {Huu Tri}")]
-        [HttpGet("batches/collected-hub/{collectedHubId}")]
-        //[Authorize(Roles = "CollectedStaff")]
-        public async Task<IActionResult> CollectedHubGetAllBatches(Guid collectedHubId, [FromQuery] BatchParameters batchParameters)
+        [SwaggerOperation(Summary = "CollectedHub Get All Batches - CollectedStaff - {Huu Tri}")]
+        [HttpGet("batches/collected-hub")]
+        [Authorize(Roles = "CollectedStaff")]
+        public async Task<IActionResult> CollectedHubGetAllBatches([FromQuery] BatchParameters batchParameters)
         {
-            var response = await _batchService.CollectedHubGetAllBatches(collectedHubId, batchParameters);
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+            string token = authHeader.Replace("Bearer ", "");
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+            var response = await _batchService.CollectedHubGetAllBatches(Guid.Parse(defineUser.Payload.AuthorizationDecision), batchParameters);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
 
