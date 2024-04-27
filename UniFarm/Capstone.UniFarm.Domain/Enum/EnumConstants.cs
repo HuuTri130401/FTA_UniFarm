@@ -263,4 +263,11 @@ public abstract record EnumConstants
     {
         public const string AdminWalletId = "5D76359B-9CD8-40D5-88E0-5F3498D49718";
     }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FarmHubSettlementPayment
+    {
+        Pending,
+        Paid
+    }
 }
