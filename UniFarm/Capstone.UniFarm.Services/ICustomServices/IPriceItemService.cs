@@ -1,6 +1,5 @@
 ﻿using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
-using Capstone.UniFarm.Services.ViewModels.ModelResponses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace Capstone.UniFarm.Services.ICustomServices
 {
-    public interface IPriceService
+    public interface IPriceItemService
     {
-        Task<OperationResult<List<PriceTableResponse>>> GetAllPrice();
-        Task<OperationResult<bool>> UpdatePrice(Guid priceTableId, PriceTableRequestUpdate priceTableRequestUpdate);
+        Task<OperationResult<bool>> UpdatePriceItem(Guid priceItemId, PriceTableItemRequestUpdate priceTableItemRequestUpdate);
     }
 }

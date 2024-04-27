@@ -77,17 +77,5 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .FirstOrDefaultAsync(pi => pi.Id == productItemId &&
                 pi.ProductItemInMenus.Any(pim => pim.MenuId == menuId));
         }
-
-        public async Task<List<ProductItem>> SearchProductItems(ProductItemParameters productItemParameters)
-        {
-            var productItems = await _dbSet
-                .SearchProductItems(productItemParameters.SearchTerm)
-                .Where(p => p.Status == "Selling")
-                .Include(pi => pi.ProductImages)
-                .ToListAsync();
-            var count = _dbSet.Count();
-            return PagedList<ProductItem>
-                .ToPagedList(productItems, count, productItemParameters.PageNumber, productItemParameters.PageSize);
-        }
     }
 }

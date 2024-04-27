@@ -229,8 +229,10 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Transaction, TransactionResponseContainOrderCode>();
 
             CreateMap<PriceTable, PriceTableResponse>();
+            CreateMap<PriceTable, PriceTableRequestUpdate>();
 
             CreateMap<PriceTableItem, PriceTableItemResponse>();
+            CreateMap<PriceTableItem, PriceTableItemRequestUpdate>();
         }
     }
 }

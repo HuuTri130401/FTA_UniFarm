@@ -42,8 +42,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
-                var existingProductItem =
-                    await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenuRequest.ProductItemId);
+                var existingProductItem = await _unitOfWork.ProductItemRepository
+                    .GetByIdAsync(productItemInMenuRequest.ProductItemId);
                 if (existingProductItem == null)
                 {
                     result.AddError(StatusCode.NotFound,
@@ -60,13 +60,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        //var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
-                        //if (productItemsInMenu.Any(p => p.ProductItemId == productItemInMenuRequest.ProductItemId))
-                        //{
-                        //    result.AddError(StatusCode.BadRequest, $"Product Item have Id: {productItemInMenuRequest.ProductItemId} already exists in the menu!");
-                        //    return result;
-                        //}
-
                         productItemInMenuRequest.ProductItemId = existingProductItem.Id;
                         var productItemInMenu = _mapper.Map<ProductItemInMenu>(productItemInMenuRequest);
                         productItemInMenu.MenuId = menuId;
@@ -90,7 +83,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                         }
                     }
                 }
-
                 return result;
             }
             catch (Exception)
@@ -128,35 +120,6 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        //public async Task<OperationResult<List<ProductItemInMenuResponseForCustomer>>> GetProductItemsByMenuIdForCustomer(Guid menuId)
-        //{
-        //    var result = new OperationResult<List<ProductItemInMenuResponseForCustomer>>();
-        //    try
-        //    {
-        //        var listProductItemsInMenu =
-        //            await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
-        //        var productItemsInMenuIsActive = listProductItemsInMenu.Where(pi => pi.Status != "Inactive").ToList();
-        //        var listProductItemsInMenuResponse =
-        //            _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenuIsActive);
-
-        //        if (listProductItemsInMenuResponse == null || !listProductItemsInMenuResponse.Any())
-        //        {
-        //            result.AddResponseStatusCode(StatusCode.Ok,
-        //                $"List Product Items In Menu with Menu Id {menuId} is Empty!", listProductItemsInMenuResponse);
-        //            return result;
-        //        }
-
-        //        result.AddResponseStatusCode(StatusCode.Ok, "Get List Product Items In Menu Done.",
-        //            listProductItemsInMenuResponse);
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"Error occurred in GetProductItemsByMenuIdForCustomer Service Method");
-        //        throw;
-        //    }
-        //}
-
         public async Task<OperationResult<bool>> RemoveProductItemFromMenu(Guid productItemInMenuId)
         {
             var result = new OperationResult<bool>();
@@ -174,9 +137,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                     {
                         var productItemId = existingProductItemInMenu.ProductItemId;
                         // check product item belong to orther menu ?
-                        var otherMenusForProduct =
-                            await _unitOfWork.ProductItemInMenuRepository.FindStatusProductItem(p =>
-                                p.ProductItemId == productItemId && p.Status != "Inactive");
+                        var otherMenusForProduct = await _unitOfWork
+                            .ProductItemInMenuRepository
+                            .FindStatusProductItem(p => p.ProductItemId == productItemId
+                                                        && p.Status != "Inactive");
                         var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
                         var existingProductItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemId);
                         existingProductItem.Status = newStatus;
@@ -198,7 +162,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddResponseStatusCode(StatusCode.NotFound,
                         $"Can't find Product Item In Menu have Id: {productItemInMenuId}. Delete Faild!.", false);
                 }
-
                 return result;
             }
             catch (Exception)
@@ -226,7 +189,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
-
                 var productItemsInMenu =
                     await _unitOfWork.ProductItemInMenuRepository
                         .GetAllWithoutPaging(null, null, x => x.MenuId == menu.Id).ToListAsync();
@@ -253,7 +215,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                         result.IsError = true;
                         return result;
                     }
-
 
                     var soldPercent = productItemInMenu.Quantity == 0 || productItemInMenu.Sold == 0
                         ? 0

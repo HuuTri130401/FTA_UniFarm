@@ -253,6 +253,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         result.AddError(StatusCode.BadRequest, "Update Category Failed!"); ;
                     }
                 }
+                else
+                {
+                    result.AddError(StatusCode.NotFound, $"Can't found Category with Id: {categoryId}");
+                }
                 return result;
             }
             catch (Exception)
