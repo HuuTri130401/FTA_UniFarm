@@ -195,12 +195,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddResponseStatusCode(StatusCode.Ok, "List BusinessDays is Empty!", businessDayResponses);
                     return result;
                 }
-                result.AddResponseStatusCode(StatusCode.Ok, "List BusinessDays is Empty!", businessDayResponses);
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List BusinessDays Done!", businessDayResponses);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetAllBusinessDay Service Method");
+                _logger.LogError(ex, "Error occurred in GetAllBusinessDays Service Method");
                 throw;
             }
         }

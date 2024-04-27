@@ -263,11 +263,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 else if (productItem.Status != "Inactive")
                 {
-                    //var tmp = new ProductItemResponse
-                    //{
-                    //    Price = (decimal)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).SalePrice,
-                    //    Quantity = (double)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).Quantity,
-                    //};
                     productItem.Price = (decimal)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).SalePrice;
                     productItem.Quantity = (double)productItem.ProductItemInMenus.FirstOrDefault(pim => pim.MenuId == menuId).Quantity;
                     var productItemResponse = _mapper.Map<ProductItemResponse>(productItem);

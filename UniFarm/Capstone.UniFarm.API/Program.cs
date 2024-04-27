@@ -174,6 +174,7 @@ try
     builder.Services.AddScoped<IVnPayService, VnPayService>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
     builder.Services.AddScoped<IPriceService, PriceService>();
+    builder.Services.AddScoped<IPriceItemService, PriceItemService>();
     
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
