@@ -757,6 +757,7 @@ public class OrderService : IOrderService
                     {
                         productItemResponse.ImageUrl = productImage.ImageUrl;
                     }
+
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
@@ -1200,6 +1201,7 @@ public class OrderService : IOrderService
                     {
                         productItemResponse.ImageUrl = productImage.ImageUrl;
                     }
+
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
@@ -1326,7 +1328,7 @@ public class OrderService : IOrderService
                     return result;
                 }
             }
-            
+
             order.CustomerStatus = EnumConstants.CustomerStatus.CanceledByCustomer.ToString();
             order.UpdatedAt = DateTime.Now;
             await _unitOfWork.OrderRepository.UpdateAsync(order);
@@ -1341,7 +1343,7 @@ public class OrderService : IOrderService
                 result.IsError = true;
                 return result;
             }
-            
+
             var transaction = await _unitOfWork.TransactionRepository.FilterByExpression(x => x.OrderId == orderId)
                 .FirstOrDefaultAsync();
             if (transaction != null)
@@ -1349,7 +1351,7 @@ public class OrderService : IOrderService
                 transaction.TransactionType = EnumConstants.TransactionEnum.Refund.ToString();
                 await _unitOfWork.TransactionRepository.UpdateAsync(transaction);
                 var countTransaction = await _unitOfWork.SaveChangesAsync();
-                
+
                 if (countTransaction == 0)
                 {
                     result.Errors.Add(new Error()
@@ -1361,7 +1363,7 @@ public class OrderService : IOrderService
                     return result;
                 }
             }
-            
+
             var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(order.FarmHubId);
             var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
             var businessDay = await _unitOfWork.BusinessDayRepository
@@ -1369,13 +1371,13 @@ public class OrderService : IOrderService
                 .FirstOrDefaultAsync();
             var station = await _unitOfWork.StationRepository.FilterByExpression(x => x.Id == order.StationId)
                 .FirstOrDefaultAsync();
-            
+
             var stationResponse = new StationResponse.StationResponseSimple();
             if (station != null)
             {
                 stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
             }
-            
+
             var orderDetailResponses = new List<OrderDetailResponseForCustomer>();
             foreach (var item in orderDetails)
             {
@@ -1394,7 +1396,7 @@ public class OrderService : IOrderService
                 };
                 orderDetailResponses.Add(orderDetailResponse);
             }
-            
+
             var orderResponse = new OrderResponse.OrderResponseForCustomer()
             {
                 Id = order.Id,
@@ -1433,5 +1435,72 @@ public class OrderService : IOrderService
         }
 
         return result;
+    }
+
+    public async Task<OperationResult<IEnumerable<TrackingOrderResponse>>> TrackingOrder(Guid orderId, Guid payloadId)
+    {
+        var result = new OperationResult<IEnumerable<TrackingOrderResponse>>();
+        try
+        {
+            var order = _unitOfWork.OrderRepository
+                .FilterByExpression(x => x.Id == orderId && x.CustomerId == payloadId)
+                .FirstOrDefault();
+            if (order == null)
+            {
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Không tìm thấy đơn hàng!"
+                });
+                result.IsError = true;
+                return result;
+            }
+
+            var trackingOrderResponses = HandleTrackingOrder(order);
+            result.Payload = trackingOrderResponses;
+            result.StatusCode = StatusCode.Ok;
+            result.IsError = false;
+            result.Message = "Lấy thông tin đơn hàng thành công!";
+        }
+        catch (Exception e)
+        {
+            result.Errors.Add(new Error()
+            {
+                Code = StatusCode.ServerError,
+                Message = "Lấy thông tin đơn hàng thất bại!"
+            });
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
+
+    private IEnumerable<TrackingOrderResponse>? HandleTrackingOrder(Order order)
+    {
+        /*// Đơn hàng đã xác nhận lúc
+        var confirmed = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã được duyệt!",
+            OrderStatus = EnumConstants.DeliveryStatus.Confirmed,
+            UpdatedAt = null
+        };
+
+        // Đơn hàng đang được vận chuyển đến kho
+        var atTheWayStation = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đang được vận chuyển đến kho!",
+            OrderStatus = EnumConstants.DeliveryStatus.AtStation,
+            UpdatedAt = null
+        };
+
+
+        var trackingOrderResponses = new List<TrackingOrderResponse>();
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString())
+        {
+        }
+    }*/
+        return null;
     }
 }

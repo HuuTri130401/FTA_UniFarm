@@ -33,4 +33,5 @@ public interface IOrderService
     
     Task<OperationResult<IEnumerable<OrderResponse.OrderResponseForCustomer?>?>> Checkout(Guid customerId, CreateOrderRequest request);
     Task<OperationResult<OrderResponse.OrderResponseForCustomer>> CancelOrderByCustomer(Guid orderId, Guid payloadId);
+    Task<OperationResult<IEnumerable<TrackingOrderResponse>>> TrackingOrder(Guid orderId, Guid payloadId);
 }

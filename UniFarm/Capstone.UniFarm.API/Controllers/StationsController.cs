@@ -269,7 +269,6 @@ public class StationsController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
 
-    //API reponse notification for station staff
     [HttpGet("station/notifications/aboutTransfer")]
     [SwaggerOperation(Summary = "Get all notifications for station staff - Done {Tien}")]
     [Authorize(Roles = "StationStaff")]

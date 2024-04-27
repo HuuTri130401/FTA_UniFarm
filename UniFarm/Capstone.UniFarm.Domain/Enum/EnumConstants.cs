@@ -41,7 +41,8 @@ public abstract record EnumConstants
         StationNotReceived, // Station không nhận được đơn hàng
         ReadyForPickup, // Đơn hàng sẵn sàng để khách hàng đến nhận
         PickedUp, // Đơn hàng đã được khách hàng nhận
-        Expired // Đơn hàng đã hết hạn
+        Expired, // Đơn hàng đã hết hạn,
+        Confirmed // Đơn hàng đã được xác nhận
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
