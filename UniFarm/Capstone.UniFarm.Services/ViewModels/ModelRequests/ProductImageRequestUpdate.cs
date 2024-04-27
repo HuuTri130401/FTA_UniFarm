@@ -10,7 +10,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public class ProductImageRequestUpdate
     {
-        public Guid? ProductId { get; set; }
+        public Guid? ProductItemId { get; set; }
         public IFormFile? ImageUrl { get; set; }
     }
 }

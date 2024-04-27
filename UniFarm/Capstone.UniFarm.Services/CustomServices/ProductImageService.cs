@@ -166,12 +166,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var imageUrl = await _cloudinaryService.UploadImageAsync(productImageRequestUpdate.ImageUrl);
                         existingProductImage.ImageUrl = imageUrl;
                     }
-                    if (productImageRequestUpdate.ProductId != null)
+                    if (productImageRequestUpdate.ProductItemId != null)
                     {
-                        var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync((Guid)productImageRequestUpdate.ProductId);
+                        var existingProduct = await _unitOfWork.ProductItemRepository.GetByIdAsync((Guid)productImageRequestUpdate.ProductItemId);
                         if (existingProduct == null)
                         {
-                            result.AddError(StatusCode.BadRequest, "Product Image must belong to a product to update!");
+                            result.AddError(StatusCode.BadRequest, "Product Image must belong to a product item to update!");
                             return result;
                         }
                     }
