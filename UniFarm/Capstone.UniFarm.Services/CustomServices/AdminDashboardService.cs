@@ -710,7 +710,9 @@ public class AdminDashboardService : IAdminDashboardService
             foreach (var businessDay in businessDays)
             {
                 var orders = _unitOfWork.OrderRepository.FilterByExpression(x => x.BusinessDayId == businessDay.Id && x.IsPaid == true).ToList();
-                var totalRevenue = orders.Where(x =>x.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString() || x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()).Sum(x => x.TotalAmount ?? 0);
+                var totalRevenue = _unitOfWork.FarmHubSettlementRepository
+                    .FilterByExpression(x => x.BusinessDayId == businessDay.Id && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
+                    .Sum(x => x.TotalSales);
                 var totalOrder = orders.Count;
                 var totalOrderSuccess =
                     orders.Count(x => x.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString());
@@ -730,10 +732,10 @@ public class AdminDashboardService : IAdminDashboardService
                     TotalOrderExpired = totalOrderExpired,
                     TotalRevenue = totalRevenue,
                     TotalPayForFarmHub = _unitOfWork.FarmHubSettlementRepository
-                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
+                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
                         .Sum(x => x.Profit),
                     TotalBenefit = _unitOfWork.FarmHubSettlementRepository
-                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id)
+                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id  && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
                         .Sum(x => x.AmountToBePaid)
                 };
                 reportByDays.Add(reportByDay);
