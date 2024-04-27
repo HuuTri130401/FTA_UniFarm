@@ -1,6 +1,7 @@
 ﻿using Capstone.UniFarm.Domain.Data;
 using Capstone.UniFarm.Domain.Models;
 using Capstone.UniFarm.Repositories.IRepository;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -67,14 +68,17 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .ToListAsync();
         }
 
-        public async Task<List<Batch>> GetAllBatches(Guid collectedHubId)
+        public async Task<List<Batch>> GetAllBatches(Guid collectedHubId, BatchParameters batchParameters)
         {
-            return await _dbSet
+            var batches = await _dbSet
                 .Include(b => b.BusinessDay)
                 .Include(c => c.Collected)
                 .Where(ch => ch.CollectedId == collectedHubId)
                 .OrderByDescending(fs => fs.FarmShipDate)
                 .ToListAsync();
+            var count = _dbSet.Count();
+            return PagedList<Batch>
+                .ToPagedList(batches, count, batchParameters.PageNumber, batchParameters.PageSize);
         }
     }
 }

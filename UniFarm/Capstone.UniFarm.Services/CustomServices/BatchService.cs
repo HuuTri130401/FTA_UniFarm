@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Domain.Models;
+using Capstone.UniFarm.Repositories.RequestFeatures;
 using Capstone.UniFarm.Repositories.UnitOfWork;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ICustomServices;
@@ -316,12 +317,12 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId)
+        public async Task<OperationResult<List<BatchResponse>>> CollectedHubGetAllBatches(Guid collectedHubId, BatchParameters batchParameters)
         {
             var result = new OperationResult<List<BatchResponse>>();
             try
             {
-                var listBatches = await _unitOfWork.BatchesRepository.GetAllBatches(collectedHubId);
+                var listBatches = await _unitOfWork.BatchesRepository.GetAllBatches(collectedHubId, batchParameters);
                 var listBatchesResponse = _mapper.Map<List<BatchResponse>>(listBatches);
                 if (listBatchesResponse == null || !listBatchesResponse.Any())
                 {
