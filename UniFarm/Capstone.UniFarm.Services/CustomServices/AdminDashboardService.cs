@@ -363,12 +363,20 @@ public class AdminDashboardService : IAdminDashboardService
                 var accountFarmHub = accountList
                     .Where(x => x.CreatedAt.Month == i && x.RoleName == EnumConstants.RoleEnumString.FARMHUB).ToList();
                 var businessDayIds = orders.Select(x => x.BusinessDayId).ToList();
-                var totalRevenue = _unitOfWork.FarmHubSettlementRepository
-                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId) && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
-                    .Sum(x => x.TotalSales);
-                var totalBenefit = _unitOfWork.FarmHubSettlementRepository
-                    .FilterByExpression(x => businessDayIds.Contains(x.BusinessDayId) && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
-                    .Sum(x => x.AmountToBePaid);
+
+                decimal totalRevenue = 0;
+                decimal totalBenefit = 0;
+                foreach (var businessId in businessDayIds)
+                {
+                    var farmHubSettlement = await _unitOfWork.FarmHubSettlementRepository
+                        .FilterByExpression(x => x.BusinessDayId == businessId && x.PaymentStatus == EnumConstants.FarmHubSettlementPayment.Paid.ToString())
+                        .FirstOrDefaultAsync();
+                    if (farmHubSettlement != null)
+                    {
+                        totalRevenue += farmHubSettlement.TotalSales;
+                        totalBenefit += farmHubSettlement.AmountToBePaid;
+                    }
+                }
                 var revenueByMonth = new AdminDashboardResponse.RevenueByMonth()
                 {
                     Month = i.ToString(),
