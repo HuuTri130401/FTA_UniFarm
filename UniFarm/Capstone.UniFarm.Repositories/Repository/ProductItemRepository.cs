@@ -44,6 +44,7 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .Where(p => p.ProductId == productId)
                 .Include(pim => pim.ProductItemInMenus)
                 .Include(pi => pi.ProductImages)
+                .Include(f => f.FarmHub)
                 .ToListAsync();
         }
 
