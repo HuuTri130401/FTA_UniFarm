@@ -268,4 +268,26 @@ public class StationsController : BaseController
             await _stationService.ShowDashboard(DateTime.Now.AddDays(-dayBack), DateTime.Now, defineUser.Payload);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
     }
+
+    //API reponse notification for station staff
+    [HttpGet("station/notifications/aboutTransfer")]
+    [SwaggerOperation(Summary = "Get all notifications for station staff - Done {Tien}")]
+    [Authorize(Roles = "StationStaff")]
+    public async Task<IActionResult> GetNotificationsForStationStaff(
+        [FromQuery] int? pageIndex = 0,
+        [FromQuery] int? pageSize = 10)
+    {
+        string authHeader = HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Unauthorized();
+        }
+
+        string token = authHeader.Replace("Bearer ", "");
+        var defineUser = _accountService.GetIdAndRoleFromToken(token);
+        if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+        
+        var response = await _stationService.GetNotificationsForStationStaff(defineUser.Payload, pageIndex ?? 0, pageSize ?? 10);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+    }
 }

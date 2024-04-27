@@ -43,4 +43,6 @@ public interface IStationService
             int pageSize = 10);
 
     Task<OperationResult<StationResponse.StationDashboardResponse?>?> ShowDashboard(DateTime addDays, DateTime now, AboutMeResponse.AboutMeRoleAndID defineUserPayload);
+    
+    Task<OperationResult<IEnumerable<StationNotificationResponse?>?>> GetNotificationsForStationStaff(AboutMeResponse.AboutMeRoleAndID defineUserPayload, int pageIndex, int pageSize);
 }

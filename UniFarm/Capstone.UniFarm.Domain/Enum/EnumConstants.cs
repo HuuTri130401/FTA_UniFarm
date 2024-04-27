@@ -270,4 +270,23 @@ public abstract record EnumConstants
         Pending,
         Paid
     }
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum NotificationType
+    {
+        Order,
+        OrderDetail,
+        ProductItemInMenu,
+        ProductItem,
+        FarmHub,
+        Cart,
+        Station,
+        BusinessDay,
+        Transfer,
+        Pending,
+        Received,
+        NotReceived,
+        Processed,
+        Resend
+    }
 }

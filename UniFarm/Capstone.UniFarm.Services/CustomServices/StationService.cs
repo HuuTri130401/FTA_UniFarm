@@ -470,4 +470,106 @@ public class StationService : IStationService
 
         return result;
     }
+
+    public async Task<OperationResult<IEnumerable<StationNotificationResponse?>?>> GetNotificationsForStationStaff(
+        AboutMeResponse.AboutMeRoleAndID defineUserPayload, int pageIndex, int pageSize)
+    {
+        var result = new OperationResult<IEnumerable<StationNotificationResponse?>?>();
+        try
+        {
+            var station =
+                await _unitOfWork.StationRepository.GetByIdAsync(Guid.Parse(defineUserPayload.AuthorizationDecision));
+            if (station == null)
+            {
+                result.Message = "Station not found";
+                result.StatusCode = StatusCode.NotFound;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.NotFound,
+                    Message = "Station not found"
+                });
+                return result;
+            }
+
+            var transfer = await _unitOfWork.TransferRepository.FilterAll(false, "CreatedAt",
+                x => x.StationId == station.Id 
+                     /*&& (x.Status != EnumConstants.StationUpdateTransfer.Received.ToString() ||
+                      x.Status != EnumConstants.StationUpdateTransfer.NotReceived.ToString())*/
+                ,
+                null, pageIndex, pageSize).ToListAsync();
+
+            var response = new List<StationNotificationResponse>();
+            foreach (var item in transfer)
+            {
+                var title = "";
+                var content = "";
+                var type = EnumConstants.NotificationType.Transfer;
+                if (item.UpdatedAt != null || item.ReceivedDate != null)
+                {
+                    content = item.Status == EnumConstants.StationUpdateTransfer.Pending.ToString()
+                        ?
+                        "Chuyến hàng " + item.Code + " đang được gửi đến trạm!"
+                        : item.Status == EnumConstants.StationUpdateTransfer.Received.ToString()
+                            ? "Đã nhận chuyến hàng " + item.Code + " ở trạm!"
+                            : item.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString()
+                                ? "Không nhận được chuyến hàng " + item.Code + " !"
+                                : item.Status == EnumConstants.StationUpdateTransfer.Resend.ToString()
+                                    ? "Chuyến hàng " + item.Code + " đã gửi lại và đang vận chuyển đến trạm!"
+                                    : "Chuyến hàng " + item.Code + " đã được xử lý!";
+                    title = item.Status == EnumConstants.StationUpdateTransfer.Pending.ToString()
+                        ? EnumConstants.NotificationType.Pending.ToString()
+                        : item.Status == EnumConstants.StationUpdateTransfer.Resend.ToString()
+                            ? EnumConstants.NotificationType.Resend.ToString()
+                            : item.Status == EnumConstants.StationUpdateTransfer.Received.ToString()
+                                ? EnumConstants.NotificationType.Received.ToString()
+                                : item.Status == EnumConstants.StationUpdateTransfer.NotReceived.ToString()
+                                    ? EnumConstants.NotificationType.NotReceived.ToString()
+                                    : item.Status == EnumConstants.NotificationType.Processed.ToString()
+                                        ? EnumConstants.NotificationType.Processed.ToString()
+                                        : EnumConstants.NotificationType.Transfer.ToString();
+                    var notification = new StationNotificationResponse
+                    {
+                        StationId = item.StationId,
+                        Title = title,
+                        Content = content,
+                        UpdatedAt = item.UpdatedAt ?? item.ReceivedDate ?? DateTime.Now,
+                        Code = item.Code ?? "EMPTY",
+                        NotificationType = EnumConstants.NotificationType.Transfer
+                    };
+                    response.Add(notification);
+                }
+
+                if (item.CreatedAt != null)
+                {
+                    content = "Chuyến hàng mới mã " + item.Code + " đang được vận chuyển đến trạm!";
+                    title = EnumConstants.NotificationType.Pending.ToString();
+                    var notification = new StationNotificationResponse
+                    {
+                        StationId = item.StationId,
+                        Title = title,
+                        Content = content,
+                        UpdatedAt = item.CreatedAt ??
+                                    item.UpdatedAt ?? item.ReceivedDate ?? item.ExpectedReceiveDate ?? DateTime.Now,
+                        Code = item.Code ?? "EMPTY",
+                        NotificationType = EnumConstants.NotificationType.Transfer
+                    };
+                    response.Add(notification);
+                }
+            }
+
+            result.Payload = response;
+            result.StatusCode = StatusCode.Ok;
+            result.Message = "Get notifications success";
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError("Get notifications error " + ex.Message);
+            result.StatusCode = StatusCode.ServerError;
+            result.IsError = true;
+            throw;
+        }
+
+        return result;
+    }
 }
