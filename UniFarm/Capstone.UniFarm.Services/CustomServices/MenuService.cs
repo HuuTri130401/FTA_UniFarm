@@ -48,7 +48,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 DateTime currentDate = DateTime.UtcNow.AddHours(7);
-                
+
                 // Check currentDate beetween [RegiterDay - EndOfRegister] 
                 if (currentDate < businessDay.RegiterDay || currentDate > businessDay.EndOfRegister)
                 {
@@ -72,7 +72,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                             productItem.Status = "Selling";
                             _unitOfWork.ProductItemRepository.Update(productItem);
                             var checkSaveStatusProductItem = _unitOfWork.Save();
-                            if(checkSaveStatusProductItem > 0)
+                            if (checkSaveStatusProductItem > 0)
                             {
                                 result.AddResponseStatusCode(StatusCode.Ok, "Menu assigned to BusinessDay successfully!", true);
                             }
@@ -100,6 +100,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
                 if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                 {
+                    var existingMenuName = await _unitOfWork
+                            .MenuRepository
+                            .GetSingleOrDefaultMenuAsync(c => c.Name == menuRequest.Name && c.FarmHubId == (Guid)accountRoleInfor.FarmHubId);
+
+                    if (existingMenuName != null)
+                    {
+                        result.AddError(StatusCode.BadRequest, $"Menu name: {existingMenuName.Name} of FarmHub has FarmHubId: {existingMenuName.FarmHubId} already exists!");
+                        return result;
+                    }
                     var menu = _mapper.Map<Menu>(menuRequest);
                     menu.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                     menu.Status = "Preparing";
@@ -225,18 +234,28 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> UpdateMenu(Guid menuId, MenuRequestUpdate menuRequestUpdate)
+        public async Task<OperationResult<bool>> UpdateMenu(Guid farmHubAccountId, Guid menuId, MenuRequestUpdate menuRequestUpdate)
         {
             var result = new OperationResult<bool>();
             try
             {
                 var existingMenu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
 
                 if (existingMenu != null)
                 {
                     bool isAnyFieldUpdated = false;
                     if (menuRequestUpdate.Name != null)
                     {
+                        var existingMenuName = await _unitOfWork
+                                .MenuRepository
+                                .GetSingleOrDefaultMenuAsync(c => c.Name == menuRequestUpdate.Name && c.FarmHubId == (Guid)accountRoleInfor.FarmHubId);
+
+                        if (existingMenuName != null)
+                        {
+                            result.AddError(StatusCode.BadRequest, $"Menu name: {existingMenuName.Name} of FarmHub has FarmHubId: {existingMenuName.FarmHubId} already exists!");
+                            return result;
+                        }
                         existingMenu.Name = menuRequestUpdate.Name;
                         isAnyFieldUpdated = true;
                     }
@@ -245,22 +264,6 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingMenu.Tag = menuRequestUpdate.Tag;
                         isAnyFieldUpdated = true;
                     }
-                    //if (menuRequestUpdate.FarmHubId != null)
-                    //{
-                    //    var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)menuRequestUpdate.FarmHubId);
-                    //    if (existingFarmHub == null)
-                    //    {
-                    //        result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update!");
-                    //        return result;
-                    //    }
-                    //    isAnyFieldUpdated = true;
-                    //}
-
-                    //if (menuRequestUpdate.Status != null && (menuRequestUpdate.Status == "Active" || menuRequestUpdate.Status == "Inactive"))
-                    //{
-                    //    existingMenu.Status = menuRequestUpdate.Status;
-                    //    isAnyFieldUpdated = true;
-                    //}
 
                     if (isAnyFieldUpdated)
                     {

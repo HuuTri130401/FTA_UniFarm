@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -82,6 +83,11 @@ namespace Capstone.UniFarm.Repositories.Repository
         public async Task<List<Menu>> GetAllMenuInCurrentBusinessDay(Guid businessDayId)
         {
             return await _dbSet.Where(b => b.BusinessDayId == businessDayId).ToListAsync();
+        }
+
+        public async Task<Menu> GetSingleOrDefaultMenuAsync(Expression<Func<Menu, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).FirstOrDefaultAsync();
         }
     }
 }
