@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Capstone.UniFarm.Domain.Enum;
 using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 using Microsoft.EntityFrameworkCore;
 
@@ -94,17 +95,21 @@ namespace Capstone.UniFarm.Services.CustomServices
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
                     {
-                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete BusinessDay have Id: {businessDayId} Success.", true);
+                        result.AddResponseStatusCode(StatusCode.Ok,
+                            $"Delete BusinessDay have Id: {businessDayId} Success.", true);
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Delete BusinessDay Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Delete BusinessDay Failed!");
+                        ;
                     }
                 }
                 else
                 {
-                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find BusinessDay have Id: {businessDayId}. Delete Faild!.", false);
+                    result.AddResponseStatusCode(StatusCode.NotFound,
+                        $"Can't find BusinessDay have Id: {businessDayId}. Delete Faild!.", false);
                 }
+
                 return result;
             }
             catch (Exception)
@@ -121,7 +126,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
                 if (businessDay != null)
                 {
-                    if(businessDay.Status == "Active")
+                    if (businessDay.Status == "Active")
                     {
                         businessDay.Status = "StopSellingDay";
                         businessDay.StopSellingDay = DateTime.UtcNow.AddHours(7);
@@ -129,22 +134,26 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
                         {
-                            result.AddResponseStatusCode(StatusCode.Ok, $"Stop Selling BusinessDay have Id: {businessDayId} Success.", true);
+                            result.AddResponseStatusCode(StatusCode.Ok,
+                                $"Stop Selling BusinessDay have Id: {businessDayId} Success.", true);
                         }
                         else
                         {
-                            result.AddError(StatusCode.BadRequest, "Stop Selling BusinessDay Failed!"); 
+                            result.AddError(StatusCode.BadRequest, "Stop Selling BusinessDay Failed!");
                         }
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Stop Selling in BusinessDay Only Update Status Active!");
+                        result.AddError(StatusCode.BadRequest,
+                            "Stop Selling in BusinessDay Only Update Status Active!");
                     }
                 }
                 else
                 {
-                    result.AddResponseStatusCode(StatusCode.NotFound, $"Can't find BusinessDay have Id: {businessDayId}. Stop Selling BusinessDay Faild!.", false);
+                    result.AddResponseStatusCode(StatusCode.NotFound,
+                        $"Can't find BusinessDay have Id: {businessDayId}. Stop Selling BusinessDay Faild!.", false);
                 }
+
                 return result;
             }
             catch (Exception)
@@ -153,13 +162,17 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId, Guid businessDayId)
+        public async Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId,
+            Guid businessDayId)
         {
             var result = new OperationResult<BusinessDayResponse>();
             try
             {
-                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
-                var businessDay = await _unitOfWork.BusinessDayRepository.FarmHubGetBusinessDayByIdAsync((Guid)accountRoleInfor.FarmHubId, businessDayId);
+                var accountRoleInfor =
+                    await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
+                var businessDay =
+                    await _unitOfWork.BusinessDayRepository.FarmHubGetBusinessDayByIdAsync(
+                        (Guid)accountRoleInfor.FarmHubId, businessDayId);
                 if (businessDay == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
@@ -168,15 +181,18 @@ namespace Capstone.UniFarm.Services.CustomServices
                 else if (businessDay.Status != "Inactive")
                 {
                     var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
-                    result.AddResponseStatusCode(StatusCode.Ok, $"Get BusinessDay by Id: {businessDayId} Success!", businessDayResponse);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get BusinessDay by Id: {businessDayId} Success!",
+                        businessDayResponse);
                     return result;
                 }
+
                 result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in FarmHubGetBusinessDayById Service Method for category ID: {businessDayId}");
+                _logger.LogError(ex,
+                    $"Error occurred in FarmHubGetBusinessDayById Service Method for category ID: {businessDayId}");
                 throw;
             }
         }
@@ -195,6 +211,62 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddResponseStatusCode(StatusCode.Ok, "List BusinessDays is Empty!", businessDayResponses);
                     return result;
                 }
+
+                result.AddResponseStatusCode(StatusCode.Ok, "Get List BusinessDays Done!", businessDayResponses);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in GetAllBusinessDays Service Method");
+                throw;
+            }
+        }
+
+        public async Task<OperationResult<List<BusinessDayContainBatchStatistics>>>
+            GetAllBusinessDaysContainBatchQuantity(Guid collectedHubId)
+        {
+            var result = new OperationResult<List<BusinessDayContainBatchStatistics>>();
+            try
+            {
+                var listBusinessDays = await _unitOfWork.BusinessDayRepository
+                    .GetAllWithoutPaging(false, "CreatedAt", x => x.Status != EnumConstants.ActiveInactiveEnum.INACTIVE)
+                    .ToListAsync();
+                var businessDayResponses = new List<BusinessDayContainBatchStatistics>();
+                foreach (var businessDay in listBusinessDays)
+                {
+                    var batch = await _unitOfWork.BatchesRepository
+                        .FilterByExpression(x => x.BusinessDayId == businessDay.Id && x.CollectedId == collectedHubId)
+                        .ToListAsync();
+                    var businessDayResponse = new BusinessDayContainBatchStatistics()
+                    {
+                        Id = businessDay.Id,
+                        Name = businessDay.Name,
+                        RegiterDay = businessDay.RegiterDay,
+                        EndOfRegister = businessDay.EndOfRegister,
+                        OpenDay = businessDay.OpenDay,
+                        StopSellingDay = businessDay.StopSellingDay,
+                        EndOfDay = businessDay.EndOfDay,
+                        CreatedAt = businessDay.CreatedAt,
+                        UpdatedAt = businessDay.UpdatedAt,
+                        Status = businessDay.Status,
+                        NumOfBatchesPending =
+                            batch.Count(x => x.Status == EnumConstants.BatchStatus.Pending.ToString()),
+                        NumOfBatchesProcessed =
+                            batch.Count(x => x.Status == EnumConstants.BatchStatus.Processed.ToString()),
+                        NumOfBatchesReceived =
+                            batch.Count(x => x.Status == EnumConstants.BatchStatus.Received.ToString()),
+                        NumOfBatchesNotReceived =
+                            batch.Count(x => x.Status == EnumConstants.BatchStatus.NotReceived.ToString())
+                    };
+                    businessDayResponses.Add(businessDayResponse);
+                }
+
+                if (businessDayResponses == null || !businessDayResponses.Any())
+                {
+                    result.AddResponseStatusCode(StatusCode.Ok, "List BusinessDays is Empty!", businessDayResponses);
+                    return result;
+                }
+
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List BusinessDays Done!", businessDayResponses);
                 return result;
             }
@@ -219,20 +291,24 @@ namespace Capstone.UniFarm.Services.CustomServices
                 else if (businessDay.Status != "Inactive")
                 {
                     var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
-                    result.AddResponseStatusCode(StatusCode.Ok, $"Get BusinessDay by Id: {businessDayId} Success!", businessDayResponse);
+                    result.AddResponseStatusCode(StatusCode.Ok, $"Get BusinessDay by Id: {businessDayId} Success!",
+                        businessDayResponse);
                     return result;
                 }
+
                 result.AddError(StatusCode.NotFound, $"Can't found BusinessDay with Id: {businessDayId}");
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetBusinessDayById Service Method for category ID: {businessDayId}");
+                _logger.LogError(ex,
+                    $"Error occurred in GetBusinessDayById Service Method for category ID: {businessDayId}");
                 throw;
             }
         }
 
-        public Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId, BusinessDayRequestUpdate businessDayRequestUpdate)
+        public Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId,
+            BusinessDayRequestUpdate businessDayRequestUpdate)
         {
             throw new NotImplementedException();
         }
@@ -242,12 +318,13 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<bool>();
             try
             {
-
-                var businessDays = await _unitOfWork.BusinessDayRepository.GetAllBusinessDayNotEndOfDayYet(ed => ed.EndOfDay == null);
+                var businessDays =
+                    await _unitOfWork.BusinessDayRepository.GetAllBusinessDayNotEndOfDayYet(ed => ed.EndOfDay == null);
 
                 foreach (var existingBusinessDay in businessDays)
                 {
-                    bool islistOrdersCompleted = await _unitOfWork.OrderRepository.AreAllOrdersCompletedForBusinessDay(existingBusinessDay.Id);
+                    bool islistOrdersCompleted =
+                        await _unitOfWork.OrderRepository.AreAllOrdersCompletedForBusinessDay(existingBusinessDay.Id);
 
                     // Kiểm tra xem tất cả Orders đã hoàn thành chưa
                     if (islistOrdersCompleted)
@@ -259,7 +336,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
                         {
-                            _logger.LogInformation($"End Of Day: ! {existingBusinessDay.EndOfDay} | Status: {existingBusinessDay.Status}");
+                            _logger.LogInformation(
+                                $"End Of Day: ! {existingBusinessDay.EndOfDay} | Status: {existingBusinessDay.Status}");
                             result.AddResponseStatusCode(StatusCode.Ok, $"Get Dashboard End Of Day!", true);
                         }
                     }

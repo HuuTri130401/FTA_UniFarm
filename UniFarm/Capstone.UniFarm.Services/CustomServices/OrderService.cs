@@ -1478,7 +1478,7 @@ public class OrderService : IOrderService
 
     private IEnumerable<TrackingOrderResponse>? HandleTrackingOrder(Order order)
     {
-        /*// Đơn hàng đã xác nhận lúc
+        // Đơn hàng đã xác nhận lúc
         var confirmed = new TrackingOrderResponse()
         {
             Title = "Đơn hàng đã được duyệt!",
@@ -1486,21 +1486,215 @@ public class OrderService : IOrderService
             UpdatedAt = null
         };
 
+        // Đơn hàng đã bị hủy bởi người bán 
+        var canceledByFarmhub = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã bị hủy bởi người bán!",
+            OrderStatus = EnumConstants.DeliveryStatus.CanceledByFarmHub,
+            UpdatedAt = order.UpdatedAt
+        };
+
         // Đơn hàng đang được vận chuyển đến kho
-        var atTheWayStation = new TrackingOrderResponse()
+        var onTheWayToCollectedHub = new TrackingOrderResponse()
         {
             Title = "Đơn hàng đang được vận chuyển đến kho!",
+            OrderStatus = EnumConstants.DeliveryStatus.OnTheWayToCollectedHub,
+            UpdatedAt = null
+        };
+
+        // Đơn hàng đã đến kho
+        var atCollectedHub = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã đến kho!",
+            OrderStatus = EnumConstants.DeliveryStatus.AtCollectedHub,
+            UpdatedAt = null
+        };
+
+        var onTheWaytoStation = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đang được vận chuyển đến trạm!",
+            OrderStatus = EnumConstants.DeliveryStatus.OnTheWayToStation,
+            UpdatedAt = null
+        };
+
+        var atStation = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã đến trạm!",
             OrderStatus = EnumConstants.DeliveryStatus.AtStation,
             UpdatedAt = null
         };
 
-
-        var trackingOrderResponses = new List<TrackingOrderResponse>();
-        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
-            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString())
+        var readyForPickup = new TrackingOrderResponse()
         {
+            Title = "Đơn hàng đang chờ lấy!",
+            OrderStatus = EnumConstants.DeliveryStatus.ReadyForPickup,
+            UpdatedAt = null
+        };
+
+        var pickedUp = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã được lấy!",
+            OrderStatus = EnumConstants.DeliveryStatus.PickedUp,
+            UpdatedAt = null
+        };
+
+        var canceledByCollectedHub = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã bị hủy bởi hệ thống!",
+            OrderStatus = EnumConstants.DeliveryStatus.CanceledByCollectedHub,
+            UpdatedAt = order.UpdatedAt
+        };
+        
+        var canceledByCustomer = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đã bị hủy!",
+            OrderStatus = EnumConstants.DeliveryStatus.CanceledByCustomer,
+            UpdatedAt = order.UpdatedAt
+        };
+        
+        var pendingOrder = new TrackingOrderResponse()
+        {
+            Title = "Đơn hàng đang chờ xác nhận!",
+            OrderStatus = EnumConstants.DeliveryStatus.Pending,
+            UpdatedAt = null
+        };
+        var batch = new Batch();
+        if (order.BatchId != null)
+        {
+            batch = _unitOfWork.BatchesRepository.FilterByExpression(x => x.Id == order.BatchId)
+                .FirstOrDefault();
         }
-    }*/
-        return null;
+
+        var transfer = new Transfer();
+        if (order.TransferId != null)
+        {
+            transfer = _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == order.TransferId)
+                .FirstOrDefault();
+        }
+        
+        var trackingOrderResponses = new List<TrackingOrderResponse>();
+       
+        if(order.CustomerStatus == EnumConstants.DeliveryStatus.Pending.ToString())
+        {
+            trackingOrderResponses.Add(pendingOrder);
+            return trackingOrderResponses;
+        }
+        
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByFarmHub.ToString())
+        {
+            trackingOrderResponses.Add(canceledByFarmhub);
+            return trackingOrderResponses;
+        }
+        
+        if (order.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByCustomer.ToString())
+        {
+            trackingOrderResponses.Add(canceledByCustomer);
+            return trackingOrderResponses;
+        }
+        
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString())
+        {
+            trackingOrderResponses.Add(canceledByCollectedHub);
+            return trackingOrderResponses;
+        }
+        
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCustomer.ToString())
+        {
+            canceledByCollectedHub.UpdatedAt = order.UpdatedAt;
+            trackingOrderResponses.Add(canceledByCollectedHub);
+            return trackingOrderResponses;
+        }
+        
+        // Đơn hàng đã được xác nhận
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToCollectedHub.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
+           )
+        {
+            trackingOrderResponses.Add(confirmed);
+        }
+
+        //Đơn hàng đang đến kho
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToCollectedHub.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
+           )
+        {
+            onTheWayToCollectedHub.UpdatedAt = batch?.FarmShipDate;
+            //trackingOrderResponses.Add(onTheWayToCollectedHub);
+        }
+
+        // Đơn hàng đã đến kho
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
+           )
+        {
+            if (batch?.Status == EnumConstants.BatchStatus.Received.ToString() ||
+                batch?.Status == EnumConstants.BatchStatus.Processed.ToString() &&
+                order.CollectedHubId != null)
+            {
+                atCollectedHub.UpdatedAt = batch?.CollectedHubReceiveDate;
+                //trackingOrderResponses.Add(atCollectedHub);
+            }
+        }
+
+        // Đơn hàng đang đến trạm
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
+           )
+        {
+            onTheWaytoStation.UpdatedAt = transfer?.CreatedAt;
+            //trackingOrderResponses.Add(onTheWaytoStation);
+        }
+        
+        // Đơn hàng đã đến trạm
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()
+           )
+        {
+            atStation.UpdatedAt = transfer?.ReceivedDate;
+            //trackingOrderResponses.Add(atStation);
+        }
+        
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+            || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
+           )
+        {
+            readyForPickup.UpdatedAt = transfer?.ReceivedDate;
+            //trackingOrderResponses.Add(readyForPickup);
+        }
+        
+        if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
+            || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
+           )
+        {
+            pickedUp.UpdatedAt = order?.UpdatedAt;
+            //trackingOrderResponses.Add(pickedUp);
+        }
+        
+        trackingOrderResponses.Add(onTheWayToCollectedHub);
+        trackingOrderResponses.Add(atCollectedHub);
+        trackingOrderResponses.Add(onTheWaytoStation);
+        trackingOrderResponses.Add(atStation);
+        trackingOrderResponses.Add(readyForPickup);
+        trackingOrderResponses.Add(pickedUp);
+        return trackingOrderResponses;
     }
 }

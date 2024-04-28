@@ -188,7 +188,8 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<BusinessDay, BusinessDayRequest>().ReverseMap();
             CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
-
+            
+            
             CreateMap<Batch, BatchRequest>().ReverseMap();
             CreateMap<Batch, BatchRequestUpdate>().ReverseMap();
             CreateMap<Batch, BatchResponse>()

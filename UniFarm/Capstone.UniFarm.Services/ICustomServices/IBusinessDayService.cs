@@ -13,6 +13,7 @@ namespace Capstone.UniFarm.Services.ICustomServices
     public interface IBusinessDayService
     {
         Task<OperationResult<List<BusinessDayResponse>>> GetAllBusinessDays();
+        Task<OperationResult<List<BusinessDayContainBatchStatistics>>> GetAllBusinessDaysContainBatchQuantity(Guid collectedHubId);
         Task<OperationResult<BusinessDayResponse>> GetBusinessDayById(Guid businessDayId);
         Task<OperationResult<BusinessDayResponse>> FarmHubGetBusinessDayById(Guid farmHubAccountId, Guid businessDayId);
         Task<OperationResult<bool>> CreateBusinessDay(BusinessDayRequest businessDayRequest);
