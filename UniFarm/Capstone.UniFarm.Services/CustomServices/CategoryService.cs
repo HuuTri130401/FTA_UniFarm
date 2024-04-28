@@ -74,7 +74,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetAllCategories Service Method");
+                _logger.LogError(ex, "Error occurred in GetAllCategoriesForCustomer Service Method");
                 throw;
             }
         }
@@ -132,20 +132,11 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteCategory Service Method for category ID: {categoryId}");
                 throw;
             }
-        }
-
-        public Task<OperationResult<Pagination<CategoryResponse>>> GetCategoryPaginationAsync(int pageIndex = 0, int pageSize = 10)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Guid> GetCategoriesCountAsync(ISpecifications<Category> specifications)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<OperationResult<bool>> CreateCategory(CategoryRequest categoryRequest)
@@ -153,9 +144,30 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<bool>();
             try
             {
+                var existingCategory = await _unitOfWork
+                    .CategoryRepository
+                    .GetSingleOrDefaultAsync(c => c.Name == categoryRequest.Name);
+
+                if (existingCategory != null)
+                {
+                    result.AddError(StatusCode.BadRequest, "Category name already exists!");
+                    return result;
+                }
                 var category = _mapper.Map<Category>(categoryRequest);
+                //string generatedCode;
+                //bool existingCategoryCode;
+                //do
+                //{
+                //    generatedCode = "CATE" + await CodeGenerator.GenerateCode(3);
+
+                //    existingCategoryCode = await _unitOfWork.CategoryRepository.ExistsCategoryAsync(c => c.Code == generatedCode);
+                //} 
+                //while (existingCategoryCode);
+                //category.Code = generatedCode;
+
+                category.Code = "CATE" + await CodeGenerator.GenerateCode(3);
                 category.Status = "Active";
-                category.CreatedAt = DateTime.UtcNow;
+                category.CreatedAt = DateTime.UtcNow.AddHours(7);
                 int newDisplayIndex = await AdjustDisplayIndexAsync(Guid.Empty, categoryRequest.DisplayIndex);
                 category.DisplayIndex = newDisplayIndex;
                 await _unitOfWork.CategoryRepository.AddAsync(category);
@@ -170,8 +182,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in CreateCategory Service Method for Category");
                 throw;
             }
         }
@@ -187,6 +200,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                     bool isAnyFieldUpdated = false;
                     if (categoryRequestUpdate.Name != null)
                     {
+                        var existingNameCategory = await _unitOfWork
+                                 .CategoryRepository
+                                 .GetSingleOrDefaultAsync(c => c.Name == categoryRequestUpdate.Name);
+
+                        if (existingNameCategory != null)
+                        {
+                            result.AddError(StatusCode.BadRequest, "Category name already exists!");
+                            return result;
+                        }
                         existingCategory.Name = categoryRequestUpdate.Name;
                         isAnyFieldUpdated = true;
                     }
@@ -239,7 +261,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                     if (isAnyFieldUpdated)
                     {
-                        existingCategory.UpdatedAt = DateTime.Now;
+                        existingCategory.UpdatedAt = DateTime.UtcNow.AddHours(7);
                     }
                     _unitOfWork.CategoryRepository.Update(existingCategory);
 
@@ -259,8 +281,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in UpdateCategory Service Method for Category");
                 throw;
             }
         }

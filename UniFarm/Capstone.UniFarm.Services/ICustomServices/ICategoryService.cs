@@ -14,8 +14,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<bool>> CreateCategory(CategoryRequest categoryRequest);
         Task<OperationResult<bool>> DeleteCategory(Guid categoryId);
         Task<OperationResult<bool>> UpdateCategory(Guid categoryId, CategoryRequestUpdate categoryRequestUpdate);
-        Task<OperationResult<Pagination<CategoryResponse>>> GetCategoryPaginationAsync(int pageIndex = 0, int pageSize = 10);
-        Task<Guid> GetCategoriesCountAsync(ISpecifications<Category> specifications);
         Task<int> AdjustDisplayIndexAsync(Guid categoryId, int newDisplayIndex);
     }
 }

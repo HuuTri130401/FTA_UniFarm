@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,11 @@ namespace Capstone.UniFarm.Repositories.Repository
         public async Task<List<Product>> GetAllProductByCategoryId(Guid categoryId)
         {
             return await _dbSet.Where(p => p.CategoryId == categoryId).ToListAsync();
+        }
+
+        public async Task<Product> GetSingleOrDefaultProductAsync(Expression<Func<Product, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).FirstOrDefaultAsync();
         }
     }
 }
