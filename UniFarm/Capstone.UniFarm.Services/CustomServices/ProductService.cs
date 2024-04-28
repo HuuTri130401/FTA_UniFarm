@@ -50,7 +50,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                         return result;
                     }
                     var product = _mapper.Map<Product>(productRequest);
-                    //product.Code = "PROD" + await CodeGenerator.GenerateCode(3);
+                    product.Code = "PROD" + await CodeGenerator.GenerateCode(3);
                     product.CreatedAt = DateTime.UtcNow.AddHours(7);
                     product.Status = "Active";
                     await _unitOfWork.ProductRepository.AddAsync(product);
