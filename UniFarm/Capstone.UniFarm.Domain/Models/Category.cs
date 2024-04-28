@@ -37,5 +37,10 @@ namespace Capstone.UniFarm.Domain.Models
 
         [InverseProperty(nameof(Product.Category))]
         public virtual ICollection<Product> Products { get; set; }
+
+        public static implicit operator Task<object>(Category v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

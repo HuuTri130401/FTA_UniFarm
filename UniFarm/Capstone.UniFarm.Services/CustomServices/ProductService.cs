@@ -40,8 +40,18 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 else
                 {
+                    var existingProductName = await _unitOfWork
+                            .ProductRepository
+                            .GetSingleOrDefaultProductAsync(c => c.Name == productRequest.Name);
+
+                    if (existingProductName != null)
+                    {
+                        result.AddError(StatusCode.BadRequest, "Product name already exists!");
+                        return result;
+                    }
                     var product = _mapper.Map<Product>(productRequest);
-                    product.CreatedAt = DateTime.Now;
+                    //product.Code = "PROD" + await CodeGenerator.GenerateCode(3);
+                    product.CreatedAt = DateTime.UtcNow.AddHours(7);
                     product.Status = "Active";
                     await _unitOfWork.ProductRepository.AddAsync(product);
                     var checkResult = _unitOfWork.Save();
@@ -56,8 +66,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in CreateProduct Service Method");
                 throw;
             }
         }
@@ -88,8 +99,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteProduct Service Method");
                 throw;
             }
         }
@@ -151,7 +163,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (product == null)
                 {
                     result.AddError(StatusCode.NotFound, $"Can't found Product with Id: {productId}");
-                }else 
+                }
+                else 
                 if(product.Status == "Active")
                 {
                     var productResponse = _mapper.Map<ProductResponse>(product);
@@ -161,7 +174,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetProductById service method for category ID: {productId}");
+                _logger.LogError(ex, $"Error occurred in GetProductById Service Method for category ID: {productId}");
                 throw;
             }
         }
@@ -188,6 +201,14 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     if (productRequest.Name != null)
                     {
+                        var existingProductName = await _unitOfWork
+                                .ProductRepository
+                                .GetSingleOrDefaultProductAsync(c => c.Name == productRequest.Name);
+                        if (existingProductName != null)
+                        {
+                            result.AddError(StatusCode.BadRequest, "Product name already exists!");
+                            return result;
+                        }
                         existingProduct.Name = productRequest.Name;
                         isAnyFieldUpdated = true;
                     }
@@ -213,7 +234,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     if (isAnyFieldUpdated)
                     {
-                        existingProduct.UpdatedAt = DateTime.Now;
+                        existingProduct.UpdatedAt = DateTime.UtcNow.AddHours(7);
                     }
 
                     _unitOfWork.ProductRepository.Update(existingProduct);
@@ -234,8 +255,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in UpdateProduct Service Method");
                 throw;
             }
         }
