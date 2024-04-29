@@ -24,6 +24,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.OpenApi.Models;
 using Hangfire;
 using Hangfire.SqlServer;
+using Newtonsoft.Json.Linq;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("Init main");
@@ -121,7 +122,7 @@ try
     
     
     //============= Firebase Notification =============//
-    string path = "firebase_notification.json";
+    string path = "credential.json";
     var firebaseCredential = GoogleCredential.FromFile(path);
     FirebaseApp.Create(new AppOptions
     {
@@ -281,3 +282,12 @@ finally
     // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
     NLog.LogManager.Shutdown();
 }
+
+/*static GoogleCredential LoadFirebaseCredential(string path)
+{
+    // Read the JSON data from the credential.json file
+    string jsonData = File.ReadAllText(path);
+    // Deserialize the JSON data into a GoogleCredential object
+    GoogleCredential firebaseCredential = GoogleCredential.FromJson(jsonData);
+    return firebaseCredential;
+}*/
