@@ -19,6 +19,8 @@ using NLog.Web;
 using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.OpenApi.Models;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -116,6 +118,14 @@ try
     builder.Services.AddSingleton<VNPayConfig>();
     builder.Services.AddHttpClient();
     builder.Services.AddSingleton<IGoongMapsService, GoongMapsService>();
+    
+    
+    //============= Firebase Notification =============//
+    /*var firebaseCredential = GoogleCredential.FromFile("path/to/serviceAccountKey.json");
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = firebaseCredential
+    });*/
 
     //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
