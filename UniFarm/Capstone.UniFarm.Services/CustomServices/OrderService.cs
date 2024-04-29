@@ -1476,6 +1476,11 @@ public class OrderService : IOrderService
         return result;
     }
 
+    public async Task<Order?> GetOrderById(Guid orderId)
+    {
+        return await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+    }
+    
     private IEnumerable<TrackingOrderResponse>? HandleTrackingOrder(Order order)
     {
         // Đơn hàng đã xác nhận lúc

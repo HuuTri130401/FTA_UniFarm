@@ -1,6 +1,7 @@
 ﻿using Capstone.UniFarm.Domain.Enum;
 using Capstone.UniFarm.Services.ICustomServices;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -349,6 +350,27 @@ public class OrderForStaffController : BaseController
 
         var result =
             await _orderService.UpdateOrderStatusByStationStaff(request, defineUser.Payload);
+        if (!result.IsError)
+        {
+            if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
+            {
+                var order = await _orderService.GetOrderById(request.OrderIds[0]);
+                if (order != null)
+                {
+                    var message = new FirebaseAdmin.Messaging.Message
+                    {
+                        Notification = new FirebaseAdmin.Messaging.Notification
+                        {
+                            Title = "Đơn hàng " + order.Code + " đã đến trạm nhận hàng.",
+                            Body = "Đã đến lúc nhận hàng tại trạm."
+                        },
+                        Topic = "orders_ready_for_pickup"
+                    };
+                    // Send notification
+                    await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                }
+            }
+        }
         return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
 }

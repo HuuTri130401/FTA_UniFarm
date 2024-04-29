@@ -121,11 +121,12 @@ try
     
     
     //============= Firebase Notification =============//
-    /*var firebaseCredential = GoogleCredential.FromFile("path/to/serviceAccountKey.json");
+    string path = "firebase_notification.json";
+    var firebaseCredential = GoogleCredential.FromFile(path);
     FirebaseApp.Create(new AppOptions
     {
         Credential = firebaseCredential
-    });*/
+    });
 
     //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
