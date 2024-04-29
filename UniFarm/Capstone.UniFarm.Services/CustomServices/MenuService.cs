@@ -39,7 +39,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"BusinessDay with Id {businessDayId} not found.");
                     return result;
                 }
-
+                else if(businessDay.Status != "Active")
+                {
+                    result.AddError(StatusCode.BadRequest, $"BusinessDay have Id: {businessDayId} stopped selling.");
+                    return result;
+                }
+                        
                 var menu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
                 if (menu == null)
                 {
@@ -54,6 +59,21 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     result.AddError(StatusCode.BadRequest, "Menu cannot be assigned to BusinessDay outside the registration period.");
                     return result;
+                }
+
+                if(menu.BusinessDayId != null)
+                {
+                    var today = DateTime.UtcNow.AddHours(7).Date;
+                    var opendayIsTodayAndIsActiveBusinessDay = await _unitOfWork.BusinessDayRepository
+                        .GetOpendayIsToday(today);
+                    if (opendayIsTodayAndIsActiveBusinessDay.Id == menu.BusinessDayId)
+                    {
+                        if(opendayIsTodayAndIsActiveBusinessDay.Status == "Active")
+                        {
+                            result.AddError(StatusCode.BadRequest, "Menu is selling Today, can not assign to other businessday!");
+                            return result;
+                        }
+                    }
                 }
 
                 menu.BusinessDayId = businessDayId;
@@ -161,7 +181,8 @@ namespace Capstone.UniFarm.Services.CustomServices
                                 //nếu nằm trong ít nhất 1 menu active thì Registered
                                 //product item in menu sẽ là inactive theo menu id đó vì không bán nữa (Inactive tất cả productItemInMenu)
                                 // check product item belong to orther menu ?
-                                //hàm này mới chuyển sang registered chứ chưa phải unregistered nếu sản 
+                                //hàm này mới chuyển sang registered chứ chưa phải unregistered nếu sản không có trong menu nào
+                                
                                 var otherMenusForProduct = await _unitOfWork
                                     .ProductItemInMenuRepository
                                     .FindStatusProductItem(p => p.ProductItemId == productItem.Id
