@@ -14,9 +14,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<List<ProductItemInMenu>> GetProductItemsByMenuId(Guid menuId);
         Task<List<ProductItemInMenu>> GetProductItemsByMenuIdForCustomer(ProductItemInMenuParameters productItemInMenuParameters, Guid menuId);
         Task<List<ProductItemInMenu>> GetProductItemInMenuByProductIdCustomer(Guid menuId);
-        Task<bool> GetProductItemByMenuId(Guid menuId);
-        void DeleteProductItemInMenu(ProductItemInMenu productItemInMenu);
-        Task<ProductItemInMenu> GetByMenuIdAndProductItemId(Guid menuId, Guid productItemId);
         Task<IEnumerable<ProductItemInMenu>> FindStatusProductItem(Expression<Func<ProductItemInMenu, bool>> predicate);
     }
 }

@@ -33,6 +33,7 @@ public class TransactionRepository : GenericRepository<Transaction>, ITransactio
             .Where(t => t.PayerWalletId == walletId || t.PayeeWalletId == walletId)
             .Include(w => w.PayerWallet)
             .ThenInclude(a => a.Account)
+            .OrderByDescending(t => t.PaymentDate)
             .ToListAsync();
     }
 

@@ -100,7 +100,21 @@ namespace Capstone.UniFarm.API.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _menuService.UpdateMenu(id, menuRequestUpdate);
+                string authHeader = HttpContext.Request.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader))
+                {
+                    return Unauthorized();
+                }
+
+                string token = authHeader.Replace("Bearer ", "");
+
+                var defineUser = _accountService.GetIdAndRoleFromToken(token);
+                if (defineUser.Payload == null)
+                {
+                    return HandleErrorResponse(defineUser!.Errors);
+                }
+                var farmHubAccountId = defineUser.Payload.Id;
+                var response = await _menuService.UpdateMenu(farmHubAccountId, id, menuRequestUpdate);
                 return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
             }
             return BadRequest("Model is invalid");

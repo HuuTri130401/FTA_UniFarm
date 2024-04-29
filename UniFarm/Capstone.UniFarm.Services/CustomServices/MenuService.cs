@@ -39,7 +39,12 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddError(StatusCode.NotFound, $"BusinessDay with Id {businessDayId} not found.");
                     return result;
                 }
-
+                else if(businessDay.Status != "Active")
+                {
+                    result.AddError(StatusCode.BadRequest, $"BusinessDay have Id: {businessDayId} stopped selling.");
+                    return result;
+                }
+                        
                 var menu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
                 if (menu == null)
                 {
@@ -48,12 +53,27 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 DateTime currentDate = DateTime.UtcNow.AddHours(7);
-                
+
                 // Check currentDate beetween [RegiterDay - EndOfRegister] 
                 if (currentDate < businessDay.RegiterDay || currentDate > businessDay.EndOfRegister)
                 {
                     result.AddError(StatusCode.BadRequest, "Menu cannot be assigned to BusinessDay outside the registration period.");
                     return result;
+                }
+
+                if(menu.BusinessDayId != null)
+                {
+                    var today = DateTime.UtcNow.AddHours(7).Date;
+                    var opendayIsTodayAndIsActiveBusinessDay = await _unitOfWork.BusinessDayRepository
+                        .GetOpendayIsToday(today);
+                    if (opendayIsTodayAndIsActiveBusinessDay.Id == menu.BusinessDayId)
+                    {
+                        if(opendayIsTodayAndIsActiveBusinessDay.Status == "Active")
+                        {
+                            result.AddError(StatusCode.BadRequest, "Menu is selling Today, can not assign to other businessday!");
+                            return result;
+                        }
+                    }
                 }
 
                 menu.BusinessDayId = businessDayId;
@@ -72,7 +92,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                             productItem.Status = "Selling";
                             _unitOfWork.ProductItemRepository.Update(productItem);
                             var checkSaveStatusProductItem = _unitOfWork.Save();
-                            if(checkSaveStatusProductItem > 0)
+                            if (checkSaveStatusProductItem > 0)
                             {
                                 result.AddResponseStatusCode(StatusCode.Ok, "Menu assigned to BusinessDay successfully!", true);
                             }
@@ -85,8 +105,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in AssignMenuToBusinessDay Service Method");
                 throw;
             }
         }
@@ -100,10 +121,21 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
                 if (accountRoleInfor != null && accountRoleInfor.FarmHubId != null)
                 {
+                    var existingMenuName = await _unitOfWork
+                            .MenuRepository
+                            .GetSingleOrDefaultMenuAsync(c => c.Name == menuRequest.Name 
+                            && c.FarmHubId == (Guid)accountRoleInfor.FarmHubId
+                            && c.Status != "Inactive");
+
+                    if (existingMenuName != null)
+                    {
+                        result.AddError(StatusCode.BadRequest, $"Menu name: {existingMenuName.Name} of FarmHub has FarmHubId: {existingMenuName.FarmHubId} already exists!");
+                        return result;
+                    }
                     var menu = _mapper.Map<Menu>(menuRequest);
                     menu.FarmHubId = (Guid)accountRoleInfor.FarmHubId;
                     menu.Status = "Preparing";
-                    menu.CreatedAt = DateTime.Now;
+                    menu.CreatedAt = DateTime.UtcNow.AddHours(7);
                     await _unitOfWork.MenuRepository.AddAsync(menu);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -117,8 +149,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteMenu Service Method");
                 throw;
             }
         }
@@ -129,9 +162,10 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var existingMenu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
-                if (existingMenu != null)
+                if (existingMenu != null && existingMenu.Status != "Inactive")
                 {
                     existingMenu.Status = "Inactive";
+                    existingMenu.BusinessDayId = null;
                     _unitOfWork.MenuRepository.Update(existingMenu);
                     var checkResult = _unitOfWork.Save();
                     if (checkResult > 0)
@@ -142,7 +176,19 @@ namespace Capstone.UniFarm.Services.CustomServices
                             var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
                             if (productItem != null)
                             {
-                                productItem.Status = "Registered";
+                                //check xem còn trong menu active nào không
+                                //nếu chỉ nằm trong menu inactive thì UnRegistered
+                                //nếu nằm trong ít nhất 1 menu active thì Registered
+                                //product item in menu sẽ là inactive theo menu id đó vì không bán nữa (Inactive tất cả productItemInMenu)
+                                // check product item belong to orther menu ?
+                                //hàm này mới chuyển sang registered chứ chưa phải unregistered nếu sản không có trong menu nào
+                                
+                                var otherMenusForProduct = await _unitOfWork
+                                    .ProductItemInMenuRepository
+                                    .FindStatusProductItem(p => p.ProductItemId == productItem.Id
+                                                                && p.Status != "Inactive");
+                                var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
+                                productItem.Status = newStatus;
                                 _unitOfWork.ProductItemRepository.Update(productItem);
                                 var checkSaveStatusProductItem = _unitOfWork.Save();
                                 if (checkSaveStatusProductItem > 0)
@@ -154,7 +200,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                     }
                     else
                     {
-                        result.AddError(StatusCode.BadRequest, "Delete Menu Failed!"); ;
+                        result.AddError(StatusCode.BadRequest, "Delete Menu Failed!"); 
                     }
                 }
                 else
@@ -163,8 +209,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteMenu Service Method");
                 throw;
             }
         }
@@ -197,10 +244,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred in GetAllMenusByFarmHubId Service Method");
+                _logger.LogError(ex, $"Error occurred in GetAllMenusByFarmHubAccountId Service Method");
                 throw;
             }
-            throw new NotImplementedException();
         }
 
         public async Task<OperationResult<MenuResponse>> GetMenuById(Guid menuId)
@@ -225,18 +271,30 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<bool>> UpdateMenu(Guid menuId, MenuRequestUpdate menuRequestUpdate)
+        public async Task<OperationResult<bool>> UpdateMenu(Guid farmHubAccountId, Guid menuId, MenuRequestUpdate menuRequestUpdate)
         {
             var result = new OperationResult<bool>();
             try
             {
                 var existingMenu = await _unitOfWork.MenuRepository.GetByIdAsync(menuId);
+                var accountRoleInfor = await _unitOfWork.AccountRoleRepository.GetAccountRoleByAccountIdAsync(farmHubAccountId);
 
                 if (existingMenu != null)
                 {
                     bool isAnyFieldUpdated = false;
                     if (menuRequestUpdate.Name != null)
                     {
+                        var existingMenuName = await _unitOfWork
+                                .MenuRepository
+                                .GetSingleOrDefaultMenuAsync(c => c.Name == menuRequestUpdate.Name 
+                                && c.FarmHubId == (Guid)accountRoleInfor.FarmHubId
+                                && c.Status != "Inactive");
+
+                        if (existingMenuName != null)
+                        {
+                            result.AddError(StatusCode.BadRequest, $"Menu name: {existingMenuName.Name} of FarmHub has FarmHubId: {existingMenuName.FarmHubId} already exists!");
+                            return result;
+                        }
                         existingMenu.Name = menuRequestUpdate.Name;
                         isAnyFieldUpdated = true;
                     }
@@ -245,26 +303,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                         existingMenu.Tag = menuRequestUpdate.Tag;
                         isAnyFieldUpdated = true;
                     }
-                    //if (menuRequestUpdate.FarmHubId != null)
-                    //{
-                    //    var existingFarmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync((Guid)menuRequestUpdate.FarmHubId);
-                    //    if (existingFarmHub == null)
-                    //    {
-                    //        result.AddError(StatusCode.BadRequest, "Menu must belong to a FarmHub to update!");
-                    //        return result;
-                    //    }
-                    //    isAnyFieldUpdated = true;
-                    //}
-
-                    //if (menuRequestUpdate.Status != null && (menuRequestUpdate.Status == "Active" || menuRequestUpdate.Status == "Inactive"))
-                    //{
-                    //    existingMenu.Status = menuRequestUpdate.Status;
-                    //    isAnyFieldUpdated = true;
-                    //}
 
                     if (isAnyFieldUpdated)
                     {
-                        existingMenu.UpdatedAt = DateTime.Now;
+                        existingMenu.UpdatedAt = DateTime.UtcNow.AddHours(7);
                     }
 
                     _unitOfWork.MenuRepository.Update(existingMenu);
@@ -281,8 +323,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in UpdateMenu Service Method");
                 throw;
             }
         }

@@ -85,15 +85,6 @@ public class TransactionService : ITransactionService
             var wallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(accountId);
             if(wallet != null)
             {
-                //var listTransactions = await _unitOfWork.TransactionRepository.GetAllTransactions(wallet.Id);
-                //var listTransactionsResponse = _mapper.Map<List<TransactionResponse>>(listTransactions);
-                //if (listTransactionsResponse == null || !listTransactionsResponse.Any())
-                //{
-                //    result.AddResponseStatusCode(StatusCode.Ok, $"List Transactions with accountId: {accountId} is Empty!", listTransactionsResponse);
-                //    return result;
-                //}
-                //result.AddResponseStatusCode(StatusCode.Ok, "Get List Transactions Done.", listTransactionsResponse);
-
                 var listTransactions = await _unitOfWork.TransactionRepository.GetAllTransactions(wallet.Id);
                 var listTransactionResponses = new List<TransactionResponse>();
 
