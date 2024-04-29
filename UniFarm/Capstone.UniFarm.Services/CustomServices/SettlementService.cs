@@ -269,7 +269,6 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-
         private async Task<decimal> CalculateDailyFee(decimal totalSales)
         {
             var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();

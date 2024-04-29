@@ -154,7 +154,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHub, FarmHubResponse>().ReverseMap();
             CreateMap<FarmHub, AccountAndFarmHubRequest>()
                 .ForMember(dest => dest.FarmHubName, act => act.MapFrom(src => src.Name))
-                .ForMember(dest => dest.FarmHubCode, act => act.MapFrom(src => src.Code))
+                //.ForMember(dest => dest.FarmHubCode, act => act.MapFrom(src => src.Code))
                 .ForMember(dest => dest.FarmHubImage, act => act.MapFrom(src => src.Image))
                 .ForMember(dest => dest.FarmHubAddress, act => act.MapFrom(src => src.Address))
                 .ReverseMap();

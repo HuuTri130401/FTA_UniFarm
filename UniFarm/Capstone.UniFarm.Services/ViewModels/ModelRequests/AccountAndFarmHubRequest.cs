@@ -34,18 +34,18 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
         [MinLength(3, ErrorMessage = "FarmHubName length must be at least 3 characters")]
         public string FarmHubName { get; set; }
 
-        [Required(ErrorMessage = "FarmHubCode is required")]
-        [StringLength(10, ErrorMessage = "FarmHubCode length cannot exceed 10 characters")]
-        [MinLength(4, ErrorMessage = "FarmHubCode length must be at least 2 characters")]
-        public string FarmHubCode { get; set; }
+        //[Required(ErrorMessage = "FarmHubCode is required")]
+        //[StringLength(10, ErrorMessage = "FarmHubCode length cannot exceed 10 characters")]
+        //[MinLength(4, ErrorMessage = "FarmHubCode length must be at least 2 characters")]
+        //public string FarmHubCode { get; set; }
 
-        [StringLength(255, ErrorMessage = "Description length cannot exceed 255 characters")]
+        [StringLength(1000, ErrorMessage = "Description length cannot exceed 1000 characters")]
         public string? Description { get; set; }
         [Required(ErrorMessage = "FarmHubImage is required")]
         public IFormFile FarmHubImage { get; set; }
 
         [Required(ErrorMessage = "FarmHubAddress is required")]
-        [StringLength(100, ErrorMessage = "FarmHubAddress length cannot exceed 100 characters")]
+        [StringLength(255, ErrorMessage = "FarmHubAddress length cannot exceed 255 characters")]
         public string FarmHubAddress { get; set; }
     }
 }

@@ -81,16 +81,15 @@ namespace Capstone.UniFarm.Services.CustomServices
                     return result;
                 }
 
-                bool checkFarmHubCode = await _unitOfWork.FarmHubRepository.CheckFarmHubCodeAsync(accountAndFarmHubRequest.FarmHubCode);
-                if (checkFarmHubCode)
-                {
-                    result.AddError(StatusCode.BadRequest, "FarmHubCode already exists!");
-                    result.IsError = true;
-                    return result;
-                }
-
+                bool checkFarmHubCode;
                 var newAccount = _mapper.Map<Account>(accountAndFarmHubRequest);
-                newAccount.CreatedAt = DateTime.Now;
+                do
+                {
+                    newAccount.Code = "FARM" + await CodeGenerator.GenerateCode(4);
+                    checkFarmHubCode = await _unitOfWork.FarmHubRepository.CheckFarmHubCodeAsync(newAccount.Code);
+                } while (checkFarmHubCode);
+
+                newAccount.CreatedAt = DateTime.UtcNow.AddHours(7);
                 newAccount.PasswordHash = _userManager.PasswordHasher.HashPassword(newAccount, accountAndFarmHubRequest.Password);
                 newAccount.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
                 newAccount.RoleName = EnumConstants.RoleEnumString.FARMHUB;
@@ -146,8 +145,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred in CreateFarmHubShop Service Method");
                 throw;
             }
         }
@@ -178,8 +178,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in DeleteFarmHub service method for FarmHub ID: {farmhubId}");
                 throw;
             }
         }
@@ -310,8 +311,9 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error occurred in UpdateFarmHub service method for FarmHub ID: {farmhubId}");
                 throw;
             }
         }

@@ -52,22 +52,6 @@ namespace Capstone.UniFarm.Repositories.Repository
                 .ToListAsync();
         }
 
-        public async Task<bool> GetProductItemByMenuId(Guid menuId)
-        {
-            return await _dbSet.AnyAsync(mn => mn.MenuId == menuId);
-        }
-
-        public void DeleteProductItemInMenu(ProductItemInMenu productItemInMenu)
-        {
-            _dbSet.Remove(productItemInMenu);
-        }
-
-        public async Task<ProductItemInMenu> GetByMenuIdAndProductItemId(Guid menuId, Guid productItemId)
-        {
-            return await _dbSet
-                .FirstOrDefaultAsync(pim => pim.MenuId == menuId && pim.ProductItemId == productItemId);
-        }
-
         public async Task<IEnumerable<ProductItemInMenu>> FindStatusProductItem(Expression<Func<ProductItemInMenu, bool>> predicate)
         {
             return await _dbSet
