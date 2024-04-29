@@ -24,7 +24,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .Where(p => p.ProductId == productId && p.FarmHubId == farmHubId)
                 .Where(pr => pr.Status != "Inactive")
-                .Include(pi => pi.ProductImages)
+                .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .ToListAsync();
         }
 
@@ -33,7 +33,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .Include(pr => pr.Product)
                     .ThenInclude(p => p.Category)
-                    .Include(pi => pi.ProductImages)
+                    .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Where(pi => pi.FarmHubId == farmHubId)
                 .ToListAsync();
         }
@@ -43,7 +43,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .Where(p => p.ProductId == productId)
                 .Include(pim => pim.ProductItemInMenus)
-                .Include(pi => pi.ProductImages)
+                .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(f => f.FarmHub)
                 .ToListAsync();
         }
@@ -53,7 +53,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             var productItems = await _dbSet
                 .SearchProductItems(productItemParameters.SearchTerm)
                 .Where(p => p.Status == "Selling")
-                .Include(pi => pi.ProductImages)
+                .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .ToListAsync();
             var count = _dbSet.Count();
             return PagedList<ProductItem>
@@ -63,7 +63,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         public async Task<ProductItem> GetProductItemByIdAsync(Guid productId)
         {
             return await _dbSet
-                .Include(pi => pi.ProductImages)
+                .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(fr => fr.FarmHub)
                 .FirstOrDefaultAsync(pi => pi.Id == productId);
         }        
@@ -73,7 +73,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             return await _dbSet
                 .Include(pim => pim.ProductItemInMenus)
                     .ThenInclude(m => m.Menu)
-                .Include(pi => pi.ProductImages)
+                .Include(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(fr => fr.FarmHub)
                 .FirstOrDefaultAsync(pi => pi.Id == productItemId &&
                 pi.ProductItemInMenus.Any(pim => pim.MenuId == menuId));

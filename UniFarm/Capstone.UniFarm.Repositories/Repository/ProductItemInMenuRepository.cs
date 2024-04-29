@@ -22,7 +22,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(p => p.ProductItem)
-                .ThenInclude(pi => pi.ProductImages)
+                .ThenInclude(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(m => m.Menu)
                 .Where(mn => mn.MenuId == menuId)
                 .ToListAsync();
@@ -33,7 +33,7 @@ namespace Capstone.UniFarm.Repositories.Repository
             var productItemsInMenu = await _dbSet
                 .SearchProductItemsInMenu(productItemInMenuParameters.SearchTerm)
                 .Include(p => p.ProductItem)
-                    .ThenInclude(pi => pi.ProductImages)
+                    .ThenInclude(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(m => m.Menu)
                 .Where(mn => mn.MenuId == menuId && mn.Status == "Active")
                 .ToListAsync();
@@ -46,7 +46,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(p => p.ProductItem)
-                    .ThenInclude(pi => pi.ProductImages)
+                    .ThenInclude(pi => pi.ProductImages.Where(i => i.Status == "Active"))
                 .Include(m => m.Menu)
                 .Where(mn => mn.MenuId == menuId && mn.Status == "Active")
                 .ToListAsync();
