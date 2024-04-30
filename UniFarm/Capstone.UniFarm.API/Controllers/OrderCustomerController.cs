@@ -52,7 +52,7 @@ public class OrderCustomerController : BaseController
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
         var result = await _orderService.Checkout(defineUser.Payload.Id, orderRequestCreate);
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
     
     

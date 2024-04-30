@@ -262,8 +262,8 @@ try
     app.UseHangfireDashboard("/dashboard");
     RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
         service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
-    /*RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",
-        service => service.RemoveProductItemInCartJob(), Cron.Minutely);*/
+    RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",
+        service => service.RemoveProductItemInCartJob(), Cron.Minutely);
     app.Run();
 
     /*static IEdmModel GetEdmModel()

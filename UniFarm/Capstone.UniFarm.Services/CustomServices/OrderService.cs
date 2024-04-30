@@ -515,17 +515,7 @@ public class OrderService : IOrderService
                     result.IsError = true;
                     return result;
                 }
-
-                if (order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString())
-                {
-                    result.Errors.Add(new Error()
-                    {
-                        Code = StatusCode.BadRequest,
-                        Message = "Đơn hàng đã ở trạng thái ở trạm!" + orderId
-                    });
-                    result.IsError = true;
-                    return result;
-                }
+                
 
                 if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
                 {
@@ -913,6 +903,7 @@ public class OrderService : IOrderService
                 // So sánh số lượng OrderDetailId trong 2 list của 1 order
                 if (listOrderDetailDbId.Count == listOrderDetailRequestId.Count)
                 {
+                    var listNewOrderDetail = new List<OrderDetail>();
                     foreach (var orderDetail in listOrderDetailRequestId)
                     {
                         var orderDetailDb =
@@ -930,11 +921,13 @@ public class OrderService : IOrderService
                             result.IsError = true;
                             return result;
                         }
+                        listNewOrderDetail.Add(orderDetailDb);
                     }
 
                     orderDb.TotalAmount = listOrderDetailDbs.Sum(x => x.TotalPrice);
                     orderDb.FullName = request.FullName;
                     orderDb.PhoneNumber = request.PhoneNumber;
+                    orderDb.OrderDetails = listNewOrderDetail;
                     orderDb.CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString();
                     orderDb.DeliveryStatus = EnumConstants.CustomerStatus.Pending.ToString();
                     orderDb.IsPaid = false;
@@ -1048,27 +1041,18 @@ public class OrderService : IOrderService
                         return result;
                     }
 
-                    var checkQuantity = productInMenu.Quantity - orderDetail.Quantity;
+                    var checkQuantity = productInMenu.Quantity - productInMenu.Sold - orderDetail.Quantity;
 
                     if (checkQuantity <= 0)
                     {
                         await transaction.RollbackAsync();
                         result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
-                        result.StatusCode = StatusCode.NotFound;
+                        result.StatusCode = StatusCode.BadRequest;
                         result.IsError = true;
                         return result;
                     }
 
-                    if (checkQuantity < orderDetail.Quantity)
-                    {
-                        await transaction.RollbackAsync();
-                        result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
-                        result.StatusCode = StatusCode.NotFound;
-                        result.IsError = true;
-                        return result;
-                    }
-
-                    productInMenu.Sold += orderDetail.Quantity;
+                    productInMenu.Sold = productInMenu.Sold + orderDetail.Quantity;
                     await _unitOfWork.ProductItemInMenuRepository.UpdateAsync(productInMenu);
                     var updateQuantity = await _unitOfWork.SaveChangesAsync();
                     if (updateQuantity == 0)

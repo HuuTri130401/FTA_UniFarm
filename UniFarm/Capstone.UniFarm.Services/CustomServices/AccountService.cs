@@ -98,7 +98,11 @@ namespace Capstone.UniFarm.Services.CustomServices
                 var checkEmail = await _userManager.FindByEmailAsync(accountRequestCreate.Email);
                 if (checkEmail != null)
                 {
-                    result.AddError(StatusCode.BadRequest, "Email already exists");
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Email already exists"
+                    });
                     result.IsError = true;
                     return result;
                 }
@@ -108,7 +112,11 @@ namespace Capstone.UniFarm.Services.CustomServices
                         x => x.Phone == accountRequestCreate.PhoneNumber);
                 if (checkPhone != null)
                 {
-                    result.AddError(StatusCode.BadRequest, "Phone already exists");
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                        Message = "Phone number already exists"
+                    });
                     result.IsError = true;
                     return result;
                 }
@@ -152,7 +160,10 @@ namespace Capstone.UniFarm.Services.CustomServices
                 else
                 {
                     result.Payload = null;
-                    result.AddError(StatusCode.BadRequest, response.Errors.AsEnumerable().ToList().ToString()!);
+                    result.Errors.Add(new Error()
+                    {
+                        Code = StatusCode.BadRequest,
+                    });
                     result.IsError = true;
                 }
             }
