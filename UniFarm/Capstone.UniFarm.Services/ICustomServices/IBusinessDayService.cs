@@ -21,5 +21,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
         Task<OperationResult<bool>> StopSellingDay(Guid businessDayId);
         Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId, BusinessDayRequestUpdate businessDayRequestUpdate);
         Task UpdateEndOfDayForAllBusinessDays();
+        Task<OperationResult<bool>> RemoveProductItemInCartJob();
     }
 }

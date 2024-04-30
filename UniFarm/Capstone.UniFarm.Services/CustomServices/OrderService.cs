@@ -338,6 +338,15 @@ public class OrderService : IOrderService
                     stationResponse.UpdatedAt = station.UpdatedAt;
                     stationResponse.Status = station.Status;
                 }
+                
+                var collectedHubResponse = new CollectedHubResponse();
+                if (order.CollectedHubId != null)
+                {
+                    var collectedHub = await _unitOfWork.CollectedHubRepository
+                        .FilterByExpression(x => x.Id == order.CollectedHubId)
+                        .FirstOrDefaultAsync();
+                    collectedHubResponse = _mapper.Map<CollectedHubResponse>(collectedHub);
+                }
 
                 var orderDetails = await _unitOfWork.OrderDetailRepository
                     .FilterByExpression(x => x.OrderId == order.Id)
@@ -420,7 +429,8 @@ public class OrderService : IOrderService
                     OrderDetailResponse = orderDetailResponses,
                     BatchResponse = batchReponse,
                     TransferResponse = transferResponse,
-                    CustomerResponse = customerResponse
+                    CustomerResponse = customerResponse,
+                    CollectedHubResponse = collectedHubResponse
                 };
                 orderResponses.Add(orderResponse);
             }

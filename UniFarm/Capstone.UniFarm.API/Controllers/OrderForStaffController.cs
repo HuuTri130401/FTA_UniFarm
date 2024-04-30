@@ -320,8 +320,6 @@ public class OrderForStaffController : BaseController
                 pageSize: pageSize);
             return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
         }
-
-        return Unauthorized("You are not allowed to view this transfer's orders");
     }
 
 
