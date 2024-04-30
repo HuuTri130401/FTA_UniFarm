@@ -15,6 +15,8 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public DateTime CreatedAt { get; set; }
         public string Code { get; set; }
         public string ShipAddress { get; set; }
+        public Guid StationId { get; set; }
+        public string StationAddress { get; set; }
         public decimal TotalAmount { get; set; }
         public string CustomerStatus { get; set; }
         public string DeliveryStatus { get; set; }
