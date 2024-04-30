@@ -28,6 +28,23 @@ namespace Capstone.UniFarm.API.Controllers
             var response = await _businessDayService.GetAllBusinessDays();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
+        
+        [SwaggerOperation(Summary = "Get All Business Days - CollectedStaff - Tien")]
+        [HttpGet("business-days-for-collected-staff")]
+        [Authorize(Roles = "CollectedStaff")]
+        public async Task<IActionResult> GetAllBusinessDaysForCollectedStaff()
+        {
+            string authHeader = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized();
+            }
+            string token = authHeader.Replace("Bearer ", "");
+            var defineUser = _accountService.GetIdAndRoleFromToken(token);
+            if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
+            var response = await _businessDayService.GetAllBusinessDaysContainBatchQuantity(Guid.Parse(defineUser.Payload.AuthorizationDecision));
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
 
         [SwaggerOperation(Summary = "Get Business Day By Id - ADMIN - {Huu Tri}")]
         [HttpGet("business-day/{id}")]

@@ -26,6 +26,19 @@ public abstract record EnumConstants
         Expired // Đơn hàng đã hết hạn
     }
 
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FilterOrderStatus
+    {
+        Pending,
+        Confirmed,
+        OnDelivery,
+        ReadyForPickup,
+        PickedUp,
+        Canceled,
+        Expired
+    }
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeliveryStatus
     {

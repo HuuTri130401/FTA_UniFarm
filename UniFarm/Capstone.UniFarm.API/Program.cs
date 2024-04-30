@@ -19,9 +19,12 @@ using NLog.Web;
 using System.Text;
 using Capstone.UniFarm.Services.Commons;
 using Capstone.UniFarm.Services.ViewModels.ModelRequests;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.OpenApi.Models;
 using Hangfire;
 using Hangfire.SqlServer;
+using Newtonsoft.Json.Linq;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("Init main");
@@ -116,6 +119,15 @@ try
     builder.Services.AddSingleton<VNPayConfig>();
     builder.Services.AddHttpClient();
     builder.Services.AddSingleton<IGoongMapsService, GoongMapsService>();
+    
+    
+    //============= Firebase Notification =============//
+    string path = "credential.json";
+    var firebaseCredential = GoogleCredential.FromFile(path);
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = firebaseCredential
+    });
 
     //builder.Services.AddScoped<FTAScript_V1Context>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -270,3 +282,12 @@ finally
     // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
     NLog.LogManager.Shutdown();
 }
+
+/*static GoogleCredential LoadFirebaseCredential(string path)
+{
+    // Read the JSON data from the credential.json file
+    string jsonData = File.ReadAllText(path);
+    // Deserialize the JSON data into a GoogleCredential object
+    GoogleCredential firebaseCredential = GoogleCredential.FromJson(jsonData);
+    return firebaseCredential;
+}*/

@@ -20,4 +20,22 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public string Status { get; set; }
         public ICollection<MenuResponse> Menus { get; set; }
     }
+
+    public class BusinessDayContainBatchStatistics
+    {
+        public Guid? Id { get; set; }
+        public string? Name { get; set; }
+        public DateTime? RegiterDay { get; set; }
+        public DateTime? EndOfRegister { get; set; }
+        public DateTime? OpenDay { get; set; }
+        public DateTime? StopSellingDay { get; set; }
+        public DateTime? EndOfDay { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string? Status { get; set; }
+        public int? NumOfBatchesPending { get; set; }
+        public int? NumOfBatchesReceived { get; set; }
+        public int? NumOfBatchesNotReceived { get; set; }
+        public int? NumOfBatchesProcessed { get; set; }
+    }
 }

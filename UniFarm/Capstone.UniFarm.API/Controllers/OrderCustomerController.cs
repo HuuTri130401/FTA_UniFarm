@@ -61,7 +61,7 @@ public class OrderCustomerController : BaseController
     [Authorize(Roles = "Customer")]
     [SwaggerOperation(Summary = "Get all order of customer - Tien")]
     public async Task<IActionResult> GetAllOrder(
-        [FromQuery] EnumConstants.CustomerStatus? status,
+        [FromQuery] EnumConstants.FilterOrderStatus? status,
         [FromQuery] bool? isAscending = false,
         [FromQuery] string? orderBy = "CreatedAt",
         [FromQuery] int pageIndex = 0,
@@ -78,16 +78,103 @@ public class OrderCustomerController : BaseController
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
 
-        var result = await _orderService.GetAllOrdersOfCustomer(
+        if (status != null)
+        {
+            if (status == EnumConstants.FilterOrderStatus.Pending)
+            {
+                var resultPending = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && x.CustomerStatus == status.ToString(),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultPending.IsError ? HandleErrorResponse(resultPending.Errors) : Ok(resultPending);
+            } else if (status == EnumConstants.FilterOrderStatus.Confirmed)
+            {
+                var resultConfirmed = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && x.CustomerStatus == status.ToString(),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultConfirmed.IsError ? HandleErrorResponse(resultConfirmed.Errors) : Ok(resultConfirmed);
+            } else if (status == EnumConstants.FilterOrderStatus.OnDelivery)
+            {
+                var resultShipping = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && (x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToCollectedHub.ToString()
+                                 || x.DeliveryStatus == EnumConstants.DeliveryStatus.AtCollectedHub.ToString()
+                                 || x.DeliveryStatus == EnumConstants.DeliveryStatus.OnTheWayToStation.ToString()
+                                     ),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultShipping.IsError ? HandleErrorResponse(resultShipping.Errors) : Ok(resultShipping);
+            }
+            else if (status == EnumConstants.FilterOrderStatus.ReadyForPickup)
+            {
+                var resultDelivered = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && (x.CustomerStatus == status.ToString()
+                                     || x.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString()),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultDelivered.IsError ? HandleErrorResponse(resultDelivered.Errors) : Ok(resultDelivered);
+            }
+            else if (status == EnumConstants.FilterOrderStatus.PickedUp)
+            {
+                var resultCancelled = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && x.CustomerStatus == status.ToString(),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultCancelled.IsError ? HandleErrorResponse(resultCancelled.Errors) : Ok(resultCancelled);
+                
+            } else if (status == EnumConstants.FilterOrderStatus.Expired)
+            {
+                var resultExpired = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && x.CustomerStatus == status.ToString(),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultExpired.IsError ? HandleErrorResponse(resultExpired.Errors) : Ok(resultExpired);
+            }
+            var result = await _orderService.GetAllOrdersOfCustomer(
+                isAscending: isAscending,
+                orderBy: orderBy,
+                filter: x => x.CustomerId == defineUser.Payload.Id
+                             && x.CustomerStatus == status.ToString(),
+                pageIndex: pageIndex,
+                pageSize: pageSize
+            );
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
+        }
+        
+
+        var resultAll = await _orderService.GetAllOrdersOfCustomer(
             isAscending: isAscending,
             orderBy: orderBy,
             filter: x => x.CustomerId == defineUser.Payload.Id
-                         && x.IsPaid == true
-                         && (string.IsNullOrEmpty(status.ToString()) || x.CustomerStatus == status.ToString()),
+                         && x.IsPaid == true,
             pageIndex: pageIndex,
             pageSize: pageSize
             );
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        return resultAll.IsError ? HandleErrorResponse(resultAll.Errors) : Ok(resultAll);
     }
     
     // cancel order
@@ -107,7 +194,7 @@ public class OrderCustomerController : BaseController
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
 
         var result = await _orderService.CancelOrderByCustomer(orderId,defineUser.Payload.Id);
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
     
     // tracking order
@@ -127,6 +214,6 @@ public class OrderCustomerController : BaseController
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
 
         var result = await _orderService.TrackingOrder(orderId, defineUser.Payload.Id);
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
 }
