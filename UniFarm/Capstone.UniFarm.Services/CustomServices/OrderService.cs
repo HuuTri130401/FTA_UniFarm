@@ -356,7 +356,7 @@ public class OrderService : IOrderService
 
                 foreach (var item in orderDetails)
                 {
-                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId); var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(x => x.ProductItemId == item.ProductItemId && x.DisplayIndex == 1).FirstOrDefaultAsync();
                     var orderDetailResponse = new OrderDetailResponse()
                     {
                         ProductItemId = item.ProductItemId,
@@ -364,7 +364,8 @@ public class OrderService : IOrderService
                         UnitPrice = item.UnitPrice,
                         Unit = item.Unit,
                         TotalPrice = item.TotalPrice,
-                        Title = productItem.Title
+                        Title = productItem.Title,
+                        ProductImage = productImage?.ImageUrl
                     };
                     orderDetailResponses.Add(orderDetailResponse);
                 }
@@ -1084,6 +1085,32 @@ public class OrderService : IOrderService
             // loop qua listNewOrder
             var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == customer.Id)
                 .FirstOrDefaultAsync();
+            if (wallet == null)
+            {
+                await transaction.RollbackAsync();
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Ví không tồn tại!"
+                });
+                return result;
+            }
+            
+            // Kiểm tra ví đủ tiền
+            var totalAmount = newListOrder.Sum(x => x.TotalAmount);
+            if (wallet.Balance < totalAmount)
+            {
+                await transaction.RollbackAsync();
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Ví không đủ tiền. Vui lòng nạp thêm tiền vào ví!"
+                });
+                return result;
+            }
+            
             foreach (var newOrder in newListOrder)
             {
                 var checkExistOrder = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == newOrder.Id)
@@ -1211,7 +1238,6 @@ public class OrderService : IOrderService
                     {
                         productItemResponse.ImageUrl = productImage.ImageUrl;
                     }
-
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
