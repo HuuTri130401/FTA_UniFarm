@@ -238,6 +238,7 @@ public class TransferService : ITransferService
         var result = new OperationResult<IEnumerable<TransferResponse>?>();
         try
         {
+            var transferResponses = new List<TransferResponse>();
             var getTransfers = await _unitOfWork.TransferRepository.FilterAll(
                 isAscending: isAscending,
                 orderBy: orderBy,
@@ -252,11 +253,10 @@ public class TransferService : ITransferService
                 result.StatusCode = StatusCode.Ok;
                 result.Message = "There is no transfer found";
                 result.IsError = false;
-                result.Payload = null;
+                result.Payload = transferResponses;
                 return result;
             }
 
-            var transferResponses = new List<TransferResponse>();
             foreach (var transfer in getTransfers)
             {
                 var transferResponse = new TransferResponse(
