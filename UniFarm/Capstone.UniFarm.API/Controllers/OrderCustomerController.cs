@@ -154,6 +154,20 @@ public class OrderCustomerController : BaseController
                 );
                 return resultExpired.IsError ? HandleErrorResponse(resultExpired.Errors) : Ok(resultExpired);
             }
+            else if(status == EnumConstants.FilterOrderStatus.Cancelled)
+            {
+                var resultCancelled = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && (x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
+                                 || x.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString()
+                                 || x.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByFarmHub.ToString()),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultCancelled.IsError ? HandleErrorResponse(resultCancelled.Errors) : Ok(resultCancelled);
+            }
             var result = await _orderService.GetAllOrdersOfCustomer(
                 isAscending: isAscending,
                 orderBy: orderBy,

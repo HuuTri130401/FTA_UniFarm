@@ -35,7 +35,7 @@ public abstract record EnumConstants
         OnDelivery,
         ReadyForPickup,
         PickedUp,
-        Canceled,
+        Cancelled,
         Expired
     }
 
