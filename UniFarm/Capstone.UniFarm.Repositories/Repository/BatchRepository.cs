@@ -21,6 +21,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet
                 .Include(b => b.BusinessDay)
+                .Include(f => f.FarmHub)
                 .Include(c => c.Collected)
                 .Where(bd => bd.BusinessDayId == businessDayId)
                 .Where(ch => ch.CollectedId == collectedHubId)
@@ -72,6 +73,7 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             var batches = await _dbSet
                 .Include(b => b.BusinessDay)
+                .Include(f => f.FarmHub)
                 .Include(c => c.Collected)
                 .Where(ch => ch.CollectedId == collectedHubId)
                 .OrderByDescending(fs => fs.FarmShipDate)

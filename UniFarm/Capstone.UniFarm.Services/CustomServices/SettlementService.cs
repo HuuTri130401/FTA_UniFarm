@@ -49,7 +49,9 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                     foreach (var farmHubSettlement in listFarmHubSettlement)
                     {
-                        if (farmHubSettlement.PaymentStatus != "Paid" && farmHubSettlement.Profit > 0)
+                        //Check farmhub settlement is pending in one businessday
+                        if (farmHubSettlement.PaymentStatus != "Paid" && farmHubSettlement.Profit > 0
+                            && farmHubSettlement.BusinessDayId == businessDayId)
                         {
                             var accountRole = await _unitOfWork.AccountRoleRepository.GetAccountRoleForFarmHubAsync(farmHubSettlement.FarmHubId);
                             var accountId = accountRole.AccountId;
@@ -79,31 +81,42 @@ namespace Capstone.UniFarm.Services.CustomServices
                                 await _unitOfWork.SaveChangesAsync();
                             }
                         }
-                    }
-                }
-
-                var listTransactions = await _unitOfWork.TransactionRepository.GetAllTransactionPayments();
-                if (listTransactions != null) 
-                {
-                    foreach (var transaction in listTransactions)
-                    {
-                        var order = await _unitOfWork.OrderRepository.GetByIdAsync((Guid)transaction.OrderId);
-                        if (order != null && await _unitOfWork.OrderRepository.IsOrderCancelledAsync(order) 
-                            && !await _unitOfWork.TransactionRepository.AlreadyRefundedAsync((Guid)transaction.OrderId))
+                        else
                         {
-                            var newTransaction = new Transaction()
+                            break;
+                        }
+                    }
+
+                    var listTransactions = await _unitOfWork.TransactionRepository.GetAllTransactionPayments();
+                    if (listTransactions != null)
+                    {
+                        foreach (var transaction in listTransactions)
+                        {
+                            var order = await _unitOfWork.OrderRepository.GetByIdAsync((Guid)transaction.OrderId);
+                            if (order != null 
+                                && await _unitOfWork.OrderRepository.IsOrderCancelledAsync(order)
+                                && !await _unitOfWork.TransactionRepository.AlreadyRefundedAsync((Guid)transaction.OrderId))
                             {
-                                Id = Guid.NewGuid(),
-                                Amount = transaction.Amount,
-                                PaymentDate = DateTime.UtcNow.AddHours(7),
-                                Status = "Success",
-                                PayerWalletId = systemWallet.Id,
-                                PayeeWalletId = transaction.PayeeWalletId,
-                                TransactionType = TransactionEnum.Refund.ToString(),
-                                OrderId = transaction.OrderId,
-                            };
-                            await _unitOfWork.TransactionRepository.AddAsync(newTransaction);
-                            await _unitOfWork.SaveChangesAsync();
+                                var accountId = order.CustomerId;
+                                var customerWallet = await _unitOfWork.WalletRepository.GetWalletByAccountIdAsync(accountId);
+                                var newTransaction = new Transaction()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Amount = transaction.Amount,
+                                    PaymentDate = DateTime.UtcNow.AddHours(7),
+                                    Status = "Success",
+                                    PayerWalletId = systemWallet.Id,
+                                    PayeeWalletId = customerWallet.Id,
+                                    TransactionType = TransactionEnum.Refund.ToString(),
+                                    OrderId = transaction.OrderId,
+                                };
+                                await _unitOfWork.TransactionRepository.AddAsync(newTransaction);
+                                var balanceOfCustomer = customerWallet.Balance + transaction.Amount;
+                                await _unitOfWork.WalletRepository.UpdateBalance(customerWallet.Id, (decimal)balanceOfCustomer);
+                                var balanceOfSystem = systemWallet.Balance - transaction.Amount;
+                                await _unitOfWork.WalletRepository.UpdateBalance(systemWallet.Id, (decimal)balanceOfSystem);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
                         }
                     }
                 }
@@ -120,69 +133,69 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public async Task<OperationResult<FarmHubSettlement>> CreateSettlementForFarmHub(Guid businessDayId, Guid farmHubId)
-        {
-            var result = new OperationResult<FarmHubSettlement>();
-            try
-            {
-                var existingSettlement = await _unitOfWork.FarmHubSettlementRepository.GetFarmHubSettlementAsync(businessDayId, farmHubId);
-                var totalsAndNumOrderOfFarmHub = await _unitOfWork.OrderRepository.CalculateTotalForBusinessDayOfOneFarmHub(businessDayId, farmHubId);
-                var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();
-                var commissionFee = await _unitOfWork.OrderDetailRepository.CalculateCommissionFee(farmHubId, businessDayId);
-                var dailyFee = await CalculateDailyFee((decimal)totalsAndNumOrderOfFarmHub.TotalAmount);
+        //public async Task<OperationResult<FarmHubSettlement>> CreateSettlementForFarmHub(Guid businessDayId, Guid farmHubId)
+        //{
+        //    var result = new OperationResult<FarmHubSettlement>();
+        //    try
+        //    {
+        //        var existingSettlement = await _unitOfWork.FarmHubSettlementRepository.GetFarmHubSettlementAsync(businessDayId, farmHubId);
+        //        var totalsAndNumOrderOfFarmHub = await _unitOfWork.OrderRepository.CalculateTotalForBusinessDayOfOneFarmHub(businessDayId, farmHubId);
+        //        var priceTable = await _unitOfWork.PriceTableRepository.GetPriceTable();
+        //        var commissionFee = await _unitOfWork.OrderDetailRepository.CalculateCommissionFee(farmHubId, businessDayId);
+        //        var dailyFee = await CalculateDailyFee((decimal)totalsAndNumOrderOfFarmHub.TotalAmount);
 
-                if (totalsAndNumOrderOfFarmHub.OrderCount == 0 && existingSettlement == null)
-                {
-                    existingSettlement = new FarmHubSettlement
-                    {
-                        Id = Guid.NewGuid(),
-                        FarmHubId = farmHubId,
-                        BusinessDayId = businessDayId,
-                        PriceTableId = priceTable.Id,
-                        TotalSales = 0,
-                        CommissionFee = 0,
-                        DailyFee = 0,
-                        NumOfOrder = 0,
-                        DeliveryFeeOfOrder = 30000,
-                        AmountToBePaid = 0,
-                        Profit = 0,
-                        PaymentStatus = "Pending",
-                    };
-                    await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
-                }
-                else if (totalsAndNumOrderOfFarmHub.OrderCount > 0 && existingSettlement == null)
-                {
-                    existingSettlement = new FarmHubSettlement
-                    {
-                        Id = Guid.NewGuid(),
-                        FarmHubId = farmHubId,
-                        BusinessDayId = businessDayId,
-                        PriceTableId = priceTable.Id,
-                        TotalSales = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount,
-                        CommissionFee = commissionFee,
-                        DailyFee = dailyFee,
-                        NumOfOrder = totalsAndNumOrderOfFarmHub.OrderCount,
-                        DeliveryFeeOfOrder = 30000,
-                        AmountToBePaid = commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000),
-                        Profit = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount - (commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000)),
-                        PaymentStatus = "Pending",
-                    };
-                    await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
-                }
+        //        if (totalsAndNumOrderOfFarmHub.OrderCount == 0 && existingSettlement == null)
+        //        {
+        //            existingSettlement = new FarmHubSettlement
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                FarmHubId = farmHubId,
+        //                BusinessDayId = businessDayId,
+        //                PriceTableId = priceTable.Id,
+        //                TotalSales = 0,
+        //                CommissionFee = 0,
+        //                DailyFee = 0,
+        //                NumOfOrder = 0,
+        //                DeliveryFeeOfOrder = 30000,
+        //                AmountToBePaid = 0,
+        //                Profit = 0,
+        //                PaymentStatus = "Pending",
+        //            };
+        //            await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
+        //        }
+        //        else if (totalsAndNumOrderOfFarmHub.OrderCount > 0 && existingSettlement == null)
+        //        {
+        //            existingSettlement = new FarmHubSettlement
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                FarmHubId = farmHubId,
+        //                BusinessDayId = businessDayId,
+        //                PriceTableId = priceTable.Id,
+        //                TotalSales = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount,
+        //                CommissionFee = commissionFee,
+        //                DailyFee = dailyFee,
+        //                NumOfOrder = totalsAndNumOrderOfFarmHub.OrderCount,
+        //                DeliveryFeeOfOrder = 30000,
+        //                AmountToBePaid = commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000),
+        //                Profit = (decimal)totalsAndNumOrderOfFarmHub.TotalAmount - (commissionFee + dailyFee + (totalsAndNumOrderOfFarmHub.OrderCount * 30000)),
+        //                PaymentStatus = "Pending",
+        //            };
+        //            await _unitOfWork.FarmHubSettlementRepository.AddAsync(existingSettlement);
+        //        }
 
-                var checkResult = _unitOfWork.Save();
-                if (checkResult > 0)
-                {
-                    result.AddResponseStatusCode(StatusCode.Created, "Settlement processed successfully!", existingSettlement);
-                    return result;
-                }
-                return result;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+        //        var checkResult = _unitOfWork.Save();
+        //        if (checkResult > 0)
+        //        {
+        //            result.AddResponseStatusCode(StatusCode.Created, "Settlement processed successfully!", existingSettlement);
+        //            return result;
+        //        }
+        //        return result;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<OperationResult<FarmHubSettlementResponse>> GetSettlementForFarmHub(Guid businessDayId, Guid farmHubId)
         {
