@@ -5,6 +5,7 @@ using Capstone.UniFarm.Services.ViewModels.ModelRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using static Capstone.UniFarm.Domain.Enum.EnumConstants;
 
 namespace Capstone.UniFarm.API.Controllers;
 
@@ -80,7 +81,7 @@ public class TransferController : BaseController
         [FromQuery] string? keyword,
         [FromQuery] Guid? collectedId,
         [FromQuery] Guid? stationId,
-        [FromQuery] string? status,
+        [FromQuery] FilterTransferStatus? status,
         [FromQuery] string? code,
         [FromQuery] Guid? createdBy,
         [FromQuery] Guid? updatedBy,
@@ -114,7 +115,7 @@ public class TransferController : BaseController
                              (!toDate.HasValue || x.CreatedAt <= toDate) &&
                              (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
                               x.Status!.Contains(keyword)) &&
-                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(status.ToString()) || x.Status!.Contains(status.ToString())) &&
                              (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
                 orderBy: orderBy,
                 includeProperties: null,
@@ -134,7 +135,7 @@ public class TransferController : BaseController
                              (!toDate.HasValue || x.CreatedAt <= toDate) &&
                              (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
                               x.Status!.Contains(keyword)) &&
-                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(status.ToString()) || x.Status!.Contains(status.ToString())) &&
                              (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
                 orderBy: orderBy,
                 includeProperties: null,
@@ -154,13 +155,13 @@ public class TransferController : BaseController
                              (!toDate.HasValue || x.CreatedAt <= toDate) &&
                              (string.IsNullOrEmpty(keyword) || x.Code!.Contains(keyword) ||
                               x.Status!.Contains(keyword)) &&
-                             (string.IsNullOrEmpty(status) || x.Status!.Contains(status)) &&
+                             (string.IsNullOrEmpty(status.ToString()) || x.Status!.Contains(status.ToString())) &&
                              (string.IsNullOrEmpty(code) || x.Code!.Contains(code)),
                 orderBy: orderBy,
                 includeProperties: null,
                 pageIndex: page,
                 pageSize: pageSize);
-            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+            return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
         }
 
         return Unauthorized("You are not allowed to access this resource");

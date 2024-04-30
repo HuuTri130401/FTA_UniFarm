@@ -40,6 +40,15 @@ public abstract record EnumConstants
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FilterTransferStatus
+    {
+        Pending,
+        Received,
+        NotReceived,
+        Processed
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeliveryStatus
     {
         Pending, // Đơn hàng đang chờ xử lý
