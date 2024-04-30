@@ -69,6 +69,17 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.AddResponseStatusCode(StatusCode.Ok, $"List Orders with Batch Id {batchId} is Empty!", listOrdersInBatchResponse);
                     return result;
                 }
+
+                var stationIds = listOrdersInBatchResponse.Orders.Select(o => o.StationId).Distinct().ToList(); 
+                var stations = await _unitOfWork.StationRepository.GetAllAsync();
+                var checkStations = stations.Where(s => stationIds.Contains(s.Id)); 
+
+                foreach (var order in listOrdersInBatchResponse.Orders)
+                {
+                    var station = stations.FirstOrDefault(s => s.Id == order.StationId);
+                    order.StationAddress = station?.Address; // Set station address if found
+                }
+
                 result.AddResponseStatusCode(StatusCode.Ok, "Get List Orders Done.", listOrdersInBatchResponse);
                 return result;
             }
@@ -348,6 +359,11 @@ namespace Capstone.UniFarm.Services.CustomServices
                 if (existingBatch == null)
                 {
                     result.AddError(StatusCode.BadRequest, $"Can not find Batch with BatchId: {batchId}!");
+                    return result;
+                }
+                if(existingBatch.Status != "Pending")
+                {
+                    result.AddError(StatusCode.BadRequest, "Batch updated and have status: [Processed, Received, NotReceived]");
                     return result;
                 }
                 if (batchRequestUpdate.Status == CollectedHubUpdateBatch.Received)

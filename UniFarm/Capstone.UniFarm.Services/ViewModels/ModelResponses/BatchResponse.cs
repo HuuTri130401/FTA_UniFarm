@@ -17,6 +17,7 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelResponses
         public string BusinessDayName { get; set; }
         public string BusinessDayOpen { get; set; }
         public DateTime FarmShipDate { get; set; }
+        public string FarmHubName { get; set; }
         public string CollectedHubName { get; set; }
         public string CollectedHubAddress { get; set; }
         public DateTime CollectedHubReceiveDate { get; set; }

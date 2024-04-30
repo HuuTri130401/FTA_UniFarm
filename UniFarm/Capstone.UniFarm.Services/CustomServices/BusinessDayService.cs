@@ -243,7 +243,8 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
 
-                var businessDays = await _unitOfWork.BusinessDayRepository.GetAllBusinessDayNotEndOfDayYet(ed => ed.EndOfDay == null);
+                var businessDays = await _unitOfWork.BusinessDayRepository
+                    .GetAllBusinessDayNotEndOfDayYet(ed => ed.EndOfDay == null && ed.Status == "StopSellingDay");
 
                 foreach (var existingBusinessDay in businessDays)
                 {
