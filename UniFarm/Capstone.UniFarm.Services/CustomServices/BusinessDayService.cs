@@ -375,5 +375,53 @@ namespace Capstone.UniFarm.Services.CustomServices
                 throw;
             }
         }
+
+        
+        // Remove all orders status isPaid == false when business day status is stop selling
+        public async Task<OperationResult<bool>> RemoveProductItemInCartJob()
+        {
+            var result = new OperationResult<bool>();
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var orders = await _unitOfWork.OrderRepository.GetAllWithoutPaging(false, null, x => x.IsPaid == false)
+                    .ToListAsync();
+                var businessDays = await _unitOfWork.BusinessDayRepository
+                    .GetAllWithoutPaging(false, null,
+                        x => x.Status == EnumConstants.CommonEnumStatus.StopSellingDay.ToString()).Select(x => x.Id)
+                    .ToListAsync();
+                foreach (var order in orders)
+                {
+                    if (businessDays.Contains(order.BusinessDayId ?? Guid.Empty))
+                    {
+                        await _unitOfWork.OrderRepository.DeleteAsync(order);
+                        var checkResult = await _unitOfWork.SaveChangesAsync();
+                        if (checkResult <= 0)
+                        {
+                            await transaction.RollbackAsync();
+                            _logger.LogInformation(
+                                $"Remove orders {order.Code} in cart in business id {order.BusinessDayId} failure! ");
+                            result.AddError(StatusCode.BadRequest, "Remove Product Item In Cart Failed!");
+                            return result;
+                        }
+                    }
+                }
+
+                await transaction.CommitAsync();
+                result.AddResponseStatusCode(StatusCode.Ok, "Remove Product Item In Cart Success!", true);
+
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Error occurred in RemoveProductItemInCartJob Service Method!");
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+            }
+            return result;
+        }
     }
 }

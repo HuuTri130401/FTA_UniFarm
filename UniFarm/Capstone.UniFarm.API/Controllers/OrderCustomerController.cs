@@ -52,7 +52,7 @@ public class OrderCustomerController : BaseController
         var defineUser = _accountService.GetIdAndRoleFromToken(token);
         if (defineUser.Payload == null) return HandleErrorResponse(defineUser!.Errors);
         var result = await _orderService.Checkout(defineUser.Payload.Id, orderRequestCreate);
-        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result.Payload);
+        return result.IsError ? HandleErrorResponse(result.Errors) : Ok(result);
     }
     
     
@@ -153,6 +153,20 @@ public class OrderCustomerController : BaseController
                     pageSize: pageSize
                 );
                 return resultExpired.IsError ? HandleErrorResponse(resultExpired.Errors) : Ok(resultExpired);
+            }
+            else if(status == EnumConstants.FilterOrderStatus.Cancelled)
+            {
+                var resultCancelled = await _orderService.GetAllOrdersOfCustomer(
+                    isAscending: isAscending,
+                    orderBy: orderBy,
+                    filter: x => x.CustomerId == defineUser.Payload.Id
+                                 && (x.CustomerStatus == EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
+                                 || x.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString()
+                                 || x.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByFarmHub.ToString()),
+                    pageIndex: pageIndex,
+                    pageSize: pageSize
+                );
+                return resultCancelled.IsError ? HandleErrorResponse(resultCancelled.Errors) : Ok(resultCancelled);
             }
             var result = await _orderService.GetAllOrdersOfCustomer(
                 isAscending: isAscending,

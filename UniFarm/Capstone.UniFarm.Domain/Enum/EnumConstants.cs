@@ -35,8 +35,17 @@ public abstract record EnumConstants
         OnDelivery,
         ReadyForPickup,
         PickedUp,
-        Canceled,
+        Cancelled,
         Expired
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum FilterTransferStatus
+    {
+        Pending,
+        Received,
+        NotReceived,
+        Processed
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

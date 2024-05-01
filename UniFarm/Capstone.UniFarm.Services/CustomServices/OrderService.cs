@@ -338,6 +338,15 @@ public class OrderService : IOrderService
                     stationResponse.UpdatedAt = station.UpdatedAt;
                     stationResponse.Status = station.Status;
                 }
+                
+                var collectedHubResponse = new CollectedHubResponse();
+                if (order.CollectedHubId != null)
+                {
+                    var collectedHub = await _unitOfWork.CollectedHubRepository
+                        .FilterByExpression(x => x.Id == order.CollectedHubId)
+                        .FirstOrDefaultAsync();
+                    collectedHubResponse = _mapper.Map<CollectedHubResponse>(collectedHub);
+                }
 
                 var orderDetails = await _unitOfWork.OrderDetailRepository
                     .FilterByExpression(x => x.OrderId == order.Id)
@@ -347,7 +356,7 @@ public class OrderService : IOrderService
 
                 foreach (var item in orderDetails)
                 {
-                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId); var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(x => x.ProductItemId == item.ProductItemId && x.DisplayIndex == 1).FirstOrDefaultAsync();
                     var orderDetailResponse = new OrderDetailResponse()
                     {
                         ProductItemId = item.ProductItemId,
@@ -355,7 +364,8 @@ public class OrderService : IOrderService
                         UnitPrice = item.UnitPrice,
                         Unit = item.Unit,
                         TotalPrice = item.TotalPrice,
-                        Title = productItem.Title
+                        Title = productItem.Title,
+                        ProductImage = productImage?.ImageUrl
                     };
                     orderDetailResponses.Add(orderDetailResponse);
                 }
@@ -420,7 +430,8 @@ public class OrderService : IOrderService
                     OrderDetailResponse = orderDetailResponses,
                     BatchResponse = batchReponse,
                     TransferResponse = transferResponse,
-                    CustomerResponse = customerResponse
+                    CustomerResponse = customerResponse,
+                    CollectedHubResponse = collectedHubResponse
                 };
                 orderResponses.Add(orderResponse);
             }
@@ -504,17 +515,7 @@ public class OrderService : IOrderService
                     result.IsError = true;
                     return result;
                 }
-
-                if (order.DeliveryStatus == EnumConstants.DeliveryStatus.AtStation.ToString())
-                {
-                    result.Errors.Add(new Error()
-                    {
-                        Code = StatusCode.BadRequest,
-                        Message = "Đơn hàng đã ở trạng thái ở trạm!" + orderId
-                    });
-                    result.IsError = true;
-                    return result;
-                }
+                
 
                 if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
                 {
@@ -902,6 +903,7 @@ public class OrderService : IOrderService
                 // So sánh số lượng OrderDetailId trong 2 list của 1 order
                 if (listOrderDetailDbId.Count == listOrderDetailRequestId.Count)
                 {
+                    var listNewOrderDetail = new List<OrderDetail>();
                     foreach (var orderDetail in listOrderDetailRequestId)
                     {
                         var orderDetailDb =
@@ -919,11 +921,13 @@ public class OrderService : IOrderService
                             result.IsError = true;
                             return result;
                         }
+                        listNewOrderDetail.Add(orderDetailDb);
                     }
 
                     orderDb.TotalAmount = listOrderDetailDbs.Sum(x => x.TotalPrice);
                     orderDb.FullName = request.FullName;
                     orderDb.PhoneNumber = request.PhoneNumber;
+                    orderDb.OrderDetails = listNewOrderDetail;
                     orderDb.CustomerStatus = EnumConstants.CustomerStatus.Pending.ToString();
                     orderDb.DeliveryStatus = EnumConstants.CustomerStatus.Pending.ToString();
                     orderDb.IsPaid = false;
@@ -1037,27 +1041,18 @@ public class OrderService : IOrderService
                         return result;
                     }
 
-                    var checkQuantity = productInMenu.Quantity - orderDetail.Quantity;
+                    var checkQuantity = productInMenu.Quantity - productInMenu.Sold - orderDetail.Quantity;
 
                     if (checkQuantity <= 0)
                     {
                         await transaction.RollbackAsync();
                         result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
-                        result.StatusCode = StatusCode.NotFound;
+                        result.StatusCode = StatusCode.BadRequest;
                         result.IsError = true;
                         return result;
                     }
 
-                    if (checkQuantity < orderDetail.Quantity)
-                    {
-                        await transaction.RollbackAsync();
-                        result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
-                        result.StatusCode = StatusCode.NotFound;
-                        result.IsError = true;
-                        return result;
-                    }
-
-                    productInMenu.Sold += orderDetail.Quantity;
+                    productInMenu.Sold = productInMenu.Sold + orderDetail.Quantity;
                     await _unitOfWork.ProductItemInMenuRepository.UpdateAsync(productInMenu);
                     var updateQuantity = await _unitOfWork.SaveChangesAsync();
                     if (updateQuantity == 0)
@@ -1074,6 +1069,32 @@ public class OrderService : IOrderService
             // loop qua listNewOrder
             var wallet = await _unitOfWork.WalletRepository.FilterByExpression(x => x.AccountId == customer.Id)
                 .FirstOrDefaultAsync();
+            if (wallet == null)
+            {
+                await transaction.RollbackAsync();
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Ví không tồn tại!"
+                });
+                return result;
+            }
+            
+            // Kiểm tra ví đủ tiền
+            var totalAmount = newListOrder.Sum(x => x.TotalAmount);
+            if (wallet.Balance < totalAmount)
+            {
+                await transaction.RollbackAsync();
+                result.IsError = true;
+                result.Errors.Add(new Error()
+                {
+                    Code = StatusCode.BadRequest,
+                    Message = "Ví không đủ tiền. Vui lòng nạp thêm tiền vào ví!"
+                });
+                return result;
+            }
+            
             foreach (var newOrder in newListOrder)
             {
                 var checkExistOrder = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == newOrder.Id)
@@ -1201,7 +1222,6 @@ public class OrderService : IOrderService
                     {
                         productItemResponse.ImageUrl = productImage.ImageUrl;
                     }
-
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,

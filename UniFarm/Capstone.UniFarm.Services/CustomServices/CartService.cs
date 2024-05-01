@@ -314,6 +314,7 @@ public class CartService : ICartService
                     OrderId = orderResponse.Id,
                     ProductItemId = request.ProductItemId,
                     Quantity = request.Quantity,
+                    Unit = productItemAndFarmHub.Unit,
                     UnitPrice = (decimal)productItemInMenu.SalePrice!,
                     TotalPrice = (decimal)(productItemInMenu.SalePrice * request.Quantity),
                     Order = orderResponse
@@ -393,6 +394,7 @@ public class CartService : ICartService
                     OrderId = order.Id,
                     ProductItemId = request.ProductItemId,
                     Quantity = request.Quantity,
+                    Unit = productItemAndFarmHub.Unit,
                     UnitPrice = (decimal)productItemInMenu.SalePrice!,
                     TotalPrice = (decimal)(productItemInMenu.SalePrice * request.Quantity),
                     Order = null,

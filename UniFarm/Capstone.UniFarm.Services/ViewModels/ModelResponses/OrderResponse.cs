@@ -71,6 +71,7 @@ public abstract record OrderResponse
         public BatchResponseSimple? BatchResponse { get; set; }
         public TransferResponse.TransferResponseSimple? TransferResponse { get; set; }
         public AboutMeResponse.CustomerResponseSimple? CustomerResponse { get; set; }
+        public CollectedHubResponse? CollectedHubResponse { get; set; }
     }
 
     public record OrderAndOrderDetailResponse
