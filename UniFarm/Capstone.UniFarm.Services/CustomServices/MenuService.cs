@@ -171,29 +171,35 @@ namespace Capstone.UniFarm.Services.CustomServices
                     if (checkResult > 0)
                     {
                         var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menuId);
-                        foreach (var productItemInMenu in productItemsInMenu)
+                        if (productItemsInMenu != null)
                         {
-                            var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
-                            if (productItem != null)
+                            foreach (var productItemInMenu in productItemsInMenu)
                             {
-                                //check xem còn trong menu active nào không
-                                //nếu chỉ nằm trong menu inactive thì UnRegistered
-                                //nếu nằm trong ít nhất 1 menu active thì Registered
-                                //product item in menu sẽ là inactive theo menu id đó vì không bán nữa (Inactive tất cả productItemInMenu)
-                                // check product item belong to orther menu ?
-                                //hàm này mới chuyển sang registered chứ chưa phải unregistered nếu sản không có trong menu nào
-                                
-                                var otherMenusForProduct = await _unitOfWork
-                                    .ProductItemInMenuRepository
-                                    .FindStatusProductItem(p => p.ProductItemId == productItem.Id
-                                                                && p.Status != "Inactive");
-                                var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
-                                productItem.Status = newStatus;
-                                _unitOfWork.ProductItemRepository.Update(productItem);
-                                var checkSaveStatusProductItem = _unitOfWork.Save();
-                                if (checkSaveStatusProductItem > 0)
+                                productItemInMenu.Status = "Inactive";
+                                _unitOfWork.ProductItemInMenuRepository.Update(productItemInMenu);
+                                _unitOfWork.Save();
+                                var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
+                                if (productItem != null)
                                 {
-                                    result.AddResponseStatusCode(StatusCode.Ok, $"Delete Menu have Id: {menuId} Success.", true);
+                                    //check xem còn trong menu active nào không
+                                    //nếu chỉ nằm trong menu inactive thì UnRegistered
+                                    //nếu nằm trong ít nhất 1 menu active thì Registered
+                                    //product item in menu sẽ là inactive theo menu id đó vì không bán nữa (Inactive tất cả productItemInMenu)
+                                    //check product item belong to orther menu ?
+                                    //hàm này mới chuyển sang registered chứ chưa phải unregistered nếu sản không có trong menu nào
+
+                                    var otherMenusForProduct = await _unitOfWork
+                                        .ProductItemInMenuRepository
+                                        .FindStatusProductItem(p => p.ProductItemId == productItem.Id
+                                                                    && p.Status != "Inactive");
+                                    var newStatus = !otherMenusForProduct.Any() ? "Unregistered" : "Registered";
+                                    productItem.Status = newStatus;
+                                    _unitOfWork.ProductItemRepository.Update(productItem);
+                                    var checkSaveStatusProductItem = _unitOfWork.Save();
+                                    if (checkSaveStatusProductItem > 0)
+                                    {
+                                        result.AddResponseStatusCode(StatusCode.Ok, $"Delete Menu have Id: {menuId} Success.", true);
+                                    }
                                 }
                             }
                         }

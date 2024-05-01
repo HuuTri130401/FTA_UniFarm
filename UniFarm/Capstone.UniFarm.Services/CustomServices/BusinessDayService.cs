@@ -134,6 +134,30 @@ namespace Capstone.UniFarm.Services.CustomServices
                         var checkResult = _unitOfWork.Save();
                         if (checkResult > 0)
                         {
+                            var listMenuContainProductItemsSelling = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(businessDayId);
+                            if(listMenuContainProductItemsSelling != null)
+                            {
+                                foreach (var menu in listMenuContainProductItemsSelling)
+                                {
+                                    menu.Status = "Preparing";
+                                    menu.BusinessDayId = null;
+                                    _unitOfWork.MenuRepository.Update(menu);
+                                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuId(menu.Id);
+                                    if (productItemsInMenu != null)
+                                    {
+                                        foreach (var productItemInMenu in productItemsInMenu)
+                                        {
+                                            var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(productItemInMenu.ProductItemId);
+                                            if(productItem != null && productItem.Status == "Selling")
+                                            {
+                                                productItem.Status = "Registered";
+                                                _unitOfWork.ProductItemRepository.Update(productItem);
+                                            }
+                                        }
+                                    }
+                                    _unitOfWork.Save();
+                                }
+                            }
                             result.AddResponseStatusCode(StatusCode.Ok,
                                 $"Stop Selling BusinessDay have Id: {businessDayId} Success.", true);
                         }
@@ -156,8 +180,9 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred in StopSellingDay Service Method");
                 throw;
             }
         }

@@ -143,11 +143,14 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 foreach (var menu in menuForToday)
                 {
-                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemInMenuByProductIdCustomer(menu.Id);
-                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
-                    foreach (var pim in productItemsResponse)
+                    if(menu.Status == "Active")
                     {
-                        productItems.Add(pim);
+                        var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemInMenuByProductIdCustomer(menu.Id);
+                        var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                        foreach (var pim in productItemsResponse)
+                        {
+                            productItems.Add(pim);
+                        }
                     }
                 }
                 if(productItems == null || !productItems.Any())
@@ -397,12 +400,15 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 foreach (var menu in menuForToday)
                 {
-                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
-                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
-                    foreach (var pim in productItemsResponse)
+                    if (menu.Status == "Active")
                     {
-                        pim.BusinessDayId = currentBusinessDay.Id;
-                        productItems.Add(pim);
+                        var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
+                        var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+                        foreach (var pim in productItemsResponse)
+                        {
+                            pim.BusinessDayId = currentBusinessDay.Id;
+                            productItems.Add(pim);
+                        }
                     }
                 }
 
@@ -439,13 +445,16 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 foreach (var menu in menuForToday)
                 {
-                    var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
-                    var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
-                    
-                    foreach(var pim in productItemsResponse)
+                    if (menu.Status == "Active")
                     {
-                        pim.BusinessDayId = currentBusinessDay.Id;
-                        productItems.Add(pim);
+                        var productItemsInMenu = await _unitOfWork.ProductItemInMenuRepository.GetProductItemsByMenuIdForCustomer(productItemInMenuParameters, menu.Id);
+                        var productItemsResponse = _mapper.Map<List<ProductItemInMenuResponseForCustomer>>(productItemsInMenu);
+
+                        foreach (var pim in productItemsResponse)
+                        {
+                            pim.BusinessDayId = currentBusinessDay.Id;
+                            productItems.Add(pim);
+                        }
                     }
                 }
 
