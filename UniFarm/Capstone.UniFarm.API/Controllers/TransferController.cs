@@ -88,7 +88,7 @@ public class TransferController : BaseController
         [FromQuery] DateTime? fromDate,
         [FromQuery] DateTime? toDate,
         [FromQuery] bool? isAscending,
-        [FromQuery] string? orderBy,
+        [FromQuery] string? orderBy = "CreatedAt",
         [FromQuery] int page = 0,
         [FromQuery] int pageSize = 10
     )

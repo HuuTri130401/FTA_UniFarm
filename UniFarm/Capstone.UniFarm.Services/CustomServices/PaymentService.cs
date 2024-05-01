@@ -76,12 +76,12 @@ public class PaymentService : IPaymentService
                 BankOwnerName = request.BankOwnerName,
                 BankAccountNumber = request.BankAccountNumber,
                 Note = request.Note,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow.AddHours(7),
                 Code = "WDR"+ Utils.RandomString(7)
             };
 
             wallet.Balance -= request.Amount;
-            wallet.UpdatedAt = DateTime.Now;
+            wallet.UpdatedAt = DateTime.UtcNow.AddHours(7);
             wallet.Payments = null;
             await _unitOfWork.WalletRepository.UpdateAsync(wallet);
             var countUpdate = _unitOfWork.SaveChangesAsync();
@@ -355,7 +355,7 @@ public class PaymentService : IPaymentService
                 }
                 else if (request.Status.ToString() == EnumConstants.PaymentEnum.SUCCESS.ToString())
                 {
-                    payment.PaymentDay = DateTime.Now;
+                    payment.PaymentDay = DateTime.UtcNow.AddHours(7);
                 }
                 else
                 {
@@ -380,7 +380,7 @@ public class PaymentService : IPaymentService
                 }
 
                 payment.Status = request.Status.ToString();
-                payment.UpdatedAt = DateTime.Now;
+                payment.UpdatedAt = DateTime.UtcNow.AddHours(7);
                 await _unitOfWork.PaymentRepository.UpdateAsync(payment);
                 var count = _unitOfWork.SaveChangesAsync();
                 if (count.Result == 0)
@@ -490,7 +490,7 @@ public class PaymentService : IPaymentService
                 To = requestModel.To.ToString(),
                 BalanceBefore = wallet.Balance ?? 0,
                 Amount = requestModel.Amount,
-                PaymentDay = DateTime.Now,
+                PaymentDay = DateTime.UtcNow.AddHours(7),
                 Status = EnumConstants.PaymentEnum.SUCCESS.ToString(),
                 Type = requestModel.Type.ToString(),
                 Wallet = null,
@@ -532,7 +532,7 @@ public class PaymentService : IPaymentService
                 }
             }
 
-            wallet.UpdatedAt = DateTime.Now;
+            wallet.UpdatedAt = DateTime.UtcNow.AddHours(7);
             wallet.Payments = null;
             await _unitOfWork.WalletRepository.UpdateAsync(wallet);
             var countUpdate = _unitOfWork.SaveChangesAsync();

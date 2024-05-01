@@ -855,15 +855,9 @@ public class OrderService : IOrderService
             var customer = await _unitOfWork.AccountRepository.GetByIdAsync(customerId);
             if (customer == null)
             {
-                result.Errors.Add(
-                    new Error
-                    {
-                        Code = StatusCode.NotFound,
-                        Message = "Không tìm thấy khách hàng!"
-                    }
-                );
+                result.StatusCode = StatusCode.NoContent;
+                result.IsError = false;
                 result.Message = "Không tìm thấy khách hàng!";
-                result.IsError = true;
                 return result;
             }
 
@@ -879,18 +873,12 @@ public class OrderService : IOrderService
             foreach (var requestOrder in request.Orders)
             {
                 var orderDb = await listOrderDb.Where(x => x.Id == requestOrder.OrderId).FirstOrDefaultAsync();
-
+                
                 if (orderDb == null)
                 {
-                    result.Errors.Add(
-                        new Error
-                        {
-                            Code = StatusCode.NotFound,
-                            Message = "Không tìm thấy order!" + requestOrder.OrderId
-                        }
-                    );
-                    result.Message = "Không tìm thấy order!";
-                    result.IsError = true;
+                    result.Message = "Không tìm thấy đơn hàng: " + requestOrder.OrderId;
+                    result.StatusCode = StatusCode.NotFound;
+                    result.IsError = false;
                     return result;
                 }
 
@@ -910,15 +898,9 @@ public class OrderService : IOrderService
                             await listOrderDetailDbs.Where(x => x.Id == orderDetail).FirstOrDefaultAsync();
                         if (orderDetailDb == null)
                         {
-                            result.Errors.Add(
-                                new Error
-                                {
-                                    Code = StatusCode.NotFound,
-                                    Message = "Không tìm thấy order detail!" + orderDetail
-                                }
-                            );
-                            result.Message = "Không tìm thấy order detail!";
-                            result.IsError = true;
+                            result.Message = "Không tìm thấy chi tiết đơn hàng!";
+                            result.StatusCode = StatusCode.NotFound;
+                            result.IsError = false;
                             return result;
                         }
                         listNewOrderDetail.Add(orderDetailDb);
@@ -944,15 +926,9 @@ public class OrderService : IOrderService
                         if (orderDetailDb == null)
                         {
                             await transaction.RollbackAsync();
-                            result.Errors.Add(
-                                new Error
-                                {
-                                    Code = StatusCode.NotFound,
-                                    Message = "Không tìm thấy order detail!" + orderDetailId
-                                }
-                            );
-                            result.Message = "Không tìm thấy order detail!";
-                            result.IsError = true;
+                            result.StatusCode = StatusCode.NotFound;
+                            result.Message = "Không tìm thấy chi tiết sản phẩm!";
+                            result.IsError = false;
                             return result;
                         }
 
@@ -967,12 +943,9 @@ public class OrderService : IOrderService
                         if (count == 0)
                         {
                             await transaction.RollbackAsync();
-                            result.IsError = true;
-                            result.Errors.Add(new Error()
-                            {
-                                Code = StatusCode.BadRequest,
-                                Message = "Remove orderDetail In Order Error" + orderDetailRemove.Id
-                            });
+                            result.StatusCode = StatusCode.BadRequest;
+                            result.Message = "Lỗi xóa sản phẩm " + orderDb.Id;
+                            result.IsError = false;
                             return result;
                         }
                     }
@@ -987,18 +960,14 @@ public class OrderService : IOrderService
                     if (updateOrderCount == 0)
                     {
                         await transaction.RollbackAsync();
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.BadRequest,
-                            Message = "Remove Order Error" + orderDb.Id
-                        });
+                        result.StatusCode = StatusCode.BadRequest;
+                        result.Message = "Lỗi xóa sản phẩm " + orderDb.Id;
+                        result.IsError = false;
                         return result;
                     }
 
                     var newId = Guid.NewGuid();
                     listNewOrderDetail.ForEach(x => x.OrderId = newId);
-                    var farmHub = await _unitOfWork.FarmHubRepository.GetByIdAsync(orderDb.FarmHubId);
                     var order = new Order
                     {
                         Id = newId,
@@ -1007,7 +976,7 @@ public class OrderService : IOrderService
                         StationId = request.StationId,
                         BusinessDayId = orderDb.BusinessDayId,
                         TotalAmount = listNewOrderDetail.Sum(x => x.TotalPrice),
-                        Code = Utils.GenerateOrderCode(farmHub?.Code!),
+                        Code = Utils.RandomString(6),
                         ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
                         ShipAddress = orderDb.ShipAddress,
                         OrderDetails = listNewOrderDetail,
@@ -1020,24 +989,36 @@ public class OrderService : IOrderService
                     newListOrder.Add(order);
                 }
             }
-
+            
             // Check số lượng và tăng số lượng sold trong productItemInMenu
             foreach (var order in newListOrder)
             {
+                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId ?? Guid.Empty);
+                if(businessDay == null)
+                {
+                    await transaction.RollbackAsync();
+                    result.Message = "Ngày kinh doanh không tồn tại!";
+                    result.StatusCode = StatusCode.NotFound;
+                    result.IsError = false;
+                    return result;
+                }
                 foreach (var orderDetail in order.OrderDetails)
                 {
-                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository
-                        .FilterByExpression(
-                            x => x.ProductItemId == orderDetail.ProductItemId
-                                 && x.Status == EnumConstants.CommonEnumStatus.Active.ToString()
-                        )
-                        .FirstOrDefaultAsync();
+                    var productInMenuList = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                        x => x.ProductItemId == orderDetail.ProductItemId
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    var listMenu = await _unitOfWork.MenuRepository.FilterByExpression(
+                        x => x.BusinessDayId == businessDay.Id
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    var productInMenu = productInMenuList
+                        .FirstOrDefault(x => listMenu.Any(y => y.Id == x.MenuId));
+
                     if (productInMenu == null)
                     {
                         await transaction.RollbackAsync();
                         result.Message = "Sản phẩm không tìm thấy hoặc ngừng kinh doanh";
                         result.StatusCode = StatusCode.NotFound;
-                        result.IsError = true;
+                        result.IsError = false;
                         return result;
                     }
 
@@ -1047,8 +1028,8 @@ public class OrderService : IOrderService
                     {
                         await transaction.RollbackAsync();
                         result.Message = "Hết hàng hoặc không đủ số lượng sản phẩm trong menu!";
-                        result.StatusCode = StatusCode.BadRequest;
-                        result.IsError = true;
+                        result.StatusCode = StatusCode.NotFound;
+                        result.IsError = false;
                         return result;
                     }
 
@@ -1060,7 +1041,7 @@ public class OrderService : IOrderService
                         await transaction.RollbackAsync();
                         result.Message = "Cập nhật số lượng sản phẩm trong menu không thành công";
                         result.StatusCode = StatusCode.BadRequest;
-                        result.IsError = true;
+                        result.IsError = false;
                         return result;
                     }
                 }

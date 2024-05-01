@@ -156,11 +156,11 @@ namespace Capstone.UniFarm.Services.ThirdPartyService
         
         private const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         private const int baseNumber = 34;
-        public static string GenerateOrderCode(string farmHubCode)
+        public static string GenerateOrderCode(string? farmHubCode = "RD")
         {
             DateTime startDate = new DateTime(DateTime.Now.Year, 1, 1);
             long ticksSinceStart = DateTime.Now.Ticks - startDate.Ticks;
-            long ticksPerCharacter = ticksSinceStart / baseNumber;
+            long ticksPerCharacter = Math.Max(ticksSinceStart / baseNumber, 1);  // Ensure non-zero positive
 
             Random random = new Random();
 
@@ -168,18 +168,11 @@ namespace Capstone.UniFarm.Services.ThirdPartyService
             // First two characters from FarmHub code
             for (int i = 0; i < 2; i++)
             {
-                if (i < farmHubCode.Length)
-                {
-                    codeChars[i] = farmHubCode[i];
-                }
-                else
-                {
-                    codeChars[i] = '0';
-                }
+                codeChars[i] = i < farmHubCode.Length ? farmHubCode[i] : '0';
             }
             for (int i = 2; i < 6; i++)
             {
-                long randomNumber = ticksPerCharacter * i + random.Next((int)ticksPerCharacter);
+                long randomNumber = (ticksPerCharacter * i) % long.MaxValue + random.Next((int)ticksPerCharacter);
                 int characterIndex = (int)(randomNumber % baseNumber);
                 codeChars[i] = characters[characterIndex];
             }

@@ -37,7 +37,6 @@ public class CartService : ICartService
         var result = new OperationResult<OrderResponse.OrderResponseForCustomer?>();
         try
         {
-            var currentDay = DateTime.Now.Date;
             var order = await _unitOfWork.OrderRepository.FilterByExpression(
                 predicate: x => x.CustomerId == customerId
                                 && x.FarmHubId == farmHubId
@@ -145,7 +144,7 @@ public class CartService : ICartService
                 CreatedAt = order.CreatedAt,
                 Code = order.Code,
                 ShipAddress = order.ShipAddress,
-                TotalAmount = order.TotalAmount,
+                TotalAmount = order.TotalAmount ?? 0,
                 IsPaid = order.IsPaid,
                 FullName = order.FullName,
                 PhoneNumber = order.PhoneNumber,
@@ -181,28 +180,39 @@ public class CartService : ICartService
     {
         // 1. Kiểm tra xem giỏ hàng đã tồn tại chưa
         var result = await CheckExistCart(customerId, request.FarmHubId, request.ProductItemId, request.StationId,
-            request.BusinessDayId,
-            false);
-
-        var transaction = await _unitOfWork.BeginTransactionAsync();
-
-        var productItemInMenu = _unitOfWork.ProductItemInMenuRepository
-            .FilterByExpression(
-                predicate: x => x.ProductItemId == request.ProductItemId
-                                && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE
-            ).FirstOrDefaultAsync().Result;
-        if (productItemInMenu == null)
+            request.BusinessDayId);
+        
+        var businessDay = await _unitOfWork.BusinessDayRepository.FilterByExpression(
+            x => x.Id == request.BusinessDayId
+        ).FirstOrDefaultAsync();
+        if (businessDay == null)
         {
-            await transaction.RollbackAsync();
             return new OperationResult<OrderResponse.OrderResponseForCustomer?>
             {
-                Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST,
+                Message = EnumConstants.NotificationMessage.BUSINESSDAY_DOES_NOT_EXIST,
                 StatusCode = StatusCode.NotFound,
                 Payload = null,
                 IsError = false
             };
         }
 
+        var productInMenuList = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+            x => x.ProductItemId == request.ProductItemId
+                 && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+        var listMenu = await _unitOfWork.MenuRepository.FilterByExpression(
+            x => x.BusinessDayId == businessDay.Id
+                 && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+        var productItemInMenu = productInMenuList
+            .FirstOrDefault(x => listMenu.Any(y => y.Id == x.MenuId));
+
+        if (productItemInMenu == null)
+        {
+            result.Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST;
+            result.StatusCode = StatusCode.NotFound;
+            result.Payload = null;
+            return result;
+        }
+        
         var productItemAndFarmHub = _unitOfWork.ProductItemRepository.FilterByExpression(
             predicate: x => x.Id == request.ProductItemId
                             && x.FarmHubId == request.FarmHubId
@@ -210,7 +220,6 @@ public class CartService : ICartService
 
         if (productItemAndFarmHub == null)
         {
-            await transaction.RollbackAsync();
             return new OperationResult<OrderResponse.OrderResponseForCustomer?>
             {
                 Message = EnumConstants.NotificationMessage.PRODUCT_ITEM_AND_FARMHUBID_DOES_NOT_EXIST,
@@ -227,7 +236,6 @@ public class CartService : ICartService
             .Result;
         if (station == null)
         {
-            await transaction.RollbackAsync();
             return new OperationResult<OrderResponse.OrderResponseForCustomer?>
             {
                 Message = EnumConstants.NotificationMessage.STATION_DOES_NOT_EXIST,
@@ -237,25 +245,9 @@ public class CartService : ICartService
             };
         }
 
-        var businessDay = _unitOfWork.BusinessDayRepository.FilterByExpression(
-            x => x.Id == request.BusinessDayId
-        ).FirstOrDefaultAsync().Result;
-        if (businessDay == null)
-        {
-            await transaction.RollbackAsync();
-            return new OperationResult<OrderResponse.OrderResponseForCustomer?>
-            {
-                Message = EnumConstants.NotificationMessage.BUSINESSDAY_DOES_NOT_EXIST,
-                StatusCode = StatusCode.NotFound,
-                Payload = null,
-                IsError = false
-            };
-        }
-
         var farmHubDb = await _unitOfWork.FarmHubRepository.GetByIdAsync(request.FarmHubId);
         if (farmHubDb == null)
         {
-            await transaction.RollbackAsync();
             return new OperationResult<OrderResponse.OrderResponseForCustomer?>
             {
                 Message = EnumConstants.NotificationMessage.FARMHUB_DOES_NOT_EXIST,
@@ -265,8 +257,10 @@ public class CartService : ICartService
             };
         }
 
+
         var customer = await _unitOfWork.AccountRepository.GetByIdAsync(customerId);
 
+        var transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
             if (result.Message ==
@@ -278,11 +272,11 @@ public class CartService : ICartService
                     Id = Guid.NewGuid(),
                     CustomerId = customerId,
                     FarmHubId = request.FarmHubId,
-                    CreatedAt = DateTime.Now,
+                    CreatedAt = DateTime.UtcNow.AddHours(7),
                     StationId = request.StationId,
-                    Code = Utils.GenerateOrderCode(farmHubDb.Code!),
-                    UpdatedAt = DateTime.Now,
-                    TotalAmount = (decimal?)(productItemInMenu.SalePrice * request.Quantity),
+                    Code = Utils.RandomString(6),
+                    UpdatedAt = DateTime.UtcNow.AddHours(7),
+                    TotalAmount = (decimal)(productItemInMenu!.SalePrice * request.Quantity)!,
                     CustomerStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,
                     DeliveryStatus = EnumConstants.ActiveInactiveEnum.ACTIVE,
                     IsPaid = false,
@@ -297,6 +291,7 @@ public class CartService : ICartService
 
                 if (count == 0)
                 {
+
                     await transaction.RollbackAsync();
                     return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                     {
@@ -317,6 +312,7 @@ public class CartService : ICartService
                     TotalPrice = (decimal)(productItemInMenu.SalePrice * request.Quantity),
                     Order = orderResponse
                 };
+
 
                 await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
                 var countOrderDetail = await _unitOfWork.SaveChangesAsync();
@@ -341,6 +337,7 @@ public class CartService : ICartService
                 var orderDetailResponseForCustomer = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                 orderDetailResponseForCustomer.ProductItemResponse = productItemResponse;
                 await transaction.CommitAsync();
+
                 return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                 {
                     Message = EnumConstants.NotificationMessage.ADD_TO_CART_SUCCESS,
@@ -448,6 +445,7 @@ public class CartService : ICartService
                 }
 
                 await transaction.CommitAsync();
+
                 return new OperationResult<OrderResponse.OrderResponseForCustomer?>
                 {
                     Message = EnumConstants.NotificationMessage.CREATE_CART_SUCCESS,
@@ -629,7 +627,8 @@ public class CartService : ICartService
             await transaction.RollbackAsync();
             return new OperationResult<OrderResponse.OrderResponseForCustomer?>
             {
-                Message = EnumConstants.NotificationMessage.ADD_TO_CART_FAILURE + e.Message,
+                Message = EnumConstants.NotificationMessage.ADD_TO_CART_FAILURE + 
+                          " " + e.Message,
                 StatusCode = StatusCode.ServerError,
                 Payload = null,
                 IsError = false
@@ -702,9 +701,14 @@ public class CartService : ICartService
 
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
-                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                    var productInMenuList = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
                         x => x.ProductItemId == productItem!.Id
-                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    var listMenu = await _unitOfWork.MenuRepository.FilterByExpression(
+                        x => x.BusinessDayId == businessDay!.Id
+                        && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    var productInMenu = productInMenuList.FirstOrDefault(x => listMenu.Any(y => y.Id == x.MenuId));
+                    
                     if (productInMenu == null)
                     {
                         orderDetailResponse.QuantityInStock = 0;
@@ -780,6 +784,8 @@ public class CartService : ICartService
                 }
 
                 var orderDetailList = new List<OrderDetailResponseForCustomer>();
+                var businessDay =
+                    await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
                 foreach (var detail in item.OrderDetailIds)
                 {
                     var orderDetail = await _unitOfWork.OrderDetailRepository.GetByIdAsync(detail);
@@ -808,9 +814,15 @@ public class CartService : ICartService
 
                     var orderDetailResponse = _mapper.Map<OrderDetailResponseForCustomer>(orderDetail);
                     orderDetailResponse.ProductItemResponse = productItemResponse;
-                    var productInMenu = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
+                    var productInMenuList = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
                         x => x.ProductItemId == productItem!.Id
-                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).FirstOrDefaultAsync();
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    
+                    var listMenu = await _unitOfWork.MenuRepository.FilterByExpression(
+                        x => x.BusinessDayId == businessDay!.Id
+                             && x.Status == EnumConstants.ActiveInactiveEnum.ACTIVE).ToListAsync();
+                    var productInMenu = productInMenuList.FirstOrDefault(x => listMenu.Any(y => y.Id == x.MenuId));
+
                     if (productInMenu == null)
                     {
                         orderDetailResponse.QuantityInStock = 0;
@@ -827,8 +839,6 @@ public class CartService : ICartService
                 var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
                 var station = await _unitOfWork.StationRepository.GetByIdAsync(order.StationId.GetValueOrDefault());
                 var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
-                var businessDay =
-                    await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
                 var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
                 order.OrderDetails = await _unitOfWork.OrderDetailRepository.FilterByExpression(
                     x => x.OrderId == order.Id).ToListAsync();

@@ -24,7 +24,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<FarmHubRegisterRequest, Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid())).ReverseMap();
             CreateMap<AccountRequestUpdate, Account>()
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => System.DateTime.Now))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role))
                 .ReverseMap();
 
@@ -108,13 +108,13 @@ namespace Capstone.UniFarm.Services.Commons
             #region CollectedHub Mapping
             CreateMap<CollectedHubRequestCreate, CollectedHub>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
 
 
             CreateMap<CollectedHubRequestUpdate, CollectedHub>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
                     String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
 
@@ -125,7 +125,7 @@ namespace Capstone.UniFarm.Services.Commons
             #region Payment Mapping
             CreateMap<PaymentRequestCreate, Payment>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
-                .ForMember(dest => dest.PaymentDay, opt => opt.MapFrom(src => DateTime.Now));
+                .ForMember(dest => dest.PaymentDay, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)));
             #endregion
 
             
@@ -141,7 +141,7 @@ namespace Capstone.UniFarm.Services.Commons
 
 
             CreateMap<TransferRequestCreate, Transfer>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.StationUpdateTransfer.Pending));
 
             CreateMap<Transfer, TransferResponse>()

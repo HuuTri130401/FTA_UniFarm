@@ -188,26 +188,26 @@ public abstract record EnumConstants
     {
         public static readonly string CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID = "Cart does not exist with same productItemId and farmHubId";
         public static readonly string CART_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID = "Cart exist with same productItemId and farmHubId";
-        public static readonly string ORDER_DOES_NOT_EXIST = "Order does not exist";
-        public static readonly string ORDER_DETAIL_DOES_NOT_EXIST = "OrderDetail does not exist";
-        public static readonly string PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST = "Product Item In Menu does not exist";
-        public static readonly string PRODUCT_ITEM_DOES_NOT_EXIST_OR_INACTIVE = "Product Item does not exist or is not active";
-        public static readonly string PRODUCT_ITEM_AND_FARMHUBID_DOES_NOT_EXIST = "Product Item and FarmHubId does not exist";
+        public static readonly string ORDER_DOES_NOT_EXIST = "Đơn hàng không tồn tại";
+        public static readonly string ORDER_DETAIL_DOES_NOT_EXIST = "Chi tiết đơn hàng không tồn tại";
+        public static readonly string PRODUCT_ITEM_IN_MENU_DOES_NOT_EXIST = "Sản phẩm trong menu không tồn tại";
+        public static readonly string PRODUCT_ITEM_DOES_NOT_EXIST_OR_INACTIVE = "Sản phẩm không tồn tại hoặc ngừng kinh doanh";
+        public static readonly string PRODUCT_ITEM_AND_FARMHUBID_DOES_NOT_EXIST = "Sản phẩm không tồn tại hoặc không thuộc nhà cung cấp";
         public static readonly string FARMHUB_DOES_NOT_EXIST = "FarmHub does not exist";
-        public static readonly string CREATE_CART_SUCCESS = "Create cart success";
-        public static readonly string CREATE_CART_FAILURE = "Create cart failure";
-        public static readonly string UPDATE_CART_SUCCESS = "Update cart success";
-        public static readonly string UPDATE_CART_FAILURE = "Update cart failure";
-        public static readonly string CREATE_CART_ORDER_DETAIL_SUCCESS = "Create cart order detail success";
-        public static readonly string CREATE_CART_ORDER_DETAIL_FAILURE = "Create cart order detail failure";
-        public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Update cart order detail success";
-        public static readonly string ADD_TO_CART_SUCCESS = "Add to cart success";
-        public static readonly string ADD_TO_CART_FAILURE = "Add to cart failure";
+        public static readonly string CREATE_CART_SUCCESS = "Tạo giỏ hàng thành công!";
+        public static readonly string CREATE_CART_FAILURE = "Tạo giỏ hàng thất bại!";
+        public static readonly string UPDATE_CART_SUCCESS = "Cập nhật giỏ hàng thành công!";
+        public static readonly string UPDATE_CART_FAILURE = "Cập nhật giỏ hàng thất bại!";
+        public static readonly string CREATE_CART_ORDER_DETAIL_SUCCESS = "Tạo sản phẩm trong giỏ hàng thành công!";
+        public static readonly string CREATE_CART_ORDER_DETAIL_FAILURE = "Cập nhật sản phẩm trong giỏ hàng thất bại!";
+        public static readonly string UPDATE_CART_ORDER_DETAIL_SUCCESS = "Cập nhật sản phẩm trong giỏ hàng thành công!";
+        public static readonly string ADD_TO_CART_SUCCESS = "Thêm vào giỏ thất bại!";
+        public static readonly string ADD_TO_CART_FAILURE = "Thêm vào giỏ hàng thành công!";
         public static readonly string STATION_DOES_NOT_EXIST = "Station does not exist";
         public static readonly string BUSINESSDAY_DOES_NOT_EXIST = "BusinessDay does not exist";
         public static readonly string NOT_FOUND_ANY_ITEM_IN_CART = "Not found any item in cart";
         public static readonly string GET_CART_SUCCESS = "Get cart success";
-        public static readonly string QUANTITY_IN_MENU_DOES_NOT_ENOUGH = "Quantity in menu does not enough";
+        public static readonly string QUANTITY_IN_MENU_DOES_NOT_ENOUGH = "Không đủ số lượng sản phẩm trong kho!";
     }
     
     public abstract record OrderMessage
