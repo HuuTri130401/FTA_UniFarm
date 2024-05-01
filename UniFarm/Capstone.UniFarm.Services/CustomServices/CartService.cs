@@ -17,7 +17,7 @@ public class CartService : ICartService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    
+
 
     public CartService(IUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -239,7 +239,6 @@ public class CartService : ICartService
 
         var businessDay = _unitOfWork.BusinessDayRepository.FilterByExpression(
             x => x.Id == request.BusinessDayId
-            /*&& x.OpenDay == DateTime.Now.Date*/
         ).FirstOrDefaultAsync().Result;
         if (businessDay == null)
         {
@@ -252,7 +251,7 @@ public class CartService : ICartService
                 IsError = false
             };
         }
-        
+
         var farmHubDb = await _unitOfWork.FarmHubRepository.GetByIdAsync(request.FarmHubId);
         if (farmHubDb == null)
         {
@@ -274,7 +273,6 @@ public class CartService : ICartService
                 EnumConstants.NotificationMessage
                     .CART_DOES_NOT_EXIST_WITH_SAME_PRODUCTITEMID_AND_FARMHUBID_STATIONID_BUSINESSDAYID)
             {
-                
                 var order = new Order
                 {
                     Id = Guid.NewGuid(),
@@ -512,10 +510,24 @@ public class CartService : ICartService
 
                 if (request.IsAddToCart)
                 {
-                    order.TotalAmount -= orderDetail.TotalPrice ?? 0;
+                    if (orderDetail.Quantity + request.Quantity >
+                        productItemInMenu.Quantity - (productItemInMenu.Sold ?? 0))
+                    {
+                        return new OperationResult<OrderResponse.OrderResponseForCustomer?>
+                        {
+                            Message = EnumConstants.NotificationMessage.QUANTITY_IN_MENU_DOES_NOT_ENOUGH,
+                            StatusCode = StatusCode.BadRequest,
+                            Payload = null,
+                            IsError = false
+                        };
+                    }
+                    if (order.TotalAmount > 0)
+                    {
+                        order.TotalAmount -= orderDetail.TotalPrice ?? 0;
+                    }
                     orderDetail.Quantity += request.Quantity;
-                    orderDetail.TotalPrice = (decimal)(productItemInMenu.SalePrice * orderDetail.Quantity);
-                    order.TotalAmount += (decimal)(productItemInMenu.SalePrice * orderDetail.Quantity);
+                    orderDetail.TotalPrice = (decimal)(productItemInMenu.SalePrice * orderDetail.Quantity)!;
+                    order.TotalAmount += (decimal)(productItemInMenu.SalePrice * orderDetail.Quantity)!;
                 }
                 else
                 {
@@ -623,6 +635,10 @@ public class CartService : ICartService
                 IsError = false
             };
         }
+        finally
+        {
+            await transaction.DisposeAsync();
+        }
 
         return result;
     }
@@ -697,9 +713,10 @@ public class CartService : ICartService
                     {
                         orderDetailResponse.QuantityInStock = productInMenu.Quantity - productInMenu.Sold;
                     }
+
                     orderDetailResponses.Add(orderDetailResponse);
                 }
-                
+
                 var orderResponse = new OrderResponse.OrderResponseForCustomer()
                 {
                     Id = order.Id,
@@ -717,7 +734,7 @@ public class CartService : ICartService
                     FarmHubResponse = farmHubResponse,
                     BusinessDayResponse = businessDayResponse,
                     StationResponse = stationResponse,
-                    OrderDetailResponse =  orderDetailResponses
+                    OrderDetailResponse = orderDetailResponses
                 };
                 orderResponses.Add(orderResponse);
             }
@@ -878,8 +895,8 @@ public class CartService : ICartService
                 result.IsError = true;
                 return result;
             }
-            
-            var order = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == orderDetail.OrderId 
+
+            var order = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == orderDetail.OrderId
                     && x.IsPaid == false
                     && x.CustomerId == payloadId)
                 .FirstOrDefaultAsync();
@@ -927,7 +944,8 @@ public class CartService : ICartService
             var farmHubResponse = _mapper.Map<FarmHubResponse>(farmHub);
             var station = await _unitOfWork.StationRepository.GetByIdAsync(order.StationId.GetValueOrDefault());
             var stationResponse = _mapper.Map<StationResponse.StationResponseSimple>(station);
-            var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
+            var businessDay =
+                await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId.GetValueOrDefault());
             var businessDayResponse = _mapper.Map<BusinessDayResponse>(businessDay);
 
             if (request.Quantity > productInMenu.Quantity - productInMenu.Sold)
@@ -957,10 +975,12 @@ public class CartService : ICartService
             if (request.Quantity <= 0)
             {
                 await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
-            } else {
+            }
+            else
+            {
                 await _unitOfWork.OrderDetailRepository.UpdateAsync(orderDetail);
             }
-            
+
             var countOrderDetail = await _unitOfWork.SaveChangesAsync();
             if (countOrderDetail == 0)
             {
@@ -977,17 +997,19 @@ public class CartService : ICartService
             }
 
             var isDeleted = false;
-            if(order.TotalAmount <= 0)
+            if (order.TotalAmount <= 0)
             {
                 await _unitOfWork.OrderRepository.DeleteAsync(order);
                 isDeleted = true;
-            } else {
+            }
+            else
+            {
                 await _unitOfWork.OrderRepository.UpdateAsync(order);
             }
-            
+
             var countOrder = await _unitOfWork.SaveChangesAsync();
-            
-            if(isDeleted)
+
+            if (isDeleted)
             {
                 result.Message = "Delete order success";
                 result.StatusCode = StatusCode.Ok;
@@ -995,7 +1017,7 @@ public class CartService : ICartService
                 result.IsError = false;
                 return result;
             }
-            
+
             if (countOrder == 0)
             {
                 result.Message = EnumConstants.NotificationMessage.UPDATE_CART_FAILURE;
