@@ -1169,8 +1169,6 @@ public class OrderService : IOrderService
                     });
                     return result;
                 }
-
-                
             }
 
             await transaction.CommitAsync();

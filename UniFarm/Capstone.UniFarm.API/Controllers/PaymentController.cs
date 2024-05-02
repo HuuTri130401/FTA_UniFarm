@@ -105,7 +105,7 @@ public class PaymentController : BaseController
         [FromQuery] string? to,
         [FromQuery] string? type,
         [FromQuery] bool? isAscending = false,
-        [FromQuery] string? orderBy = "PaymentDay",
+        [FromQuery] string? orderBy = "CreatedAt",
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10
         )
@@ -158,7 +158,7 @@ public class PaymentController : BaseController
     public async Task<IActionResult> GetAllPayment(
         [FromQuery] EnumConstants.PaymentEnum? status,
         [FromQuery] bool? isAscending = false,
-        [FromQuery] string? orderBy = "PaymentDay",
+        [FromQuery] string? orderBy = "CreatedAt",
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10
         )
