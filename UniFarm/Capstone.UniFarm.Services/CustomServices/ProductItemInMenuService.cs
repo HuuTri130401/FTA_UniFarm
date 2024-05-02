@@ -176,10 +176,9 @@ namespace Capstone.UniFarm.Services.CustomServices
             var result = new OperationResult<IEnumerable<ProductItemSellingPercentRatio>>();
             try
             {
-                var menu = _unitOfWork.MenuRepository
-                    .FilterByExpression(x => x.FarmHubId == farmHubId && x.BusinessDayId == businessDayId)
-                    .FirstOrDefault();
-                if (menu == null)
+                var menu = await _unitOfWork.MenuRepository
+                    .FilterByExpression(x => x.FarmHubId == farmHubId && x.BusinessDayId == businessDayId).ToListAsync();
+                if (menu.Count == 0)
                 {
                     result.StatusCode = StatusCode.NotFound;
                     result.Message = $"Menu with FarmHub Id {farmHubId} and BusinessDay Id {businessDayId} not found!";
@@ -188,16 +187,18 @@ namespace Capstone.UniFarm.Services.CustomServices
                     result.IsError = true;
                     return result;
                 }
+                
+                var menuId = menu.Select(x => x.Id);
 
                 var productItemsInMenu =
                     await _unitOfWork.ProductItemInMenuRepository
-                        .GetAllWithoutPaging(null, null, x => x.MenuId == menu.Id).ToListAsync();
+                        .GetAllWithoutPaging(null, null, x => menuId.Contains(x.MenuId)).ToListAsync();
                 var productItemsInMenuResponse = new List<ProductItemSellingPercentRatio>();
                 if (!productItemsInMenu.Any())
                 {
                     result.StatusCode = StatusCode.NotFound;
-                    result.Message = $"Product Items In Menu with Menu Id {menu.Id} not found!";
-                    result.AddError(StatusCode.NotFound, $"Product Items In Menu with Menu Id {menu.Id} not found!");
+                    result.Message = $"Product Items not found!";
+                    result.AddError(StatusCode.NotFound, $"Product Items In Menu with not found!");
                     result.IsError = true;
                     return result;
                 }
