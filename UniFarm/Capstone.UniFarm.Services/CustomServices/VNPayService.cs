@@ -157,7 +157,7 @@ namespace Capstone.UniFarm.Services.CustomServices
                 }
 
                 wallet.Balance += payment.Amount;
-                wallet.UpdatedAt = DateTime.Now;
+                wallet.UpdatedAt = DateTime.UtcNow.AddHours(7);
                 wallet.Payments = null;
                 await _unitOfWork.WalletRepository.UpdateAsync(wallet);
                 var countUpdate = _unitOfWork.SaveChangesAsync();

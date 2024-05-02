@@ -134,7 +134,7 @@ public class OrderService : IOrderService
                     BusinessDayId = orderRequestCreate.businessDayId,
                     TotalAmount = item.totalFarmHubPrice,
                     Code = "OD" + Guid.NewGuid().ToString().Substring(0, 6),
-                    ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
+                    ExpectedReceiveDate = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(1),
                     ShipAddress = orderRequestCreate.shipNote,
                     IsPaid = false
                 };
@@ -524,20 +524,20 @@ public class OrderService : IOrderService
                 {
                     order.DeliveryStatus = EnumConstants.DeliveryStatus.AtStation.ToString();
                     order.CustomerStatus = EnumConstants.CustomerStatus.ReadyForPickup.ToString();
-                    order.ExpiredDayInStation = DateTime.Now + TimeSpan.FromDays(2);
-                    order.UpdatedAt = DateTime.Now;
+                    order.ExpiredDayInStation = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(2);
+                    order.UpdatedAt = DateTime.UtcNow.AddHours(7);
                 }
                 else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.StationNotReceived &&
                          order.DeliveryStatus != EnumConstants.StationStaffUpdateOrderStatus.AtStation.ToString())
                 {
                     order.DeliveryStatus = EnumConstants.DeliveryStatus.StationNotReceived.ToString();
-                    order.UpdatedAt = DateTime.Now;
+                    order.UpdatedAt = DateTime.UtcNow.AddHours(7);
                 }
                 else if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.PickedUp)
                 {
                     order.DeliveryStatus = EnumConstants.DeliveryStatus.PickedUp.ToString();
                     order.CustomerStatus = EnumConstants.CustomerStatus.PickedUp.ToString();
-                    order.UpdatedAt = DateTime.Now;
+                    order.UpdatedAt = DateTime.UtcNow.AddHours(7);
                     order.ShipByStationStaffId = defineUserPayload.Id;
                 }
                 else
@@ -981,7 +981,7 @@ public class OrderService : IOrderService
                         BusinessDayId = orderDb.BusinessDayId,
                         TotalAmount = listNewOrderDetail.Sum(x => x.TotalPrice),
                         Code = Utils.RandomString(6),
-                        ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1),
+                        ExpectedReceiveDate = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(1),
                         ShipAddress = orderDb.ShipAddress,
                         OrderDetails = listNewOrderDetail,
                         FullName = request.FullName,
@@ -1128,7 +1128,7 @@ public class OrderService : IOrderService
                     Id = new Guid(),
                     TransactionType = EnumConstants.TransactionEnum.Payment.ToString(),
                     Amount = newOrder.TotalAmount,
-                    PaymentDate = DateTime.Now,
+                    PaymentDate = DateTime.UtcNow.AddHours(7),
                     Status = EnumConstants.TransactionStatus.Success.ToString(),
                     PayerWalletId = wallet!.Id,
                     PayeeWalletId = Guid.Parse(EnumConstants.AdminWallet.AdminWalletId),
@@ -1343,7 +1343,7 @@ public class OrderService : IOrderService
 
             order.CustomerStatus = EnumConstants.CustomerStatus.CanceledByCustomer.ToString();
             order.DeliveryStatus = EnumConstants.DeliveryStatus.CanceledByCustomer.ToString();
-            order.UpdatedAt = DateTime.Now;
+            order.UpdatedAt = DateTime.UtcNow.AddHours(7);
             await _unitOfWork.OrderRepository.UpdateAsync(order);
             var countUpdate = await _unitOfWork.SaveChangesAsync();
             if (countUpdate == 0)

@@ -39,7 +39,7 @@ namespace Capstone.UniFarm.Domain.Models
         [StringLength(50)]
         public string? Status { get; set; }
         [Column(TypeName = "datetime")]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(7);
         [Column(TypeName = "datetime")]
         public DateTime? UpdatedAt { get; set; }
 

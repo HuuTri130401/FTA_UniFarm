@@ -359,7 +359,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                     if (isAnyFieldUpdated)
                     {
-                        existingProductItem.UpdatedAt = DateTime.Now;
+                        existingProductItem.UpdatedAt = DateTime.UtcNow.AddHours(7);
                     }
 
                     _unitOfWork.ProductItemRepository.Update(existingProductItem);

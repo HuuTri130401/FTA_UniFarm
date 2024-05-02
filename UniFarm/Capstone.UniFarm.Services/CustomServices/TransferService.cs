@@ -363,12 +363,12 @@ public class TransferService : ITransferService
                 return result;
             }
 
-            transfer.UpdatedAt = DateTime.Now;
+            transfer.UpdatedAt = DateTime.UtcNow.AddHours(7);
             transfer.UpdatedBy = defineUser.Id;
             transfer.Status = request.Status.ToString();
             if (request.Status.ToString() == EnumConstants.StationUpdateTransfer.Received.ToString())
             {
-                transfer.ReceivedDate = DateTime.Now;
+                transfer.ReceivedDate = DateTime.UtcNow.AddHours(7);
                 transfer.NoteReceived = request.NoteReceived;
             }
 
@@ -520,7 +520,7 @@ public class TransferService : ITransferService
             }
 
             transfer.Status = EnumConstants.StationUpdateTransfer.Resend.ToString();
-            transfer.UpdatedAt = DateTime.Now;
+            transfer.UpdatedAt = DateTime.UtcNow.AddHours(7);
             transfer.UpdatedBy = createdBy;
             await _unitOfWork.TransferRepository.UpdateAsync(transfer);
             var count = await _unitOfWork.SaveChangesAsync();

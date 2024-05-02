@@ -98,7 +98,7 @@ namespace Capstone.UniFarm.Services.CustomServices
 
                 farmHub.Image = await imageFarmhub;
                 farmHub.Status = EnumConstants.ActiveInactiveEnum.ACTIVE;
-                farmHub.CreatedAt = DateTime.Now;
+                farmHub.CreatedAt = DateTime.UtcNow.AddHours(7);
 
                 await _unitOfWork.FarmHubRepository.AddAsync(farmHub);
 

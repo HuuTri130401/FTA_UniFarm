@@ -68,10 +68,10 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<ApartmentRequestCreate, Apartment>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now));
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)));
             CreateMap<ApartmentRequestUpdate, Apartment>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now));
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)));
             CreateMap<Apartment, ApartmentResponse>();
 
             #endregion
@@ -81,7 +81,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<WalletRequest, Wallet>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => 0))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
 
             #endregion
@@ -90,12 +90,12 @@ namespace Capstone.UniFarm.Services.Commons
 
             CreateMap<StationRequestCreate, Station>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EnumConstants.ActiveInactiveEnum.ACTIVE));
 
             CreateMap<StationRequestUpdate, Station>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddHours(7)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
                         String.IsNullOrEmpty(src.Status) ? EnumConstants.ActiveInactiveEnum.ACTIVE : src.Status));
 

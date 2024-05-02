@@ -532,7 +532,7 @@ public class StationService : IStationService
                         StationId = item.StationId,
                         Title = title,
                         Content = content,
-                        UpdatedAt = item.UpdatedAt ?? item.ReceivedDate ?? DateTime.Now,
+                        UpdatedAt = item.UpdatedAt ?? item.ReceivedDate ?? DateTime.UtcNow.AddHours(7),
                         Code = item.Code ?? "EMPTY",
                         NotificationType = EnumConstants.NotificationType.Transfer
                     };
@@ -549,7 +549,7 @@ public class StationService : IStationService
                         Title = title,
                         Content = content,
                         UpdatedAt = item.CreatedAt ??
-                                    item.UpdatedAt ?? item.ReceivedDate ?? item.ExpectedReceiveDate ?? DateTime.Now,
+                                    item.UpdatedAt ?? item.ReceivedDate ?? item.ExpectedReceiveDate ?? DateTime.UtcNow.AddHours(7),
                         Code = item.Code ?? "EMPTY",
                         NotificationType = EnumConstants.NotificationType.Transfer
                     };

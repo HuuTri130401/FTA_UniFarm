@@ -33,7 +33,7 @@ namespace Capstone.UniFarm.Domain.Models
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(7);
         public DateTime? UpdatedAt { get; set; }
         public DateTime? PaymentDay { get; set; }
         [StringLength(100)]
