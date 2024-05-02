@@ -1080,6 +1080,43 @@ public class OrderService : IOrderService
             {
                 var checkExistOrder = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == newOrder.Id)
                     .FirstOrDefaultAsync();
+                
+                newOrder.IsPaid = true;
+                newOrder.ExpectedReceiveDate = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(1);
+                if (checkExistOrder == null)
+                {
+                    await _unitOfWork.OrderRepository.AddAsync(newOrder);
+                    var countInsert = await _unitOfWork.SaveChangesAsync();
+                    if (countInsert == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.IsError = true;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
+                        });
+                        return result;
+                    }
+                }
+                else
+                {
+                    newOrder.ExpectedReceiveDate = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(1);
+                    await _unitOfWork.OrderRepository.UpdateAsync(newOrder);
+                    var countUpdate = await _unitOfWork.SaveChangesAsync();
+                    if (countUpdate == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        result.IsError = true;
+                        result.Errors.Add(new Error()
+                        {
+                            Code = StatusCode.BadRequest,
+                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
+                        });
+                        return result;
+                    }
+                }
+                
                 var newTransaction = new Transaction()
                 {
                     Id = new Guid(),
@@ -1133,43 +1170,12 @@ public class OrderService : IOrderService
                     return result;
                 }
 
-                newOrder.IsPaid = true;
-                newOrder.ExpectedReceiveDate = DateTime.Now + TimeSpan.FromDays(1);
-                if (checkExistOrder == null)
-                {
-                    await _unitOfWork.OrderRepository.AddAsync(newOrder);
-                    var countInsert = await _unitOfWork.SaveChangesAsync();
-                    if (countInsert == 0)
-                    {
-                        await transaction.RollbackAsync();
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.BadRequest,
-                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
-                        });
-                        return result;
-                    }
-                }
-                else
-                {
-                    await _unitOfWork.OrderRepository.UpdateAsync(newOrder);
-                    var countUpdate = await _unitOfWork.SaveChangesAsync();
-                    if (countUpdate == 0)
-                    {
-                        await transaction.RollbackAsync();
-                        result.IsError = true;
-                        result.Errors.Add(new Error()
-                        {
-                            Code = StatusCode.BadRequest,
-                            Message = "Tạo đơn hàng thất bại!" + newOrder.Id
-                        });
-                        return result;
-                    }
-                }
+                
             }
 
             await transaction.CommitAsync();
+            
+            // data response
             var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
             foreach (var order in newListOrder)
             {
