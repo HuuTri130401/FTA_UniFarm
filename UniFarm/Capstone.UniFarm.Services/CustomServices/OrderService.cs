@@ -1331,6 +1331,7 @@ public class OrderService : IOrderService
             }
 
             order.CustomerStatus = EnumConstants.CustomerStatus.CanceledByCustomer.ToString();
+            order.DeliveryStatus = EnumConstants.DeliveryStatus.CanceledByCustomer.ToString();
             order.UpdatedAt = DateTime.Now;
             await _unitOfWork.OrderRepository.UpdateAsync(order);
             var countUpdate = await _unitOfWork.SaveChangesAsync();
