@@ -15,6 +15,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
     public async Task<List<Order>> FarmHubGetAllOrderToProcess(Guid farmhubId, Guid businessDayId)
     {
         return await _dbSet
+            .Include(st => st.Station)
             .Include(fr => fr.FarmHub)
             .Include(o => o.Customer)
             .Include(o => o.BusinessDay)

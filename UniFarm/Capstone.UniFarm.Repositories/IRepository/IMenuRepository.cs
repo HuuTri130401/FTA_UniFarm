@@ -14,5 +14,6 @@ namespace Capstone.UniFarm.Repositories.IRepository
         Task<List<Menu>> GetAllMenuByFarmHubIdAsync(Guid farmHubId);
         Task<List<Menu>> GetAllMenuInCurrentBusinessDay(Guid businessDayId);
         Task<Menu> GetSingleOrDefaultMenuAsync(Expression<Func<Menu, bool>> predicate);
+        Task<List<Guid>> GetDistinctFarmHubIdsByBusinessDayId(Guid businessDayId);
     }
 }
