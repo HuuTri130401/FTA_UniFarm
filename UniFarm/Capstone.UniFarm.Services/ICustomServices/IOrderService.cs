@@ -35,4 +35,7 @@ public interface IOrderService
     Task<OperationResult<OrderResponse.OrderResponseForCustomer>> CancelOrderByCustomer(Guid orderId, Guid payloadId);
     Task<OperationResult<IEnumerable<TrackingOrderResponse>>> TrackingOrder(Guid orderId, Guid payloadId);
     Task<Order?> GetOrderById(Guid orderId);
+    
+    // JobUpdateOrderStatusToExpired
+    Task UpdateOrderToExpired();
 }

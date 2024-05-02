@@ -263,7 +263,7 @@ try
     {
         DashboardTitle = "Farm To Apartments - Job Dashboard"
     });
-    RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
+    /*RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
         service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
     RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",
         service => service.RemoveProductItemInCartJob(), Cron.Minutely);
@@ -271,8 +271,20 @@ try
         service => service.CheckAndStopSellingDayJob(), "59 16 * * *");    
     RecurringJob.AddOrUpdate<ISettlementService>("CreateSettlementForFarmHub",
         service => service.SystemCreateSettlementForFarmHub(), Cron.Minutely);
+    RecurringJob.AddOrUpdate<IOrderService>("UpdateOrderToExpired",
+        service => service.UpdateOrderToExpired(), Cron.Minutely);*/
+    
+    RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
+        service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
+    RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",
+        service => service.RemoveProductItemInCartJob(), Cron.Hourly);
+    RecurringJob.AddOrUpdate<IBusinessDayService>("CheckAndStopSellingDay",
+        service => service.CheckAndStopSellingDayJob(), "59 16 * * *");    
+    RecurringJob.AddOrUpdate<ISettlementService>("CreateSettlementForFarmHub",
+        service => service.SystemCreateSettlementForFarmHub(), Cron.Hourly);
+    RecurringJob.AddOrUpdate<IOrderService>("UpdateOrderToExpired",
+        service => service.UpdateOrderToExpired(), Cron.Hourly);
     app.Run();
-
 
     /*static IEdmModel GetEdmModel()
     {

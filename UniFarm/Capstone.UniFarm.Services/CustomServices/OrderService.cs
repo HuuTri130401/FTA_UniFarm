@@ -338,7 +338,7 @@ public class OrderService : IOrderService
                     stationResponse.UpdatedAt = station.UpdatedAt;
                     stationResponse.Status = station.Status;
                 }
-                
+
                 var collectedHubResponse = new CollectedHubResponse();
                 if (order.CollectedHubId != null)
                 {
@@ -356,7 +356,10 @@ public class OrderService : IOrderService
 
                 foreach (var item in orderDetails)
                 {
-                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId); var productImage = await _unitOfWork.ProductImageRepository.FilterByExpression(x => x.ProductItemId == item.ProductItemId && x.DisplayIndex == 1).FirstOrDefaultAsync();
+                    var productItem = await _unitOfWork.ProductItemRepository.GetByIdAsync(item.ProductItemId);
+                    var productImage = await _unitOfWork.ProductImageRepository
+                        .FilterByExpression(x => x.ProductItemId == item.ProductItemId && x.DisplayIndex == 1)
+                        .FirstOrDefaultAsync();
                     var orderDetailResponse = new OrderDetailResponse()
                     {
                         ProductItemId = item.ProductItemId,
@@ -515,7 +518,7 @@ public class OrderService : IOrderService
                     result.IsError = true;
                     return result;
                 }
-                
+
 
                 if (request.DeliveryStatus == EnumConstants.StationStaffUpdateOrderStatus.AtStation)
                 {
@@ -873,7 +876,7 @@ public class OrderService : IOrderService
             foreach (var requestOrder in request.Orders)
             {
                 var orderDb = await listOrderDb.Where(x => x.Id == requestOrder.OrderId).FirstOrDefaultAsync();
-                
+
                 if (orderDb == null)
                 {
                     result.Message = "Không tìm thấy đơn hàng: " + requestOrder.OrderId;
@@ -903,6 +906,7 @@ public class OrderService : IOrderService
                             result.IsError = false;
                             return result;
                         }
+
                         listNewOrderDetail.Add(orderDetailDb);
                     }
 
@@ -989,12 +993,13 @@ public class OrderService : IOrderService
                     newListOrder.Add(order);
                 }
             }
-            
+
             // Check số lượng và tăng số lượng sold trong productItemInMenu
             foreach (var order in newListOrder)
             {
-                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId ?? Guid.Empty);
-                if(businessDay == null)
+                var businessDay =
+                    await _unitOfWork.BusinessDayRepository.GetByIdAsync(order.BusinessDayId ?? Guid.Empty);
+                if (businessDay == null)
                 {
                     await transaction.RollbackAsync();
                     result.Message = "Ngày kinh doanh không tồn tại!";
@@ -1002,6 +1007,7 @@ public class OrderService : IOrderService
                     result.IsError = false;
                     return result;
                 }
+
                 foreach (var orderDetail in order.OrderDetails)
                 {
                     var productInMenuList = await _unitOfWork.ProductItemInMenuRepository.FilterByExpression(
@@ -1061,7 +1067,7 @@ public class OrderService : IOrderService
                 });
                 return result;
             }
-            
+
             // Kiểm tra ví đủ tiền
             var totalAmount = newListOrder.Sum(x => x.TotalAmount);
             if (wallet.Balance < totalAmount)
@@ -1075,12 +1081,12 @@ public class OrderService : IOrderService
                 });
                 return result;
             }
-            
+
             foreach (var newOrder in newListOrder)
             {
                 var checkExistOrder = await _unitOfWork.OrderRepository.FilterByExpression(x => x.Id == newOrder.Id)
                     .FirstOrDefaultAsync();
-                
+
                 newOrder.IsPaid = true;
                 newOrder.ExpectedReceiveDate = DateTime.UtcNow.AddHours(7) + TimeSpan.FromDays(1);
                 if (checkExistOrder == null)
@@ -1116,7 +1122,7 @@ public class OrderService : IOrderService
                         return result;
                     }
                 }
-                
+
                 var newTransaction = new Transaction()
                 {
                     Id = new Guid(),
@@ -1172,7 +1178,7 @@ public class OrderService : IOrderService
             }
 
             await transaction.CommitAsync();
-            
+
             // data response
             var orderResponses = new List<OrderResponse.OrderResponseForCustomer>();
             foreach (var order in newListOrder)
@@ -1207,6 +1213,7 @@ public class OrderService : IOrderService
                     {
                         productItemResponse.ImageUrl = productImage.ImageUrl;
                     }
+
                     var orderDetailResponse = new OrderDetailResponseForCustomer()
                     {
                         Id = item.Id,
@@ -1486,7 +1493,7 @@ public class OrderService : IOrderService
     {
         return await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
     }
-    
+
     private IEnumerable<TrackingOrderResponse>? HandleTrackingOrder(Order order)
     {
         // Đơn hàng đã xác nhận lúc
@@ -1555,14 +1562,14 @@ public class OrderService : IOrderService
             OrderStatus = EnumConstants.DeliveryStatus.CanceledByCollectedHub,
             UpdatedAt = order.UpdatedAt
         };
-        
+
         var canceledByCustomer = new TrackingOrderResponse()
         {
             Title = "Đơn hàng đã bị hủy!",
             OrderStatus = EnumConstants.DeliveryStatus.CanceledByCustomer,
             UpdatedAt = order.UpdatedAt
         };
-        
+
         var pendingOrder = new TrackingOrderResponse()
         {
             Title = "Đơn hàng đang chờ xác nhận!",
@@ -1582,40 +1589,40 @@ public class OrderService : IOrderService
             transfer = _unitOfWork.TransferRepository.FilterByExpression(x => x.Id == order.TransferId)
                 .FirstOrDefault();
         }
-        
+
         var trackingOrderResponses = new List<TrackingOrderResponse>();
-       
-        if(order.CustomerStatus == EnumConstants.DeliveryStatus.Pending.ToString())
+
+        if (order.CustomerStatus == EnumConstants.DeliveryStatus.Pending.ToString())
         {
             trackingOrderResponses.Add(pendingOrder);
             return trackingOrderResponses;
         }
-        
+
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByFarmHub.ToString())
         {
             trackingOrderResponses.Add(canceledByFarmhub);
             return trackingOrderResponses;
         }
-        
+
         if (order.CustomerStatus == EnumConstants.DeliveryStatus.CanceledByCustomer.ToString())
         {
             trackingOrderResponses.Add(canceledByCustomer);
             return trackingOrderResponses;
         }
-        
+
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCollectedHub.ToString())
         {
             trackingOrderResponses.Add(canceledByCollectedHub);
             return trackingOrderResponses;
         }
-        
+
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.CanceledByCustomer.ToString())
         {
             canceledByCollectedHub.UpdatedAt = order.UpdatedAt;
             trackingOrderResponses.Add(canceledByCollectedHub);
             return trackingOrderResponses;
         }
-        
+
         // Đơn hàng đã được xác nhận
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
             || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
@@ -1671,7 +1678,7 @@ public class OrderService : IOrderService
             onTheWaytoStation.UpdatedAt = transfer?.CreatedAt;
             //trackingOrderResponses.Add(onTheWaytoStation);
         }
-        
+
         // Đơn hàng đã đến trạm
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
             || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
@@ -1682,7 +1689,7 @@ public class OrderService : IOrderService
             atStation.UpdatedAt = transfer?.ReceivedDate;
             //trackingOrderResponses.Add(atStation);
         }
-        
+
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
             || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
             || order.DeliveryStatus == EnumConstants.DeliveryStatus.ReadyForPickup.ToString()
@@ -1691,7 +1698,7 @@ public class OrderService : IOrderService
             readyForPickup.UpdatedAt = transfer?.ReceivedDate;
             //trackingOrderResponses.Add(readyForPickup);
         }
-        
+
         if (order.DeliveryStatus == EnumConstants.DeliveryStatus.PickedUp.ToString()
             || order.CustomerStatus == EnumConstants.CustomerStatus.PickedUp.ToString()
            )
@@ -1699,7 +1706,7 @@ public class OrderService : IOrderService
             pickedUp.UpdatedAt = order?.UpdatedAt;
             //trackingOrderResponses.Add(pickedUp);
         }
-        
+
         trackingOrderResponses.Add(onTheWayToCollectedHub);
         trackingOrderResponses.Add(atCollectedHub);
         trackingOrderResponses.Add(onTheWaytoStation);
@@ -1707,5 +1714,33 @@ public class OrderService : IOrderService
         trackingOrderResponses.Add(readyForPickup);
         trackingOrderResponses.Add(pickedUp);
         return trackingOrderResponses;
+    }
+
+    public async Task UpdateOrderToExpired()
+    {
+        var orders = await _unitOfWork.OrderRepository.FilterByExpression(x =>
+            x.CustomerStatus != EnumConstants.CustomerStatus.CanceledByCustomer.ToString()
+            && x.CustomerStatus != EnumConstants.CustomerStatus.CanceledByCollectedHub.ToString()
+            && x.CustomerStatus != EnumConstants.CustomerStatus.CanceledByFarmHub.ToString()
+            && x.CustomerStatus != EnumConstants.CustomerStatus.PickedUp.ToString()
+            && x.CustomerStatus != EnumConstants.CustomerStatus.Expired.ToString()
+            && x.IsPaid == true).ToListAsync();
+        foreach (var order in orders)
+        {
+            if (order.ExpiredDayInStation != null)
+            {
+                if (order.ExpiredDayInStation.GetValueOrDefault() < DateTime.UtcNow.AddHours(7))
+                {
+                    order.CustomerStatus = EnumConstants.CustomerStatus.Expired.ToString();
+                    order.DeliveryStatus = EnumConstants.DeliveryStatus.Expired.ToString();
+                    await _unitOfWork.OrderRepository.UpdateAsync(order);
+                    var count = await _unitOfWork.SaveChangesAsync();
+                    if (count == 0)
+                    {
+                        throw new Exception("Cập nhật trạng thái đơn hàng thất bại!");
+                    }
+                }
+            }
+        }
     }
 }
