@@ -188,8 +188,8 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<ProductItemInMenu, ProductItemInMenuResponseForCustomer>().ReverseMap();
 
             CreateMap<BusinessDay, BusinessDayRequest>().ReverseMap();
+            CreateMap<BusinessDay, BusinessDayRequestUpdate>().ReverseMap();
             CreateMap<BusinessDay, BusinessDayResponse>().ReverseMap();
-            
             
             CreateMap<Batch, BatchRequest>().ReverseMap();
             CreateMap<Batch, BatchRequestUpdate>().ReverseMap();
@@ -210,6 +210,7 @@ namespace Capstone.UniFarm.Services.Commons
             CreateMap<Order, OrderResponseToProcess>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.UserName : null))
                 .ForMember(dest => dest.BusinessDayName, opt => opt.MapFrom(src => src.BusinessDay != null ? src.BusinessDay.Name : null))
+                .ForMember(dest => dest.ShipAddress, opt => opt.MapFrom(src => src.Station.Address))
                 .ForMember(dest => dest.BusinessDayOpen, opt => opt.MapFrom(src => src.BusinessDay.OpenDay))
                 .ReverseMap();
             CreateMap<Order, OrdersInBatchResponse>()

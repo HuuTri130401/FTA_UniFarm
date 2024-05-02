@@ -14,5 +14,6 @@ namespace Capstone.UniFarm.Services.ICustomServices
     {
         Task<OperationResult<bool>> PaymentProfitForFarmHubInBusinessDay(Guid businessDayId, Guid systemAcountId);
         Task<OperationResult<FarmHubSettlementResponse>> GetSettlementForFarmHub(Guid businessDayId, Guid farmHubId);
+        Task<OperationResult<FarmHubSettlementResponse>> SystemCreateSettlementForFarmHub();
     }
 }

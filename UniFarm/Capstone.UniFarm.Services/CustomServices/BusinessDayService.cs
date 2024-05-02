@@ -88,8 +88,16 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
-                if (businessDay != null)
+                if (businessDay != null && businessDay.Status == "Active")
                 {
+                    var menus = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(businessDayId);
+                    if (menus.Any())
+                    {
+                        result.AddError(StatusCode.BadRequest,
+                            "Cannot delete BusinessDay because it has associated menus. Please delete the menus first.");
+                        return result;
+                    }
+
                     businessDay.Status = "Inactive";
                     _unitOfWork.BusinessDayRepository.Update(businessDay);
                     var checkResult = _unitOfWork.Save();
@@ -101,19 +109,19 @@ namespace Capstone.UniFarm.Services.CustomServices
                     else
                     {
                         result.AddError(StatusCode.BadRequest, "Delete BusinessDay Failed!");
-                        ;
                     }
                 }
                 else
                 {
                     result.AddResponseStatusCode(StatusCode.NotFound,
-                        $"Can't find BusinessDay have Id: {businessDayId}. Delete Faild!.", false);
+                        $"Can't find or You Can not Delete this BusinessDay have Id: {businessDayId}. Delete Faild!.", false);
                 }
 
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred in DeleteBusinessDay Service Method");
                 throw;
             }
         }
@@ -297,7 +305,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetAllBusinessDays Service Method");
+                _logger.LogError(ex, "Error occurred in GetAllBusinessDaysContainBatchQuantity Service Method");
                 throw;
             }
         }
@@ -332,10 +340,41 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        public Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId,
+        public async Task<OperationResult<bool>> UpdateBusinessDay(Guid businessDayId,
             BusinessDayRequestUpdate businessDayRequestUpdate)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<bool>();
+            try
+            {
+                var businessDay = await _unitOfWork.BusinessDayRepository.GetByIdAsync(businessDayId);
+                if (businessDay != null)
+                {
+                    businessDay.Name = businessDayRequestUpdate.Name;
+                    businessDay.UpdatedAt = DateTime.UtcNow.AddHours(7);
+                    _unitOfWork.BusinessDayRepository.Update(businessDay);
+                    var checkResult = _unitOfWork.Save();
+                    if (checkResult > 0)
+                    {
+                        result.AddResponseStatusCode(StatusCode.Ok,
+                            $"Update BusinessDay have Id: {businessDayId} Success.", true);
+                    }
+                    else
+                    {
+                        result.AddError(StatusCode.BadRequest, "Update BusinessDay Failed!");
+                    }
+                }
+                else
+                {
+                    result.AddResponseStatusCode(StatusCode.NotFound,
+                        $"Can't find BusinessDay have Id: {businessDayId}. Update Faild!.", false);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in UpdateBusinessDay Service Method");
+                throw;
+            }
         }
 
         public async Task UpdateEndOfDayForAllBusinessDays()
@@ -376,7 +415,41 @@ namespace Capstone.UniFarm.Services.CustomServices
             }
         }
 
-        
+        public async Task CheckAndStopSellingDayJob()
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                var businessDays = await _unitOfWork.BusinessDayRepository.GetAllActiveBusinessDaysUpToToday();
+                foreach (var businessDay in businessDays)
+                {
+                    if(businessDay != null)
+                    {
+                        var menus = await _unitOfWork.MenuRepository.GetAllMenuInCurrentBusinessDay(businessDay.Id);
+                        if (!menus.Any())
+                        {
+                            businessDay.Status = "StopSellingDay";
+                            businessDay.StopSellingDay = DateTime.UtcNow.AddHours(7);
+                            _unitOfWork.BusinessDayRepository.Update(businessDay);
+                            var checkResult = _unitOfWork.Save();
+                            if (checkResult > 0)
+                            {
+                                _logger.LogInformation($"Business Day {businessDay.Id} updated to StopSellingDay at {DateTime.UtcNow.AddHours(7)}");
+                                result.AddResponseStatusCode(StatusCode.Ok, $"Updated BusinessDay {businessDay.Id} to StopSellingDay", true);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred in CheckAndStopSellingDayJob Service Method");
+                throw;
+            }
+        }
+
+
+
         // Remove all orders status isPaid == false when business day status is stop selling
         public async Task<OperationResult<bool>> RemoveProductItemInCartJob()
         {

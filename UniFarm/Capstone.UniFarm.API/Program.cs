@@ -119,8 +119,8 @@ try
     builder.Services.AddSingleton<VNPayConfig>();
     builder.Services.AddHttpClient();
     builder.Services.AddSingleton<IGoongMapsService, GoongMapsService>();
-    
-    
+
+
     //============= Firebase Notification =============//
     string path = "credential.json";
     var firebaseCredential = GoogleCredential.FromFile(path);
@@ -187,7 +187,7 @@ try
     builder.Services.AddScoped<ITransactionService, TransactionService>();
     builder.Services.AddScoped<IPriceService, PriceService>();
     builder.Services.AddScoped<IPriceItemService, PriceItemService>();
-    
+
     //============Configure logging============//
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
@@ -264,7 +264,12 @@ try
         service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
     RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",
         service => service.RemoveProductItemInCartJob(), Cron.Minutely);
+    RecurringJob.AddOrUpdate<IBusinessDayService>("CheckAndStopSellingDay",
+        service => service.CheckAndStopSellingDayJob(), "59 16 * * *");    
+    RecurringJob.AddOrUpdate<ISettlementService>("CreateSettlementForFarmHub",
+        service => service.SystemCreateSettlementForFarmHub(), Cron.Minutely);
     app.Run();
+
 
     /*static IEdmModel GetEdmModel()
     {
