@@ -254,7 +254,7 @@ namespace Capstone.UniFarm.Services.CustomServices
             try
             {
                 var listBusinessDays = await _unitOfWork.BusinessDayRepository
-                    .GetAllWithoutPaging(false, "CreatedAt", x => x.Status != EnumConstants.ActiveInactiveEnum.INACTIVE)
+                    .GetAllWithoutPaging(false, "OpenDay", x => x.Status != EnumConstants.ActiveInactiveEnum.INACTIVE)
                     .ToListAsync();
                 var businessDayResponses = new List<BusinessDayContainBatchStatistics>();
                 foreach (var businessDay in listBusinessDays)
