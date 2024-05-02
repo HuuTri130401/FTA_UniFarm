@@ -239,7 +239,7 @@ try
     {
         options.AddDefaultPolicy(builder =>
         {
-            builder.WithOrigins("https://fta-black.vercel.app")
+            builder.WithOrigins("https://farmtoapartment.vercel.app")
                 .AllowAnyOrigin()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
@@ -259,7 +259,10 @@ try
     app.MapControllers();
     app.UseCors();
 
-    app.UseHangfireDashboard("/dashboard");
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        DashboardTitle = "Farm To Apartments - Job Dashboard"
+    });
     RecurringJob.AddOrUpdate<IBusinessDayService>("UpdateEndOfDay",
         service => service.UpdateEndOfDayForAllBusinessDays(), Cron.Minutely);
     RecurringJob.AddOrUpdate<IBusinessDayService>("RemoveProductItemInCartJob",

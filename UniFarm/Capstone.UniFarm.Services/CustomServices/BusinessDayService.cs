@@ -394,9 +394,25 @@ namespace Capstone.UniFarm.Services.CustomServices
                 {
                     if (businessDays.Contains(order.BusinessDayId ?? Guid.Empty))
                     {
+                        
+                        var orderDerails = await _unitOfWork.OrderDetailRepository
+                            .FilterByExpression(x => x.OrderId == order.Id).ToListAsync();
+                        foreach (var orderDetail in orderDerails)
+                        {
+                            await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
+                            var checkResult = await _unitOfWork.SaveChangesAsync();
+                            if (checkResult <= 0)
+                            {
+                                await transaction.RollbackAsync();
+                                _logger.LogInformation(
+                                    $"Remove order detail {orderDetail.ProductItemId} in cart in business id {order.BusinessDayId} failure! ");
+                                result.AddError(StatusCode.BadRequest, "Remove Product Item In Cart Failed!");
+                                return result;
+                            }
+                        }
                         await _unitOfWork.OrderRepository.DeleteAsync(order);
-                        var checkResult = await _unitOfWork.SaveChangesAsync();
-                        if (checkResult <= 0)
+                        var checkRemoveOrder = await _unitOfWork.SaveChangesAsync();
+                        if (checkRemoveOrder <= 0)
                         {
                             await transaction.RollbackAsync();
                             _logger.LogInformation(
