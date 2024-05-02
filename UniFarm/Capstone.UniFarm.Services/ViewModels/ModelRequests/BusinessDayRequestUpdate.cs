@@ -8,5 +8,6 @@ namespace Capstone.UniFarm.Services.ViewModels.ModelRequests
 {
     public class BusinessDayRequestUpdate
     {
+        public string? Name { get; set; }
     }
 }

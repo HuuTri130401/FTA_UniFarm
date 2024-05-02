@@ -32,5 +32,15 @@ namespace Capstone.UniFarm.Repositories.Repository
         {
             return await _dbSet.Where(predicate).FirstOrDefaultAsync();
         }
+
+        public async Task<List<Guid>> GetDistinctFarmHubIdsByBusinessDayId(Guid businessDayId)
+        {
+            var farmHubIds = await _dbSet
+                               .Where(m => m.BusinessDayId == businessDayId)
+                               .Select(m => m.FarmHubId)
+                               .Distinct()
+                               .ToListAsync();
+            return farmHubIds;
+        }
     }
 }

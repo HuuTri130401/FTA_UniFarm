@@ -108,5 +108,13 @@ namespace Capstone.UniFarm.API.Controllers
             var response = await _businessDayService.DeleteBusinessDay(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
         }
+
+        [SwaggerOperation(Summary = "Update BusinessDay - ADMIN - {Huu Tri}")]
+        [HttpPut("business-day-update/{id}")]
+        public async Task<IActionResult> UpdateBusinessDay(Guid id, BusinessDayRequestUpdate businessDayRequestUpdate)
+        {
+            var response = await _businessDayService.UpdateBusinessDay(id, businessDayRequestUpdate);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response);
+        }
     }
 }

@@ -76,5 +76,19 @@ namespace Capstone.UniFarm.Repositories.Repository
                 _dbSet.Update(businessDay);
             }
         }
+
+        public async Task<IEnumerable<BusinessDay>> GetAllActiveBusinessDaysUpToToday()
+        {
+            return await _dbSet
+            .Where(bd => bd.OpenDay <= DateTime.UtcNow.AddHours(7).Date && bd.Status == "Active")
+            .ToListAsync();
+        }        
+        
+        public async Task<IEnumerable<BusinessDay>> GetAllActiveBusinessDay()
+        {
+            return await _dbSet
+            .Where(bd => bd.Status == "Active")
+            .ToListAsync();
+        }
     }
 }
